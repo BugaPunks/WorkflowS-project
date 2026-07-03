@@ -86,8 +86,8 @@ async function main() {
        description: 'Plataforma para gestión de notas y asistencia',
        status: 'ACTIVE',
        ownerId: admin.id,
-       startDate: new Date('2025-12-01'),
-       endDate: new Date('2026-02-28'),
+       startDate: new Date('2026-04-10'),
+        endDate: new Date('2026-07-15'),
       members: {
         create: [
           { userId: dev1.id, role: 'TEAM_DEVELOPER' },
@@ -218,8 +218,8 @@ async function main() {
        name: 'Sprint 1: Autenticación',
        description: 'Implementación del sistema de login y roles',
        status: 'COMPLETED',
-       startDate: new Date('2025-12-01'),
-       endDate: new Date('2025-12-14'),
+       startDate: new Date('2026-04-12'),
+       endDate: new Date('2026-04-26'),
      },
    });
 
@@ -240,10 +240,10 @@ async function main() {
        title: 'Login de Usuarios',
        description: 'Como usuario quiero loguearme para acceder al sistema',
        priority: 'HIGH',
-       storyPoints: 5,
-       status: 'COMPLETED',
-       completedAt: new Date('2025-12-12'),
-       assigneeId: dev1.id,
+        storyPoints: 5,
+        status: 'COMPLETED',
+        completedAt: new Date('2026-04-23'),
+        assigneeId: dev1.id,
      },
    });
 
@@ -256,8 +256,8 @@ async function main() {
        status: 'COMPLETED',
        priority: 'HIGH',
        assigneeId: dev1.id,
-       completedAt: new Date('2025-12-05'),
-       deadline: new Date('2025-12-10'),
+       completedAt: new Date('2026-04-18'),
+        deadline: new Date('2026-04-23'),
      },
    });
 
@@ -306,8 +306,8 @@ async function main() {
        name: 'Sprint 2: Dashboard',
        description: 'Panel principal para alumnos y docentes',
        status: 'ACTIVE',
-       startDate: new Date('2025-12-15'),
-       endDate: new Date('2025-12-29'),
+       startDate: new Date('2026-04-27'),
+        endDate: new Date('2026-05-11'),
      },
    });
 
@@ -332,7 +332,7 @@ async function main() {
        title: 'Frontend Componente Tabla',
        status: 'IN_PROGRESS',
        assigneeId: dev2.id,
-       deadline: new Date('2025-12-25'),
+       deadline: new Date('2026-05-08'),
      },
    });
 
@@ -343,8 +343,8 @@ async function main() {
        description: 'Tienda en línea con carrito de compras',
        status: 'ACTIVE',
        ownerId: admin.id,
-       startDate: new Date('2026-01-01'),
-       endDate: new Date('2026-04-01'),
+       startDate: new Date('2026-04-20'),
+        endDate: new Date('2026-07-20'),
       members: {
         create: [
           { userId: dev1.id, role: 'PRODUCT_OWNER' },

@@ -21,3 +21,11 @@ dev.db
 uploads/
 .qodo
 .env
+
+# Openspec
+.openspec/
+openspec/
+.agent/
+.agents/
+.opencode/
+.augment/
