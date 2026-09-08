@@ -6,9 +6,13 @@ interface SessionContextType {
 	session: User | null;
 	loading: boolean;
 	isAuthenticated: boolean;
-	login: (userData: User) => void;
+	login: (
+		userData: Partial<User> & Pick<User, "id" | "name" | "email" | "role">,
+		token: string,
+	) => void;
 	logout: () => void;
 	permissions: string[];
+	token: string | null;
 }
 
 const SessionContext = createContext<SessionContextType | null>(null);
@@ -17,12 +21,13 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
 	const [session, setSession] = useState<User | null>(null);
+	const [token, setToken] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [permissions, setPermissions] = useState<string[]>([]);
 
 	useEffect(() => {
-		// Cargar sesión desde localStorage al inicio
 		const userData = localStorage.getItem("user");
+		const storedToken = localStorage.getItem("token");
 		if (userData) {
 			try {
 				const parsedUser = JSON.parse(userData);
@@ -31,11 +36,13 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 				console.error("Error al parsear los datos de sesión:", error);
 			}
 		}
+		if (storedToken) {
+			setToken(storedToken);
+		}
 		setLoading(false);
 	}, []);
 
 	useEffect(() => {
-		// Actualizar permisos según el rol del usuario
 		if (session) {
 			const newPermissions = getPermissionsByRole(session.role);
 			setPermissions(newPermissions);
@@ -44,19 +51,23 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 		}
 	}, [session]);
 
-	const login = (userData: User) => {
-		// Filtrar el usuario para no guardar el password en localStorage
-		// Usamos `_password` para indicar que es intencionalmente no utilizado
+	const login = (
+		userData: Partial<User> & Pick<User, "id" | "name" | "email" | "role">,
+		tokenValue: string,
+	) => {
 		const { password: _password, ...userForStorage } = userData;
-		// Usar la sintaxis spread del objeto para ignorar un valor sin usar
-		setSession({ ...userData, password: "" }); // No almacenar el password en la sesión
+		setSession({ ...userData, password: "" } as User);
+		setToken(tokenValue);
 		localStorage.setItem("user", JSON.stringify(userForStorage));
+		localStorage.setItem("token", tokenValue);
 	};
 
 	const logout = () => {
 		setSession(null);
+		setToken(null);
 		setPermissions([]);
 		localStorage.removeItem("user");
+		localStorage.removeItem("token");
 	};
 
 	const value: SessionContextType = {
@@ -66,6 +77,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 		login,
 		logout,
 		permissions,
+		token,
 	};
 
 	return (

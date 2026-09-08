@@ -1,10 +1,33 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../db";
+import { authenticateToken } from "../middleware/auth";
+import { requireSystemRole } from "../middleware/system-rbac";
 
 const router = Router();
 
-// GET todos los proyectos
-router.get("/", async (req, res) => {
+const projectSchema = z.object({
+	name: z.string().min(1).max(200),
+	description: z.string().max(2000).optional(),
+	ownerId: z.string(),
+	startDate: z.string().optional(),
+	endDate: z.string().optional(),
+});
+
+const projectUpdateSchema = z.object({
+	name: z.string().min(1).max(200).optional(),
+	description: z.string().max(2000).optional(),
+	startDate: z.string().optional(),
+	endDate: z.string().optional(),
+});
+
+const memberSchema = z.object({
+	userId: z.string(),
+	role: z.enum(["SCRUM_MASTER", "PRODUCT_OWNER", "TEAM_DEVELOPER"]),
+});
+
+// GET todos los proyectos - any authenticated user
+router.get("/", authenticateToken, async (req, res) => {
 	try {
 		const { memberId } = req.query;
 		const whereClause = memberId
@@ -29,20 +52,19 @@ router.get("/", async (req, res) => {
 		res.json(projects);
 	} catch (error) {
 		console.error("Error al obtener proyectos:", error);
-		res.status(500).json({
-			error: "Error al obtener proyectos",
-			details: error instanceof Error ? error.message : "Unknown error",
-		});
+		res.status(500).json({ error: "Error al obtener proyectos" });
 	}
 });
 
-// GET proyecto por ID
-router.get("/:id", async (req, res) => {
+// GET proyecto por ID - any authenticated user
+router.get("/:id", authenticateToken, async (req, res) => {
 	try {
 		const project = await prisma.project.findUnique({
 			where: { id: req.params.id },
 			include: {
-				owner: true,
+				owner: {
+					select: { id: true, name: true, email: true },
+				},
 				members: {
 					include: {
 						user: {
@@ -66,158 +88,176 @@ router.get("/:id", async (req, res) => {
 		res.json({ data: project });
 	} catch (error) {
 		console.error("Error al obtener proyecto:", error);
-		res.status(500).json({
-			error: "Error al obtener proyecto",
-			details: error instanceof Error ? error.message : "Unknown error",
-		});
+		res.status(500).json({ error: "Error al obtener proyecto" });
 	}
 });
 
-// POST crear proyecto
-router.post("/", async (req, res) => {
-	try {
-		const { name, description, ownerId, startDate, endDate } = req.body;
+// POST crear proyecto - ADMIN only
+router.post(
+	"/",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			const parsed = projectSchema.safeParse(req.body);
+			if (!parsed.success) {
+				return res.status(400).json({ error: "Datos inválidos" });
+			}
 
-		if (!name || !ownerId) {
-			return res.status(400).json({ error: "Faltan campos requeridos" });
-		}
+			const { name, description, ownerId, startDate, endDate } = parsed.data;
 
-		const project = await prisma.project.create({
-			data: {
-				name,
-				description,
-				ownerId,
-				startDate: startDate ? new Date(startDate) : undefined,
-				endDate: endDate ? new Date(endDate) : undefined,
-			},
-		});
-		res.status(201).json({ data: project });
-	} catch (error) {
-		console.error("Error al crear proyecto:", error);
-		res.status(500).json({
-			error: "Error al crear proyecto",
-			details: error instanceof Error ? error.message : "Unknown error",
-		});
-	}
-});
-
-// PUT actualizar proyecto
-router.put("/:id", async (req, res) => {
-	try {
-		const { startDate, endDate, ...rest } = req.body;
-		const project = await prisma.project.update({
-			where: { id: req.params.id },
-			data: {
-				...rest,
-				startDate: startDate ? new Date(startDate) : undefined,
-				endDate: endDate ? new Date(endDate) : undefined,
-			},
-		});
-		res.json({ data: project });
-	} catch (error) {
-		console.error("Error al actualizar proyecto:", error);
-		res.status(500).json({
-			error: "Error al actualizar proyecto",
-			details: error instanceof Error ? error.message : "Unknown error",
-		});
-	}
-});
-
-// POST asignar miembro a proyecto
-router.post("/:id/members", async (req, res) => {
-	try {
-		const projectId = req.params.id;
-		const { userId, role } = req.body; // role: SCRUM_MASTER, PRODUCT_OWNER, TEAM_DEVELOPER
-
-		if (!userId || !role) {
-			return res
-				.status(400)
-				.json({ error: "Faltan campos requeridos (userId, role)" });
-		}
-
-		// Check if already member
-		const existingMember = await prisma.projectMember.findUnique({
-			where: {
-				projectId_userId: {
-					projectId,
-					userId,
+			const project = await prisma.project.create({
+				data: {
+					name,
+					description,
+					ownerId,
+					startDate: startDate ? new Date(startDate) : undefined,
+					endDate: endDate ? new Date(endDate) : undefined,
 				},
-			},
-		});
-
-		if (existingMember) {
-			// Update role if exists
-			const updatedMember = await prisma.projectMember.update({
-				where: { id: existingMember.id },
-				data: { role },
 			});
-			return res.json({ data: updatedMember, message: "Rol actualizado" });
+			res.status(201).json({ data: project });
+		} catch (error) {
+			console.error("Error al crear proyecto:", error);
+			res.status(500).json({ error: "Error al crear proyecto" });
 		}
+	},
+);
 
-		const member = await prisma.projectMember.create({
-			data: {
-				projectId,
-				userId,
-				role,
-			},
-			include: {
-				project: { select: { name: true } },
-			},
-		});
+// PUT actualizar proyecto - ADMIN only
+router.put(
+	"/:id",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			const parsed = projectUpdateSchema.safeParse(req.body);
+			if (!parsed.success) {
+				return res.status(400).json({ error: "Datos inválidos" });
+			}
+			const { name, description, startDate, endDate } = parsed.data;
 
-		// Notificar al usuario
-		await prisma.notification.create({
-			data: {
-				userId,
-				title: "Nuevo Proyecto Asignado",
-				message: `Has sido añadido al proyecto "${member.project.name}" como ${role}`,
-				type: "PROJECT_ASSIGNED",
-			},
-		});
+			const project = await prisma.project.update({
+				where: { id: req.params.id },
+				data: {
+					...(name !== undefined && { name }),
+					...(description !== undefined && { description }),
+					...(startDate !== undefined && { startDate: new Date(startDate) }),
+					...(endDate !== undefined && { endDate: new Date(endDate) }),
+				},
+			});
+			res.json({ data: project });
+		} catch (error) {
+			console.error("Error al actualizar proyecto:", error);
+			res.status(500).json({ error: "Error al actualizar proyecto" });
+		}
+	},
+);
 
-		res.status(201).json({ data: member });
-	} catch (error) {
-		console.error("Error al asignar miembro:", error);
-		res.status(500).json({
-			error: "Error al asignar miembro",
-			details: error instanceof Error ? error.message : "Unknown error",
-		});
-	}
-});
+// POST asignar miembro a proyecto - ADMIN only
+router.post(
+	"/:id/members",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			const projectId = req.params.id;
+			const parsed = memberSchema.safeParse(req.body);
+			if (!parsed.success) {
+				return res
+					.status(400)
+					.json({ error: "Datos inválidos: userId y role requeridos" });
+			}
 
-// DELETE eliminar miembro de proyecto
-router.delete("/:id/members/:userId", async (req, res) => {
-	try {
-		const { id: projectId, userId } = req.params;
-		await prisma.projectMember.delete({
-			where: {
-				projectId_userId: {
+			const { userId, role } = parsed.data;
+
+			// Check if already member
+			const existingMember = await prisma.projectMember.findUnique({
+				where: {
+					projectId_userId: {
+						projectId,
+						userId,
+					},
+				},
+			});
+
+			if (existingMember) {
+				// Update role if exists
+				const updatedMember = await prisma.projectMember.update({
+					where: { id: existingMember.id },
+					data: { role },
+				});
+				return res.json({ data: updatedMember, message: "Rol actualizado" });
+			}
+
+			const member = await prisma.projectMember.create({
+				data: {
 					projectId,
 					userId,
+					role,
 				},
-			},
-		});
-		res.json({ message: "Miembro eliminado del proyecto" });
-	} catch (error) {
-		console.error("Error al eliminar miembro:", error);
-		res.status(500).json({ error: "Error al eliminar miembro" });
-	}
-});
+				include: {
+					project: { select: { name: true } },
+				},
+			});
 
-// DELETE proyecto
-router.delete("/:id", async (req, res) => {
-	try {
-		await prisma.project.delete({
-			where: { id: req.params.id },
-		});
-		res.json({ data: { message: "Proyecto eliminado" } });
-	} catch (error) {
-		console.error("Error al eliminar proyecto:", error);
-		res.status(500).json({
-			error: "Error al eliminar proyecto",
-			details: error instanceof Error ? error.message : "Unknown error",
-		});
-	}
-});
+			// Notificar al usuario
+			await prisma.notification.create({
+				data: {
+					userId,
+					title: "Nuevo Proyecto Asignado",
+					message: `Has sido añadido al proyecto "${member.project.name}" como ${role}`,
+					type: "PROJECT_ASSIGNED",
+				},
+			});
+
+			res.status(201).json({ data: member });
+		} catch (error) {
+			console.error("Error al asignar miembro:", error);
+			res.status(500).json({ error: "Error al asignar miembro" });
+		}
+	},
+);
+
+// DELETE eliminar miembro de proyecto - ADMIN only
+router.delete(
+	"/:id/members/:userId",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			const { id: projectId, userId } = req.params;
+			await prisma.projectMember.delete({
+				where: {
+					projectId_userId: {
+						projectId,
+						userId,
+					},
+				},
+			});
+			res.json({ message: "Miembro eliminado del proyecto" });
+		} catch (error) {
+			console.error("Error al eliminar miembro:", error);
+			res.status(500).json({ error: "Error al eliminar miembro" });
+		}
+	},
+);
+
+// DELETE proyecto - ADMIN only
+router.delete(
+	"/:id",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			await prisma.project.delete({
+				where: { id: req.params.id },
+			});
+			res.json({ data: { message: "Proyecto eliminado" } });
+		} catch (error) {
+			console.error("Error al eliminar proyecto:", error);
+			res.status(500).json({ error: "Error al eliminar proyecto" });
+		}
+	},
+);
 
 export default router;

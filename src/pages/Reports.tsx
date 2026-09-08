@@ -70,7 +70,9 @@ export default function Reports() {
 
 			try {
 				// Fetch projects
-				const projectsData = await projectAPI.getAll({ memberId: user.id });
+				const projectsData = (await projectAPI.getAll({
+					memberId: user.id,
+				})) as Project[];
 				setProjects(projectsData || []);
 
 				if (projectsData && projectsData.length > 0) {

@@ -7,7 +7,7 @@ test.describe("Notification System", () => {
 		request,
 	}) => {
 		// 1. Login as Admin
-		const { id: userId, email: userEmail } = await loginViaApi(
+		const { id: userId, email: userEmail, token } = await loginViaApi(
 			page,
 			request,
 			"admin",
@@ -36,13 +36,9 @@ test.describe("Notification System", () => {
 		const projectId = url.split("/projects/")[1];
 
 		// 3. Create Task via API assigned to self
-		// Login in request context to get cookie
-		await request.post("http://localhost:5000/api/auth/login", {
-			data: { email: userEmail, password: "password123" },
-		});
-
 		const taskTitle = `Tarea Notificación ${timestamp}`;
 		const taskRes = await request.post("http://localhost:5000/api/tasks", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				title: taskTitle,
 				description: "Testing notifications",

@@ -177,7 +177,7 @@ export default function GradingView() {
 	};
 
 	const handleSubmit = async () => {
-		if (!selectedRubric || !user || !target) return;
+		if (!selectedRubric || !user || !target || !projectId) return;
 
 		try {
 			setIsSaving(true);

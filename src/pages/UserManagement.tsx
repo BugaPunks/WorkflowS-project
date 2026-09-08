@@ -57,7 +57,7 @@ export default function UserManagement() {
 		setFormData({
 			name: "",
 			email: "",
-			role: "TEAM_DEVELOPER",
+			role: "TEAM_DEVELOPER" as UserRole,
 			active: true,
 			password: "",
 		});

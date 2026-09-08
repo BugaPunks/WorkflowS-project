@@ -7,17 +7,18 @@ test.describe("Retrospective Board", () => {
 
 	test.beforeEach(async ({ page, request }) => {
 		// 1. Login as Admin to setup
-		await loginViaApi(page, request, "admin_retro", "ADMIN");
+		const { id: retroId, token: retroToken } = await loginViaApi(page, request, `admin_retro_${Date.now()}@test.com`, "ADMIN");
 
 		// 2. Create Project
 		const timestamp = Date.now();
 		const _projectRes = await request.post(
 			"http://localhost:5000/api/projects",
 			{
+				headers: { Authorization: `Bearer ${retroToken}` },
 				data: {
 					name: `Retro Project ${timestamp}`,
 					description: "Test for Retrospectives",
-					ownerId: "temp-id",
+					ownerId: retroId,
 				},
 			},
 		);
@@ -28,10 +29,10 @@ test.describe("Retrospective Board", () => {
 		page,
 		request,
 	}) => {
-		const { id: userId } = await loginViaApi(
+		const { id: userId, token } = await loginViaApi(
 			page,
 			request,
-			"scrum_master",
+			`scrum_master_${Date.now()}@test.com`,
 			"ADMIN",
 		);
 
@@ -40,6 +41,7 @@ test.describe("Retrospective Board", () => {
 		const projectRes = await request.post(
 			"http://localhost:5000/api/projects",
 			{
+				headers: { Authorization: `Bearer ${token}` },
 				data: {
 					name: `Retro Project ${timestamp}`,
 					description: "Test",
@@ -52,6 +54,7 @@ test.describe("Retrospective Board", () => {
 
 		// Create Sprint (Required for Retro)
 		const sprintRes = await request.post("http://localhost:5000/api/sprints", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				projectId,
 				name: "Sprint 1",
@@ -74,18 +77,27 @@ test.describe("Retrospective Board", () => {
 		// 1. Add "Good" Item
 		await page.getByRole("button", { name: "+ Añadir Nota" }).first().click();
 		await page.fill("textarea", "Great Teamwork");
+		const postGood = page.waitForResponse(
+			(resp) => resp.url().includes("/api/retrospectives") && resp.request().method() === "POST",
+		);
 		await page.getByRole("button", { name: "Añadir", exact: true }).click();
+		await postGood;
 		await expect(page.getByText("Great Teamwork")).toBeVisible();
 
 		// 2. Add "Bad" Item (Second column)
 		await page.getByRole("button", { name: "+ Añadir Nota" }).nth(1).click();
 		await page.fill("textarea", "Server Downtime");
+		const postBad = page.waitForResponse(
+			(resp) => resp.url().includes("/api/retrospectives") && resp.request().method() === "POST",
+		);
 		await page.getByRole("button", { name: "Añadir", exact: true }).click();
+		await postBad;
 		await expect(page.getByText("Server Downtime")).toBeVisible();
 
 		// 3. Reload to verify persistence
 		await page.reload();
 		await page.getByRole("button", { name: "Retrospectiva" }).click();
+
 		await expect(page.getByText("Great Teamwork")).toBeVisible();
 		await expect(page.getByText("Server Downtime")).toBeVisible();
 

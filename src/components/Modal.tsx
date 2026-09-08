@@ -42,7 +42,7 @@ export function Modal({
 					className,
 				)}
 			>
-				{(title || onClose) && (
+				{title && (
 					<div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
 						{title && (
 							<h3 className="text-lg font-semibold text-gray-900">{title}</h3>

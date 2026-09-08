@@ -13,9 +13,11 @@ async function apiRequest<T = unknown>(
 	options: RequestOptions = {},
 ): Promise<T> {
 	const url = `${API_BASE_URL}${endpoint}`;
-	const headers = {
+	const token = localStorage.getItem("token");
+	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
-		...options.headers,
+		...(token ? { Authorization: `Bearer ${token}` } : {}),
+		...(options.headers as Record<string, string>),
 	};
 
 	try {
@@ -23,6 +25,13 @@ async function apiRequest<T = unknown>(
 			...options,
 			headers,
 		});
+
+		if (response.status === 401) {
+			localStorage.removeItem("user");
+			localStorage.removeItem("token");
+			window.location.href = "/login";
+			throw new Error("Sesión expirada");
+		}
 
 		if (!response.ok) {
 			const error = await response
@@ -33,7 +42,6 @@ async function apiRequest<T = unknown>(
 
 		const responseData = await response.json();
 
-		// Para mantener compatibilidad, devolvemos data si existe, sino toda la respuesta
 		return (
 			responseData.data !== undefined ? responseData.data : responseData
 		) as T;

@@ -12,13 +12,10 @@ test.describe("Extended Notifications", () => {
     userA = await loginViaApi(request, `admin-${Date.now()}@example.com`, "password123", "Admin User", "ADMIN");
 
     // 2. Create User B (Target)
-    // We can't easily register user B via API without logging out user A session on the same context if using cookie based auth,
-    // but here loginViaApi uses a fresh request context or stateless API calls.
-    // Actually `loginViaApi` uses `request` which is the test context.
-
-    // Let's create User B
+    // Create User B
     const bEmail = `target-${Date.now()}@example.com`;
     const bRes = await request.post("http://localhost:5000/api/auth/register", {
+        headers: { Authorization: `Bearer ${userA.token}` },
         data: { name: "Target User", email: bEmail, password: "password123", role: "TEAM_DEVELOPER" }
     });
     const bData = await bRes.json();
@@ -30,6 +27,7 @@ test.describe("Extended Notifications", () => {
     // Except it might need IDs.
 
     const pRes = await request.post("http://localhost:5000/api/projects", {
+      headers: { Authorization: `Bearer ${userA.token}` },
       data: { name: `Project-Notif-${Date.now()}`, description: "Test Notif", ownerId: userA.id }
     });
     const pData = await pRes.json();
@@ -39,6 +37,7 @@ test.describe("Extended Notifications", () => {
   test("should receive notification when assigned to a project", async ({ page }) => {
     // 1. Assign User B to Project (Action by Admin)
     await page.request.post(`http://localhost:5000/api/projects/${project.id}/members`, {
+        headers: { Authorization: `Bearer ${userA.token}` },
         data: { userId: userB.id, role: "TEAM_DEVELOPER" }
     });
 
@@ -53,7 +52,9 @@ test.describe("Extended Notifications", () => {
     // Open bell
     // await page.getByRole("button", { name: /notifications/i }).click(); // Selector might need adjustment
     // Or check endpoint
-    const notifRes = await page.request.get(`http://localhost:5000/api/notifications?userId=${userB.id}`);
+    const notifRes = await page.request.get(`http://localhost:5000/api/notifications?userId=${userB.id}`, {
+        headers: { Authorization: `Bearer ${userA.token}` }
+    });
     const notifData = await notifRes.json();
     const hasProjectNotif = notifData.data.some((n: any) => n.title === "Nuevo Proyecto Asignado");
 

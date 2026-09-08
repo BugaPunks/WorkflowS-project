@@ -9,12 +9,13 @@ test.describe("Task Creation with Assignment", () => {
   test.beforeEach(async ({ page }) => {
     // 1. API Auth
     const request = page.request;
-    const user = await loginViaApi(request, `user-${Date.now()}@example.com`);
+    const user = await loginViaApi(request, `user-${Date.now()}@example.com`, "password123", "Task User", "ADMIN");
 
     // 2. Set Session in Browser
     await page.goto("/");
     await page.evaluate((u) => {
       localStorage.setItem("user", JSON.stringify(u));
+      localStorage.setItem("token", u.token!);
     }, user);
     // Reload to apply session
     await page.reload();
@@ -22,6 +23,7 @@ test.describe("Task Creation with Assignment", () => {
     // 3. Setup Data via API
     // Create Project
     const pRes = await request.post("http://localhost:5000/api/projects", {
+      headers: { Authorization: `Bearer ${user.token}` },
       data: { name: `Project-${Date.now()}`, description: "Test Project", ownerId: user.id }
     });
     const pData = await pRes.json();
@@ -29,6 +31,7 @@ test.describe("Task Creation with Assignment", () => {
 
     // Create Sprint
     const sRes = await request.post("http://localhost:5000/api/sprints", {
+      headers: { Authorization: `Bearer ${user.token}` },
       data: {
         name: "Sprint 1",
         projectId: project.id,
@@ -41,6 +44,7 @@ test.describe("Task Creation with Assignment", () => {
 
     // Create User Story
     const usRes = await request.post("http://localhost:5000/api/user-stories", {
+      headers: { Authorization: `Bearer ${user.token}` },
       data: {
         title: "Test User Story",
         description: "As a user...",

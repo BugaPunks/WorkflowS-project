@@ -7,16 +7,12 @@ test.describe("Calendar Module", () => {
 		request,
 	}) => {
 		// 1. Login (Browser & API)
-		const { id: userId, email: userEmail } = await loginViaApi(
+		const { id: userId, email: userEmail, token } = await loginViaApi(
 			page,
 			request,
 			"admin",
 			"ADMIN",
 		);
-		// Ensure request context is authenticated
-		await request.post("http://localhost:5000/api/auth/login", {
-			data: { email: userEmail, password: "password123" },
-		});
 
 		// 2. Setup Data
 		const timestamp = Date.now();
@@ -29,6 +25,7 @@ test.describe("Calendar Module", () => {
 		const projectRes = await request.post(
 			"http://localhost:5000/api/projects",
 			{
+				headers: { Authorization: `Bearer ${token}` },
 				data: {
 					name: projectName,
 					description: "For Calendar Test",
@@ -44,6 +41,7 @@ test.describe("Calendar Module", () => {
 
 		// Create Sprint
 		const sprintRes = await request.post("http://localhost:5000/api/sprints", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				projectId,
 				name: sprintName,
@@ -55,6 +53,7 @@ test.describe("Calendar Module", () => {
 
 		// Create Task
 		const taskRes = await request.post("http://localhost:5000/api/tasks", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				projectId,
 				title: taskTitle,

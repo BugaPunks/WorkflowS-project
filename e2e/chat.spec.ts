@@ -6,13 +6,14 @@ test.describe("Chat System", () => {
 		page,
 		request,
 	}) => {
-		const { id: userId } = await loginViaApi(page, request, "chat_user", "ADMIN");
+		const { id: userId, token } = await loginViaApi(page, request, `chat_user_${Date.now()}@test.com`, "ADMIN");
 
 		// Create Project
 		const timestamp = Date.now();
 		const projectRes = await request.post(
 			"http://localhost:5000/api/projects",
 			{
+				headers: { Authorization: `Bearer ${token}` },
 				data: {
 					name: `Chat Project ${timestamp}`,
 					description: "Chat Test",

@@ -3,12 +3,13 @@ import { loginViaApi } from "./utils/api-auth";
 
 test.describe("Rubrics Management", () => {
 	test.beforeEach(async ({ page }) => {
-		const { userId } = await loginViaApi(page); // Use default admin/docente login
+		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, "password123", "Rubric Admin", "ADMIN");
 
 		// Ensure there is at least one project
 		const response = await page.request.post(
 			"/api/projects",
 			{
+				headers: { Authorization: `Bearer ${token}` },
 				data: {
 					name: "E2E Test Project Rubrics",
 					description: "Project for E2E tests",

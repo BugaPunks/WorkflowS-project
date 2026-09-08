@@ -7,25 +7,30 @@ test.describe("Grading System", () => {
   let student: any;
   let sprint: any;
   let rubric: any;
+  let ts: number;
+  let sprintName: string;
 
   test.beforeEach(async ({ page }) => {
     const request = page.request;
     teacher = await loginViaApi(request, `teacher-${Date.now()}@example.com`, "password123", "Teacher", "ADMIN");
     student = await loginViaApi(request, `student-${Date.now()}@example.com`, "password123", "Student", "TEAM_DEVELOPER");
 
+    ts = Date.now();
     // Create Project
     const pRes = await request.post("http://localhost:5000/api/projects", {
-      data: { name: "Grading Project", description: "Test", ownerId: teacher.id }
+      headers: { Authorization: `Bearer ${teacher.token}` },
+      data: { name: `Grading Project ${ts}`, description: "Test", ownerId: teacher.id }
     });
     const pData = await pRes.json();
     project = pData.data;
 
     // Create Rubric
     const rRes = await request.post("http://localhost:5000/api/rubrics", {
+        headers: { Authorization: `Bearer ${teacher.token}` },
         data: {
             name: "Standard Rubric",
             projectId: project.id,
-            criteria: [{ name: "Code Quality", maxScore: 50 }, { name: "Docs", maxScore: 50 }]
+            criteria: [{ name: "Code Quality", maxScore: 50, weight: 1 }, { name: "Docs", maxScore: 50, weight: 1 }]
         }
     });
     const rData = await rRes.json();
@@ -33,15 +38,18 @@ test.describe("Grading System", () => {
 
     // Assign Student
     await request.post(`http://localhost:5000/api/projects/${project.id}/members`, {
+        headers: { Authorization: `Bearer ${teacher.token}` },
         data: { userId: student.id, role: "TEAM_DEVELOPER" }
     });
 
     // Create Sprint (COMPLETED status to show up in evaluations)
     const today = new Date().toISOString();
     const tomorrow = new Date(Date.now() + 86400000).toISOString();
+    sprintName = `Sprint 1 ${ts}`;
     const sRes = await request.post("http://localhost:5000/api/sprints", {
+        headers: { Authorization: `Bearer ${teacher.token}` },
         data: {
-            name: "Sprint 1",
+            name: sprintName,
             projectId: project.id,
             startDate: today,
             endDate: tomorrow,
@@ -55,16 +63,19 @@ test.describe("Grading System", () => {
   test("Teacher can grade a sprint and update it", async ({ page }) => {
     // Login Teacher
     await page.goto("/");
-    await page.evaluate((u) => localStorage.setItem("user", JSON.stringify(u)), teacher);
+    await page.evaluate((u) => {
+      localStorage.setItem("user", JSON.stringify(u));
+      localStorage.setItem("token", u.token);
+    }, teacher);
     await page.reload();
 
     // Go to Evaluations (Admin View)
     await page.goto("/evaluations");
 
-    // Find Sprint
-    // We look for "Sprint 1" text which should be in the card
-    await expect(page.getByText("Sprint 1").first()).toBeVisible();
-    await page.getByText("Ir a Calificar").first().click();
+    // Find Sprint by unique project name
+    await expect(page.getByText(`Grading Project ${ts}`).first()).toBeVisible();
+    await page.locator(`.bg-white:has-text("Grading Project ${ts}")`)
+        .getByRole("button", { name: "Ir a Calificar" }).click();
 
     // Check if grading page loaded (Evaluation form)
     await expect(page.getByRole("heading", { name: "Calificar Sprint" })).toBeVisible();
@@ -99,15 +110,18 @@ test.describe("Grading System", () => {
     // Should disappear from list (or show as evaluated if we didn't filter it out? logic says filter pending)
     // The current logic in Evaluations.tsx filters: `(!s.evaluations || s.evaluations.length === 0)`
     // So it should disappear.
-    await expect(page.getByText("Sprint 1")).not.toBeVisible();
+    await expect(page.getByText(sprintName)).not.toBeVisible();
 
     // Login Student to View Grade
     await page.goto("/");
-    await page.evaluate((u) => localStorage.setItem("user", JSON.stringify(u)), student);
+    await page.evaluate((u) => {
+      localStorage.setItem("user", JSON.stringify(u));
+      localStorage.setItem("token", u.token);
+    }, student);
     await page.reload();
 
     await page.goto("/evaluations");
-    await expect(page.getByText("Sprint 1")).toBeVisible();
+    await expect(page.getByText(sprintName)).toBeVisible();
     await expect(page.getByText("80")).toBeVisible(); // 40 + 40
     await expect(page.getByText("Good job on the sprint")).toBeVisible();
   });

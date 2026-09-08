@@ -50,7 +50,9 @@ export default function UserStories() {
 
 	const loadProjects = useCallback(async (userId?: string) => {
 		try {
-			const projectsData = await projectAPI.getAll({ memberId: userId });
+			const projectsData = (await projectAPI.getAll({
+				memberId: userId,
+			})) as Project[];
 			setProjects(projectsData || []);
 		} catch (err) {
 			console.error("Error al cargar proyectos:", err);

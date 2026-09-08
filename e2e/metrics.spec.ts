@@ -7,7 +7,7 @@ test.describe("Metrics & Reports", () => {
 		request,
 	}) => {
 		// 1. Login as Admin
-		await loginViaApi(page, request, "admin", "ADMIN");
+		const { token } = await loginViaApi(page, request, "admin", "ADMIN");
 
 		// 2. Setup Project & Sprint (so charts are not empty/disabled)
 		// Create Project
@@ -16,6 +16,7 @@ test.describe("Metrics & Reports", () => {
 		const _projectRes = await request.post(
 			"http://localhost:5000/api/projects",
 			{
+				headers: { Authorization: `Bearer ${token}` },
 				data: {
 					name: projectName,
 					description: "For Metrics",

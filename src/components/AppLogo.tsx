@@ -1,6 +1,6 @@
 import { AppLogoIcon } from "@/components/AppLogoIcon";
 
-export function AppLogo(): JSX.Element {
+export function AppLogo() {
 	return (
 		<>
 			<div className="bg-blue-600 text-white flex aspect-square size-8 items-center justify-center rounded-md">

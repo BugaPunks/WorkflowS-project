@@ -8,18 +8,22 @@ test.describe('Direct Messages', () => {
     const teacherRes = await request.post('http://localhost:5000/api/auth/register', {
       data: { name: `Teacher Chat ${timestamp}`, email: `teacher_chat_${timestamp}@test.com`, password: 'password123', role: 'ADMIN' }
     });
-    const teacher = (await teacherRes.json()).user;
+    const teacherData = await teacherRes.json();
+    const teacher = teacherData.user;
+    const teacherToken = teacherData.token;
 
     // Create Student
     const studentRes = await request.post('http://localhost:5000/api/auth/register', {
-      data: { name: `Student Chat ${timestamp}`, email: `student_chat_${timestamp}@test.com`, password: 'password123', role: 'STUDENT' }
+      data: { name: `Student Chat ${timestamp}`, email: `student_chat_${timestamp}@test.com`, password: 'password123', role: 'TEAM_DEVELOPER' }
     });
-    const student = (await studentRes.json()).user;
+    const studentData = await studentRes.json();
+    const student = studentData.user;
+    const studentToken = studentData.token;
 
     // 2. Teacher sends message
     // Login Teacher
     await page.goto('/'); // Load context
-    await page.evaluate((user) => localStorage.setItem('user', JSON.stringify(user)), teacher);
+    await page.evaluate(({ user, token }) => { localStorage.setItem('user', JSON.stringify(user)); localStorage.setItem('token', token); }, { user: teacher, token: teacherToken });
     await page.goto('/projects');
 
     // Open Chat Widget
@@ -46,7 +50,7 @@ test.describe('Direct Messages', () => {
 
     // 3. Student replies
     // Login Student
-    await page.evaluate((user) => localStorage.setItem('user', JSON.stringify(user)), student);
+    await page.evaluate(({ user, token }) => { localStorage.setItem('user', JSON.stringify(user)); localStorage.setItem('token', token); }, { user: student, token: studentToken });
     await page.reload();
 
     // Open chat widget again as it closes on reload

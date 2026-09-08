@@ -3,19 +3,21 @@ import { loginViaApi } from "./utils/api-auth";
 
 test.describe("Document Management", () => {
 	let projectId: string;
+	let docToken: string | null;
 
 	test.beforeAll(async ({ request }) => {
 		// 1. Create a project to attach documents to
 		// Login as Admin to ensure permissions
-		const { id: userId } = await loginViaApi(
+		const { id: userId, token } = await loginViaApi(
 			request,
-			"admin_docs@test.com",
+			`admin_docs_${Date.now()}@test.com`,
 			"password123",
 			"AdminDocs",
 			"ADMIN",
 		);
 
 		const projectRes = await request.post("/api/projects", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				name: "Document Test Project",
 				description: "Testing docs",
@@ -29,16 +31,18 @@ test.describe("Document Management", () => {
 	test.beforeEach(async ({ page, request }) => {
 		const user = await loginViaApi(
 			request,
-			"admin_docs@test.com",
+			`admin_docs_${Date.now()}@test.com`,
 			"password123",
 			"AdminDocs",
 			"ADMIN",
 		);
+		docToken = user.token;
 
 		// Set local storage to simulate login
 		await page.goto("/");
 		await page.evaluate((u) => {
 			localStorage.setItem("user", JSON.stringify(u));
+			localStorage.setItem("token", u.token!);
 		}, user);
 
 		await page.goto(`/projects/${projectId}`);
@@ -79,6 +83,7 @@ test.describe("Document Management", () => {
 
 		const buffer = Buffer.from('test content');
 		await page.request.post(`/api/documents/${projectId}`, {
+			headers: { Authorization: `Bearer ${docToken}` },
 			multipart: {
 				file: {
 					name: 'version-test.txt',
@@ -122,6 +127,7 @@ test.describe("Document Management", () => {
 		// 1. Create doc and version 2 via API
 		const buffer1 = Buffer.from('v1');
 		const res = await page.request.post(`/api/documents/${projectId}`, {
+			headers: { Authorization: `Bearer ${docToken}` },
 			multipart: {
 				file: {
 					name: 'history-test.txt',
@@ -135,6 +141,7 @@ test.describe("Document Management", () => {
 
 		const buffer2 = Buffer.from('v2');
 		await page.request.post(`/api/documents/${docId}/versions`, {
+			headers: { Authorization: `Bearer ${docToken}` },
 			multipart: {
 				file: {
 					name: 'history-test.txt',

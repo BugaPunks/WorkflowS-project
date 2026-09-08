@@ -10,16 +10,18 @@ test.describe("Document Management", () => {
   test.beforeEach(async ({ page }) => {
     // 1. Create User & Project
     const request = page.request;
-    user = await loginViaApi(request, `doc-user-${Date.now()}@example.com`);
+    user = await loginViaApi(request, `doc-user-${Date.now()}@example.com`, "password123", "Doc Admin", "ADMIN");
 
     // Auth session
     await page.goto("/");
     await page.evaluate((u) => {
       localStorage.setItem("user", JSON.stringify(u));
+      localStorage.setItem("token", u.token);
     }, user);
     await page.reload();
 
     const pRes = await request.post("http://localhost:5000/api/projects", {
+      headers: { Authorization: `Bearer ${user.token}` },
       data: { name: "Docs Project", description: "Testing uploads", ownerId: user.id }
     });
     const pData = await pRes.json();

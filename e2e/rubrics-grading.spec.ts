@@ -4,7 +4,7 @@ import { loginViaApi } from "./utils/api-auth";
 test.describe("Rubrics and Grading Flow", () => {
 	test("should create a global rubric and grade a task", async ({ page }) => {
 		// 1. Login as Admin (Docente)
-		const { id: userId } = await loginViaApi(page);
+		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, "password123", "Rubric Admin", "ADMIN");
 		console.log('Logged in user:', userId);
 
 		// 2. Create a Global Rubric
@@ -33,6 +33,7 @@ test.describe("Rubrics and Grading Flow", () => {
 		const projectName = `Project For Grading ${Date.now()}`;
 		console.log('Creating project with owner:', userId);
 		const projectRes = await page.request.post("/api/projects", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				name: projectName,
 				description: "Testing grading flow",
@@ -50,6 +51,7 @@ test.describe("Rubrics and Grading Flow", () => {
 		// 4. Create a Task via API
 		const taskTitle = `Task to Grade ${Date.now()}`;
 		const taskRes = await page.request.post("/api/tasks", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				projectId,
 				title: taskTitle,

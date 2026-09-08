@@ -80,13 +80,16 @@ export function LoginForm() {
 			}
 
 			// Update session state
-			login({
-				id: data.user.id,
-				name: data.user.name,
-				email: data.user.email,
-				role: data.user.role,
-				password: "", // Not needed in session
-			});
+			login(
+				{
+					id: data.user.id,
+					name: data.user.name,
+					email: data.user.email,
+					role: data.user.role,
+					password: "", // Not needed in session
+				},
+				data.token,
+			);
 
 			// Redirigir directamente al dashboard (Proyectos)
 			navigate("/");

@@ -20,6 +20,7 @@ test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 
 		let userId = "";
 		let userName = "Admin User";
+		let token = "";
 
 		if (!registerRes.ok()) {
 			// Login if already exists
@@ -32,19 +33,22 @@ test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 			const loginData = await loginRes.json();
 			userId = loginData.user.id;
 			userName = loginData.user.name;
+			token = loginData.token;
 		} else {
 			const body = await registerRes.json();
 			userId = body.user.id;
 			userName = body.user.name;
+			token = body.token;
 		}
 
 		// Bypass UI Login
 		await page.goto("/");
 		await page.evaluate(
-			({ id, name, email, role }) => {
+			({ id, name, email, role, token }) => {
 				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
+				localStorage.setItem("token", token);
 			},
-			{ id: userId, name: userName, email: userEmail, role: "ADMIN" },
+			{ id: userId, name: userName, email: userEmail, role: "ADMIN", token },
 		);
 
 		// Reload to pick up session

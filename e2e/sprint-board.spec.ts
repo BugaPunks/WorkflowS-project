@@ -5,6 +5,7 @@ test.describe("Sprint Kanban Board", () => {
 	const projectName = `Sprint Project ${uniqueId}`;
 	const userEmail = `sprintuser${uniqueId}@test.com`;
 	let userId = "";
+	let token = "";
 
 	test.beforeEach(async ({ page, request }) => {
 		page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
@@ -29,22 +30,26 @@ test.describe("Sprint Kanban Board", () => {
 			});
 			const loginData = await loginRes.json();
 			userId = loginData.user.id;
+			token = loginData.token;
 		} else {
 			const body = await registerRes.json();
 			userId = body.user.id;
+			token = body.token;
 		}
 
 		// Bypass UI Login
 		await page.goto("/");
 		await page.evaluate(
-			({ id, name, email, role }) => {
+			({ id, name, email, role, token }) => {
 				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
+				localStorage.setItem("token", token);
 			},
-			{ id: userId, name: "Sprint User", email: userEmail, role: "ADMIN" },
+			{ id: userId, name: "Sprint User", email: userEmail, role: "ADMIN", token },
 		);
 
 		// Create Project via API
 		const projectRes = await request.post("/api/projects", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				name: projectName,
 				description: "Kanban Test Project",
@@ -56,6 +61,7 @@ test.describe("Sprint Kanban Board", () => {
 
 		// Create Sprint via API
 		const sprintRes = await request.post("/api/sprints", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				name: "Sprint 1",
 				projectId: projectId,
@@ -69,6 +75,7 @@ test.describe("Sprint Kanban Board", () => {
 
 		// Create Task via API
 		await request.post("/api/tasks", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				title: "Task to Move",
 				description: "Move me",

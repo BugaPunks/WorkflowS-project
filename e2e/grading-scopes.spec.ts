@@ -9,10 +9,11 @@ test.describe('Grading Scopes (Project & Sprint)', () => {
 
   test.beforeEach(async ({ page, request }) => {
     // 1. Login
-    adminUser = await loginViaApi(page, request, 'grade_admin', 'ADMIN');
+    adminUser = await loginViaApi(page, request, `grade_admin_${Date.now()}@test.com`, "ADMIN");
 
     // 2. Create Project
     const projRes = await request.post('http://localhost:5000/api/projects', {
+      headers: { Authorization: `Bearer ${adminUser.token}` },
       data: {
         name: `Grading Project ${Date.now()}`,
         description: 'Testing grading scopes',
@@ -24,6 +25,7 @@ test.describe('Grading Scopes (Project & Sprint)', () => {
 
     // 3. Create Sprint
     const sprintRes = await request.post('http://localhost:5000/api/sprints', {
+      headers: { Authorization: `Bearer ${adminUser.token}` },
       data: {
         projectId: project.id,
         name: 'Sprint 1',
@@ -37,6 +39,7 @@ test.describe('Grading Scopes (Project & Sprint)', () => {
 
     // 4. Create Rubric (Project Specific)
     const rubricRes = await request.post('http://localhost:5000/api/rubrics', {
+      headers: { Authorization: `Bearer ${adminUser.token}` },
       data: {
         name: 'General Grading Rubric',
         description: 'For testing',

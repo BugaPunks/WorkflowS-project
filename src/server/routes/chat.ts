@@ -1,88 +1,107 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../db";
+import { authenticateToken } from "../middleware/auth";
+import { requireProjectRole } from "../middleware/project-rbac";
 
 const router = Router();
 
-// GET mensajes de un proyecto
-router.get("/:projectId/messages", async (req, res) => {
-	try {
-		const { projectId } = req.params;
+const messageSchema = z.object({
+	content: z.string().min(1).max(5000),
+});
 
-		// Buscar el chat del proyecto
-		let chat = await prisma.chat.findFirst({
-			where: { projectId },
-			include: {
-				messages: {
-					include: { user: true },
-					orderBy: { createdAt: "asc" },
-				},
-			},
-		});
+// GET mensajes de un proyecto - any project member
+router.get(
+	"/:projectId/messages",
+	authenticateToken,
+	requireProjectRole(["TEAM_DEVELOPER", "SCRUM_MASTER", "PRODUCT_OWNER"]),
+	async (req, res) => {
+		try {
+			const { projectId } = req.params;
 
-		// Si no existe, crearlo
-		if (!chat) {
-			chat = await prisma.chat.create({
-				data: { projectId },
+			let chat = await prisma.chat.findFirst({
+				where: { projectId },
 				include: {
-					messages: { include: { user: true } },
+					messages: {
+						include: { user: true },
+						orderBy: { createdAt: "asc" },
+					},
 				},
 			});
+
+			if (!chat) {
+				chat = await prisma.chat.create({
+					data: { projectId },
+					include: {
+						messages: { include: { user: true } },
+					},
+				});
+			}
+
+			res.json({ data: chat.messages || [] });
+		} catch (error) {
+			console.error("Error fetching messages:", error);
+			res.status(500).json({ error: "Error al obtener mensajes" });
 		}
+	},
+);
 
-		res.json({ data: chat.messages || [] });
-	} catch (error) {
-		console.error("Error fetching messages:", error);
-		res.status(500).json({ error: "Error al obtener mensajes" });
-	}
-});
+// POST enviar mensaje - any project member
+router.post(
+	"/:projectId/messages",
+	authenticateToken,
+	requireProjectRole(["TEAM_DEVELOPER", "SCRUM_MASTER", "PRODUCT_OWNER"]),
+	async (req, res) => {
+		try {
+			const { projectId } = req.params;
+			const parsed = messageSchema.safeParse(req.body);
+			if (!parsed.success) {
+				return res.status(400).json({ error: "Contenido requerido" });
+			}
 
-// POST enviar mensaje
-router.post("/:projectId/messages", async (req, res) => {
-	try {
-		const { projectId } = req.params;
-		const { userId, content } = req.body;
+			const userId = req.user?.userId;
+			const { content } = parsed.data;
 
-		if (!content || !userId) {
-			return res.status(400).json({ error: "Faltan datos" });
-		}
+			if (!userId) {
+				return res.status(401).json({ error: "No autenticado" });
+			}
 
-		// Buscar chat
-		let chat = await prisma.chat.findFirst({
-			where: { projectId },
-		});
-
-		if (!chat) {
-			chat = await prisma.chat.create({
-				data: { projectId, type: "PROJECT" },
+			let chat = await prisma.chat.findFirst({
+				where: { projectId },
 			});
+
+			if (!chat) {
+				chat = await prisma.chat.create({
+					data: { projectId, type: "PROJECT" },
+				});
+			}
+
+			const message = await prisma.message.create({
+				data: {
+					chatId: chat.id,
+					userId,
+					content,
+				},
+				include: { user: true },
+			});
+
+			res.status(201).json({ data: message });
+		} catch (error) {
+			console.error("Error sending message:", error);
+			res.status(500).json({ error: "Error al enviar mensaje" });
 		}
+	},
+);
 
-		const message = await prisma.message.create({
-			data: {
-				chatId: chat.id,
-				userId,
-				content,
-			},
-			include: { user: true },
-		});
-
-		res.status(201).json({ data: message });
-	} catch (error) {
-		console.error("Error sending message:", error);
-		res.status(500).json({ error: "Error al enviar mensaje" });
-	}
-});
-
-// === DM Routes ===
-
-// GET mis chats (DMs y Proyectos donde participo)
-router.get("/user/:userId/all", async (req, res) => {
+// GET mis chats (DMs) - any authenticated
+router.get("/user/:userId/all", authenticateToken, async (req, res) => {
 	try {
 		const { userId } = req.params;
-		// Find chats where user is participant OR linked to projects where user is member
-		// For simplicity, let's assume we create participants for PROJECT chats too?
-		// Currently we don't. PROJECT chats rely on Project membership.
-		// So we fetch DIRECT chats via participants, and PROJECT chats via ProjectMember.
+
+		// Only allow users to see their own chats or ADMIN
+		if (req.user?.userId !== userId && req.user?.role !== "ADMIN") {
+			return res.sendStatus(403);
+		}
 
 		const directChats = await prisma.chat.findMany({
 			where: {
@@ -104,12 +123,16 @@ router.get("/user/:userId/all", async (req, res) => {
 	}
 });
 
-// POST crear/obtener DM
-router.post("/direct", async (req, res) => {
+// POST crear/obtener DM - any authenticated
+router.post("/direct", authenticateToken, async (req, res) => {
 	try {
-		const { userId, targetUserId } = req.body;
+		const { targetUserId } = req.body;
+		const userId = req.user?.userId;
 
-		// Check if exists
+		if (!userId || !targetUserId) {
+			return res.status(400).json({ error: "Faltan datos" });
+		}
+
 		const myChats = await prisma.chat.findMany({
 			where: {
 				type: "DIRECT",
@@ -124,7 +147,6 @@ router.post("/direct", async (req, res) => {
 
 		if (existing) return res.json({ data: existing });
 
-		// Create
 		const chat = await prisma.chat.create({
 			data: {
 				type: "DIRECT",
@@ -140,62 +162,75 @@ router.post("/direct", async (req, res) => {
 	}
 });
 
-// GET messages for specific chat (by ID)
-router.get("/conversation/:chatId/messages", async (req, res) => {
-	try {
-		const { chatId } = req.params;
-		const messages = await prisma.message.findMany({
-			where: { chatId },
-			include: { user: true },
-			orderBy: { createdAt: "asc" },
-		});
-		res.json({ data: messages });
-	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: "Error fetching messages" });
-	}
-});
-
-// POST message to specific chat (by ID)
-router.post("/conversation/:chatId/messages", async (req, res) => {
-	try {
-		const { chatId } = req.params;
-		const { userId, content } = req.body;
-
-		const message = await prisma.message.create({
-			data: {
-				chatId,
-				userId,
-				content,
-			},
-			include: { user: true },
-		});
-
-		// Notificar a los otros participantes (DM)
-		const chat = await prisma.chat.findUnique({
-			where: { id: chatId },
-			include: { participants: true },
-		});
-
-		if (chat && chat.type === "DIRECT") {
-			const recipients = chat.participants.filter((p) => p.userId !== userId);
-			for (const recipient of recipients) {
-				await prisma.notification.create({
-					data: {
-						userId: recipient.userId,
-						title: "Nuevo Mensaje Directo",
-						message: `${message.user.name} te ha enviado un mensaje`,
-						type: "MESSAGE",
-					},
-				});
-			}
+// GET messages for specific chat (by ID) - any authenticated
+router.get(
+	"/conversation/:chatId/messages",
+	authenticateToken,
+	async (req, res) => {
+		try {
+			const { chatId } = req.params;
+			const messages = await prisma.message.findMany({
+				where: { chatId },
+				include: { user: true },
+				orderBy: { createdAt: "asc" },
+			});
+			res.json({ data: messages });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error: "Error fetching messages" });
 		}
+	},
+);
 
-		res.status(201).json({ data: message });
-	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: "Error sending message" });
-	}
-});
+// POST message to specific chat (by ID) - any authenticated
+router.post(
+	"/conversation/:chatId/messages",
+	authenticateToken,
+	async (req, res) => {
+		try {
+			const { chatId } = req.params;
+			const userId = req.user?.userId;
+			const parsed = messageSchema.safeParse(req.body);
+			if (!parsed.success || !userId) {
+				return res.status(400).json({ error: "Contenido requerido" });
+			}
+
+			const { content } = parsed.data;
+
+			const message = await prisma.message.create({
+				data: {
+					chatId,
+					userId,
+					content,
+				},
+				include: { user: true },
+			});
+
+			const chat = await prisma.chat.findUnique({
+				where: { id: chatId },
+				include: { participants: true },
+			});
+
+			if (chat && chat.type === "DIRECT") {
+				const recipients = chat.participants.filter((p) => p.userId !== userId);
+				for (const recipient of recipients) {
+					await prisma.notification.create({
+						data: {
+							userId: recipient.userId,
+							title: "Nuevo Mensaje Directo",
+							message: `${message.user.name} te ha enviado un mensaje`,
+							type: "MESSAGE",
+						},
+					});
+				}
+			}
+
+			res.status(201).json({ data: message });
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error: "Error sending message" });
+		}
+	},
+);
 
 export default router;

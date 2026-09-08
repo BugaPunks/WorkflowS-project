@@ -1,7 +1,7 @@
 import HeaderMenu from "@/islands/HeaderMenu";
 import HeaderNav from "@/islands/HeaderNav";
 
-export function Header(): JSX.Element {
+export function Header() {
 	return (
 		<header className="bg-blue-600 text-white shadow-md">
 			<div className="container mx-auto px-4 py-4 flex justify-between items-center">

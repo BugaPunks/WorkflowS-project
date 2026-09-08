@@ -16,6 +16,9 @@ dist/
 .idea
 .idx
 
+# Folder
+tests-results/
+
 /src/generated/prisma
 dev.db
 uploads/
@@ -24,7 +27,7 @@ uploads/
 
 # Openspec
 .openspec/
-openspec/
+# openspec/
 .agent/
 .agents/
 .opencode/

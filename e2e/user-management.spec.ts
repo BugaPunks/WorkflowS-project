@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 
 test.describe("User Management", () => {
 	test.beforeEach(async ({ page }) => {
-		await loginViaApi(page);
+		await loginViaApi(page, `admin_um_${Date.now()}@test.com`, "password123", "Admin UM", "ADMIN");
 	});
 
 	test("should create, edit (including password reset) and delete a user", async ({

@@ -100,6 +100,7 @@ export async function loginViaApi(
 	});
 
 	let userId = "";
+	let authToken: string | null = null;
 
 	if (!registerRes.ok()) {
 		// Maybe exists, try login
@@ -109,9 +110,8 @@ export async function loginViaApi(
 		if (loginRes.ok()) {
 			const data = await loginRes.json();
 			userId = data.user.id;
+			authToken = data.token;
 		} else {
-			// If login fails, try with default password if we inferred incorrectly?
-			// Or just throw
 			throw new Error(
 				`Auth failed for ${email} with pass ${password}. Status: ${loginRes.status()}`,
 			);
@@ -119,26 +119,23 @@ export async function loginViaApi(
 	} else {
 		const data = await registerRes.json();
 		userId = data.user.id;
+		authToken = data.token;
 	}
 
 	// --- 3. Inject Session into Page (if available) ---
-	if (page) {
-		// We need to be on the domain to set localStorage
-		// Check if we are already there, if not go to /login or /
+	if (page && authToken) {
 		if (page.url() === "about:blank") {
 			await page.goto("/login");
 		}
 
 		await page.evaluate(
-			({ id, name, email, role }) => {
+			({ id, name, email, role, token }) => {
 				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
+				localStorage.setItem("token", token);
 			},
-			{ id: userId, name, email, role },
+			{ id: userId, name, email, role, token: authToken },
 		);
-
-		// Reload to apply
-		// await page.reload(); // Optional, caller might prefer to reload
 	}
 
-	return { id: userId, email, name, role };
+	return { id: userId, email, name, role, token: authToken };
 }

@@ -3,8 +3,7 @@ import { loginViaApi } from "./utils/api-auth";
 
 test.describe("Chat Widget", () => {
 	test.beforeEach(async ({ page }) => {
-		// Log in using the API helper
-		await loginViaApi(page);
+		await loginViaApi(page, `chatwidget_admin_${Date.now()}@test.com`, "password123", "Chat Widget Admin", "ADMIN");
 		await page.goto("/projects");
 	});
 

@@ -7,6 +7,7 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 	const studentEmail = `estudiante_${timestamp}@workflow.com`;
 	let projectId: string;
 	let studentId: string;
+	let studentToken: string;
 
 	test("Should verify the complete flow from creation to grading", async ({
 		page,
@@ -18,7 +19,7 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		console.log("--- Step 1: Teacher Setup ---");
 
 		// Login as Teacher (Admin)
-		const { id: teacherId } = await loginViaApi(
+		const { id: teacherId, token } = await loginViaApi(
 			page,
 			request,
 			"docente",
@@ -54,6 +55,7 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 
 		// 1.2 Create Rubric (API)
 		await request.post("http://localhost:5000/api/rubrics", {
+			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				projectId: projectId,
 				name: `Rúbrica General ${timestamp}`,
@@ -68,6 +70,7 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		const studentRes = await request.post(
 			"http://localhost:5000/api/auth/register",
 			{
+				headers: { Authorization: `Bearer ${token}` },
 				data: {
 					name: "Estudiante Test",
 					email: studentEmail,
@@ -79,15 +82,18 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		if (studentRes.ok()) {
 			const body = await studentRes.json();
 			studentId = body.user.id;
+			studentToken = body.token;
 		} else {
 			const loginRes = await request.post(
 				"http://localhost:5000/api/auth/login",
 				{
+					headers: { Authorization: `Bearer ${token}` },
 					data: { email: studentEmail, password: "password123" },
 				},
 			);
 			const body = await loginRes.json();
 			studentId = body.user.id;
+			studentToken = body.token;
 		}
 
 		// 1.4 Add Student to Project (UI)
@@ -101,7 +107,13 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		const userSelect = page.locator("#user-select");
 		await userSelect.selectOption({ value: studentId });
 		await page.locator("#role-select").selectOption("SCRUM_MASTER");
+
+		const addMemberPromise = page.waitForResponse(
+			(resp) => resp.url().includes("/api/projects") && resp.url().includes("/members") && resp.status() === 201,
+		);
 		await page.getByRole("button", { name: "Añadir", exact: true }).click();
+		await addMemberPromise;
+
 		await expect(
 			page.locator("div").filter({ hasText: "Estudiante Test" }).last()
 		).toBeVisible();
@@ -111,9 +123,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// =================================================================
 		console.log("--- Step 2: Student Workflow ---");
 
-		await page.evaluate(() => localStorage.clear());
 		await page.evaluate(
 			(data) => {
+				localStorage.clear();
 				localStorage.setItem(
 					"user",
 					JSON.stringify({
@@ -123,8 +135,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 						role: "TEAM_DEVELOPER",
 					}),
 				);
+				localStorage.setItem("token", data.token);
 			},
-			{ id: studentId, email: studentEmail },
+			{ id: studentId, email: studentEmail, token: studentToken },
 		);
 		await page.reload();
 		await page.goto("/");
@@ -156,7 +169,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		await expect(page.getByText(sprintName)).toBeVisible();
 
 		// Get Sprint ID for later use via API
-		const sprintsRes = await request.get("http://localhost:5000/api/sprints");
+		const sprintsRes = await request.get("http://localhost:5000/api/sprints", {
+			headers: { Authorization: `Bearer ${token}` }
+		});
 		const sprintsData = await sprintsRes.json();
 		const sprintObj = sprintsData.data.find((s: any) => s.name === sprintName);
 
@@ -164,6 +179,7 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// Assuming there is a button or we do it via API.
 		// For simplicity and robustness, let's use API to close the sprint.
 		await request.put(`http://localhost:5000/api/sprints/${sprintObj.id}`, {
+			headers: { Authorization: `Bearer ${token}` },
 			data: { status: "COMPLETED" }
 		});
 
@@ -173,9 +189,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// =================================================================
 		console.log("--- Step 3: Teacher Grading ---");
 
-		await page.evaluate(() => localStorage.clear());
 		await page.evaluate(
 			(data) => {
+				localStorage.clear();
 				localStorage.setItem(
 					"user",
 					JSON.stringify({
@@ -185,8 +201,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 						role: "ADMIN",
 					}),
 				);
+				localStorage.setItem("token", data.token);
 			},
-			{ id: teacherId, email: "docente@workflow.com" },
+			{ id: teacherId, email: "docente@workflow.com", token: token! },
 		);
 		await page.reload();
 
@@ -230,9 +247,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// =================================================================
 		console.log("--- Step 4: Student Retrospective & Review ---");
 
-		await page.evaluate(() => localStorage.clear());
 		await page.evaluate(
 			(data) => {
+				localStorage.clear();
 				localStorage.setItem(
 					"user",
 					JSON.stringify({
@@ -242,8 +259,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 						role: "TEAM_DEVELOPER",
 					}),
 				);
+				localStorage.setItem("token", data.token);
 			},
-			{ id: studentId, email: studentEmail },
+			{ id: studentId, email: studentEmail, token: studentToken },
 		);
 		await page.reload();
 

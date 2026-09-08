@@ -28,6 +28,7 @@ test.describe("Project Details", () => {
 		// If 400, it might be "User already exists", which is fine for this test run context usually
 		let userId = "";
 		let userName = "Test User";
+		let token = "";
 
 		if (!registerRes.ok()) {
 			const body = await registerRes.json();
@@ -46,19 +47,22 @@ test.describe("Project Details", () => {
 			const loginData = await loginRes.json();
 			userId = loginData.user.id;
 			userName = loginData.user.name;
+			token = loginData.token;
 		} else {
 			const body = await registerRes.json();
 			userId = body.user.id;
 			userName = body.user.name;
+			token = body.token;
 		}
 
 		// Bypass UI Login
 		await page.goto("/");
 		await page.evaluate(
-			({ id, name, email, role }) => {
+			({ id, name, email, role, token }) => {
 				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
+				localStorage.setItem("token", token);
 			},
-			{ id: userId, name: userName, email: userEmail, role: "ADMIN" },
+			{ id: userId, name: userName, email: userEmail, role: "ADMIN", token },
 		);
 
 		// Reload to pick up session

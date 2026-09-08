@@ -18,7 +18,7 @@ export default function HeaderNav() {
 				// User is logged in
 				<div className="flex items-center space-x-4">
 					<a href="/welcome" className="text-white hover:underline">
-						{session?.username}
+						{session?.name}
 					</a>
 					<button
 						type="button"

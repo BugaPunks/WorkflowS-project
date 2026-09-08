@@ -6,7 +6,6 @@ interface RegisterFormData {
 	email: string;
 	password: string;
 	confirmPassword: string;
-	role: string;
 }
 
 export function RegisterForm() {
@@ -16,7 +15,6 @@ export function RegisterForm() {
 		email: "",
 		password: "",
 		confirmPassword: "",
-		role: "TEAM_DEVELOPER",
 	});
 	const [errors, setErrors] = useState<
 		Partial<Record<keyof RegisterFormData, string>>
@@ -25,16 +23,13 @@ export function RegisterForm() {
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [submitSuccess, setSubmitSuccess] = useState(false);
 
-	const handleChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-	) => {
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.currentTarget;
 		setFormData((prev) => ({
 			...prev,
 			[name]: value,
 		}));
 
-		// Limpiar errores cuando el usuario edita
 		if (errors[name as keyof RegisterFormData]) {
 			setErrors((prev) => ({
 				...prev,
@@ -93,7 +88,6 @@ export function RegisterForm() {
 					name: formData.name,
 					email: formData.email,
 					password: formData.password,
-					role: formData.role,
 				}),
 			});
 
@@ -187,27 +181,6 @@ export function RegisterForm() {
 					{errors.email && (
 						<p className="text-red-500 text-xs mt-1">{errors.email}</p>
 					)}
-				</div>
-
-				<div>
-					<label
-						className="block text-gray-700 text-sm font-bold mb-2"
-						htmlFor="role"
-					>
-						Rol
-					</label>
-					<select
-						className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-						id="role"
-						name="role"
-						value={formData.role}
-						onChange={handleChange}
-					>
-						<option value="TEAM_DEVELOPER">Desarrollador</option>
-						<option value="SCRUM_MASTER">Scrum Master</option>
-						<option value="PRODUCT_OWNER">Product Owner</option>
-						<option value="ADMIN">Administrador</option>
-					</select>
 				</div>
 
 				<div>

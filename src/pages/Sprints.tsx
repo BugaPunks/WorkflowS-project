@@ -34,7 +34,7 @@ export default function Sprints() {
 		try {
 			setIsLoading(true);
 			setError(null);
-			const sprintsData = await sprintAPI.getAll();
+			const sprintsData = (await sprintAPI.getAll()) as Sprint[];
 			setSprints(sprintsData || []);
 		} catch (err) {
 			setError("Error al cargar los sprints");
@@ -49,7 +49,10 @@ export default function Sprints() {
 		const fetchData = async () => {
 			// Cargar proyectos
 			try {
-				const projectsData = await projectAPI.getAll();
+				const projectsData = (await projectAPI.getAll()) as {
+					id: string;
+					name: string;
+				}[];
 				setProjects(projectsData || []);
 			} catch (error) {
 				console.error("Error al cargar proyectos:", error);

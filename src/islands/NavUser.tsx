@@ -52,10 +52,10 @@ export default function NavUser(): React.ReactElement {
 						<div className="flex items-center w-full">
 							<div className="bg-blue-600 text-white flex aspect-square size-6 items-center justify-center rounded-full mr-2">
 								<span className="text-xs">
-									{session?.username?.charAt(0).toUpperCase()}
+									{session?.name?.charAt(0).toUpperCase()}
 								</span>
 							</div>
-							<span>{session?.username}</span>
+							<span>{session?.name}</span>
 						</div>
 					</SidebarMenuButton>
 				</SidebarMenuItem>

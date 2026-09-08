@@ -52,10 +52,10 @@ export default function ProjectCard({
 	};
 
 	// Formatear fecha
-	const formatDate = (timestamp?: number) => {
-		if (!timestamp) return "No definida";
+	const formatDate = (date?: Date) => {
+		if (!date) return "No definida";
 
-		return new Date(timestamp).toLocaleString("es-ES", {
+		return new Date(date).toLocaleString("es-ES", {
 			year: "numeric",
 			month: "long",
 			day: "numeric",
@@ -96,7 +96,7 @@ export default function ProjectCard({
 					<div>
 						<p className="text-xs text-gray-500 font-medium">MIEMBROS</p>
 						<p className="text-sm text-gray-700">
-							{project.members.length} miembros
+							{(project.members ?? []).length} miembros
 						</p>
 					</div>
 				</div>
