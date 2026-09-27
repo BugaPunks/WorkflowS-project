@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { createSessionViaApi, injectBrowserSession, loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Extended Notifications", () => {
   let project: any;
@@ -9,17 +9,16 @@ test.describe("Extended Notifications", () => {
   test.beforeEach(async ({ page }) => {
     // 1. Create User A (Admin/Owner)
     const request = page.request;
-    userA = await loginViaApi(request, `admin-${Date.now()}@example.com`, "password123", "Admin User", "ADMIN");
+    userA = await loginViaApi(request, `admin-${Date.now()}@example.com`, TEST_PASSWORD, "Admin User", "ADMIN");
 
     // 2. Create User B (Target)
-    // Create User B
+    // El registro público siempre crea TEAM_DEVELOPER y no devuelve token,
+    // por lo que se registra y se inicia sesión para obtener la cookie.
     const bEmail = `target-${Date.now()}@example.com`;
-    const bRes = await request.post("http://localhost:5000/api/auth/register", {
-        headers: { Authorization: `Bearer ${userA.token}` },
-        data: { name: "Target User", email: bEmail, password: "password123", role: "TEAM_DEVELOPER" }
+    userB = await createSessionViaApi(request, undefined, {
+      name: "Target User",
+      email: bEmail,
     });
-    const bData = await bRes.json();
-    userB = bData.user;
 
     // 3. Create Project by User A
     // We need to set up the request context to be authenticated as User A?
@@ -42,10 +41,13 @@ test.describe("Extended Notifications", () => {
     });
 
     // 2. Login as User B to check notifications
+    // La sesión del navegador se cambia con la cookie httpOnly de User B.
     await page.goto("/");
-    await page.evaluate((u) => {
-      localStorage.setItem("user", JSON.stringify(u));
-    }, userB);
+    await injectBrowserSession(
+      page,
+      { id: userB.id, name: userB.name, email: userB.email, role: userB.role },
+      userB.token!,
+    );
     await page.reload();
 
     // 3. Check Notification

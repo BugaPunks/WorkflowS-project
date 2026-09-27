@@ -1,10 +1,22 @@
 import bcryptjs from "bcryptjs";
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../db";
 import { authenticateToken } from "../middleware/auth";
 import { requireSystemRole } from "../middleware/system-rbac";
+import { strongPasswordSchema } from "../validation/password";
 
 const router = Router();
+
+const createUserSchema = z.object({
+	email: z.string().email("El email no es válido"),
+	name: z.string().min(1, "El nombre es requerido").max(100),
+	password: strongPasswordSchema,
+	role: z
+		.enum(["ADMIN", "PRODUCT_OWNER", "SCRUM_MASTER", "TEAM_DEVELOPER"])
+		.optional()
+		.default("TEAM_DEVELOPER"),
+});
 
 // GET todos los usuarios - ADMIN only
 router.get(
@@ -66,11 +78,14 @@ router.post(
 	requireSystemRole("ADMIN"),
 	async (req, res) => {
 		try {
-			const { email, name, password, role } = req.body;
-
-			if (!email || !name || !password) {
-				return res.status(400).json({ error: "Faltan campos requeridos" });
+			const parsed = createUserSchema.safeParse(req.body);
+			if (!parsed.success) {
+				const message =
+					parsed.error.issues[0]?.message ?? "Faltan campos requeridos";
+				return res.status(400).json({ error: message });
 			}
+
+			const { email, name, password, role } = parsed.data;
 
 			const hashedPassword = await bcryptjs.hash(password, 10);
 
@@ -79,7 +94,7 @@ router.post(
 					email,
 					name,
 					password: hashedPassword,
-					role: role || "TEAM_DEVELOPER",
+					role,
 				},
 				select: {
 					id: true,
@@ -117,6 +132,8 @@ router.put(
 					...(email !== undefined && { email }),
 					...(role !== undefined && { role }),
 					...(active !== undefined && { active }),
+					// Si se desactiva al usuario, invalidar todos sus tokens
+					...(active === false && { tokenVersion: { increment: 1 } }),
 				},
 				select: {
 					id: true,

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createSessionViaApi } from "./utils/api-auth";
 
 test.describe("Sprint Kanban Board", () => {
 	const uniqueId = Date.now().toString();
@@ -13,39 +14,17 @@ test.describe("Sprint Kanban Board", () => {
 			console.log(`PAGE ERROR: "${exception}"`),
 		);
 
-		// Register via API
-		const registerRes = await request.post("/api/auth/register", {
-			data: {
-				name: "Sprint User",
-				email: userEmail,
-				password: "password123",
-				role: "ADMIN",
-			},
-		});
-
-		if (!registerRes.ok()) {
-			// Maybe user exists
-			const loginRes = await request.post("/api/auth/login", {
-				data: { email: userEmail, password: "password123" },
-			});
-			const loginData = await loginRes.json();
-			userId = loginData.user.id;
-			token = loginData.token;
-		} else {
-			const body = await registerRes.json();
-			userId = body.user.id;
-			token = body.token;
-		}
-
-		// Bypass UI Login
+		// Crear usuario vía registro público (siempre TEAM_DEVELOPER), promover a
+		// ADMIN e iniciar sesión: el token llega en la cookie httpOnly, nunca en
+		// el body ni en localStorage.
 		await page.goto("/");
-		await page.evaluate(
-			({ id, name, email, role, token }) => {
-				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
-				localStorage.setItem("token", token);
-			},
-			{ id: userId, name: "Sprint User", email: userEmail, role: "ADMIN", token },
-		);
+		const session = await createSessionViaApi(request, page, {
+			name: "Sprint User",
+			email: userEmail,
+			role: "ADMIN",
+		});
+		userId = session.id;
+		token = session.token ?? "";
 
 		// Create Project via API
 		const projectRes = await request.post("/api/projects", {

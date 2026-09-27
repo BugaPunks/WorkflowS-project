@@ -10,6 +10,7 @@ import {
 	User,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSession } from "@/hooks/useSession";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "./NotificationBell";
 
@@ -22,6 +23,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 	const location = useLocation();
 	const navigate = useNavigate();
+	const { logout } = useSession();
 
 	const ADMIN_MENU = [
 		{ label: "Proyectos", href: "/projects", icon: LayoutDashboard },
@@ -53,7 +55,9 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 	};
 
 	const handleLogout = () => {
-		localStorage.removeItem("user");
+		// Revoca la sesión en el servidor (POST /api/auth/logout incrementa
+		// tokenVersion y limpia la cookie httpOnly) y luego limpia el estado local.
+		logout();
 		navigate("/login");
 	};
 
@@ -153,6 +157,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 								className="text-gray-400 hover:text-red-600 transition-colors"
 							>
 								<LogOut size={20} />
+								<span className="sr-only">Cerrar Sesión</span>
 							</button>
 						</div>
 					)}

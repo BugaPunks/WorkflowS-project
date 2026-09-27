@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, injectBrowserSession, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Document Management", () => {
 	let projectId: string;
@@ -11,7 +11,7 @@ test.describe("Document Management", () => {
 		const { id: userId, token } = await loginViaApi(
 			request,
 			`admin_docs_${Date.now()}@test.com`,
-			"password123",
+			TEST_PASSWORD,
 			"AdminDocs",
 			"ADMIN",
 		);
@@ -32,18 +32,18 @@ test.describe("Document Management", () => {
 		const user = await loginViaApi(
 			request,
 			`admin_docs_${Date.now()}@test.com`,
-			"password123",
+			TEST_PASSWORD,
 			"AdminDocs",
 			"ADMIN",
 		);
 		docToken = user.token;
 
-		// Set local storage to simulate login
-		await page.goto("/");
-		await page.evaluate((u) => {
-			localStorage.setItem("user", JSON.stringify(u));
-			localStorage.setItem("token", u.token!);
-		}, user);
+		// Set cookie + localStorage (sesión real)
+		await injectBrowserSession(
+			page,
+			{ id: user.id, email: user.email, name: user.name, role: user.role },
+			user.token,
+		);
 
 		await page.goto(`/projects/${projectId}`);
 		// Navigate to Documents tab

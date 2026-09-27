@@ -13,10 +13,8 @@ async function apiRequest<T = unknown>(
 	options: RequestOptions = {},
 ): Promise<T> {
 	const url = `${API_BASE_URL}${endpoint}`;
-	const token = localStorage.getItem("token");
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
-		...(token ? { Authorization: `Bearer ${token}` } : {}),
 		...(options.headers as Record<string, string>),
 	};
 
@@ -24,11 +22,11 @@ async function apiRequest<T = unknown>(
 		const response = await fetch(url, {
 			...options,
 			headers,
+			credentials: "include",
 		});
 
 		if (response.status === 401) {
 			localStorage.removeItem("user");
-			localStorage.removeItem("token");
 			window.location.href = "/login";
 			throw new Error("Sesión expirada");
 		}

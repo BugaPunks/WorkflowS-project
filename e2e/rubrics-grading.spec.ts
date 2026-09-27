@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Rubrics and Grading Flow", () => {
 	test("should create a global rubric and grade a task", async ({ page }) => {
 		// 1. Login as Admin (Docente)
-		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, "password123", "Rubric Admin", "ADMIN");
+		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, TEST_PASSWORD, "Rubric Admin", "ADMIN");
 		console.log('Logged in user:', userId);
 
 		// 2. Create a Global Rubric

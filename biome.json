@@ -10,7 +10,8 @@
 			"src/**/*.{ts,tsx,js,jsx}",
 			"*.config.{ts,js}",
 			"*.json",
-			"*.md"
+			"*.md",
+			"!**/skills-lock.json"
 		]
 	},
 	"formatter": {

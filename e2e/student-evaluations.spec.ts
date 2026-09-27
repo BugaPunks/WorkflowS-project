@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginViaApi } from './utils/api-auth';
+import { createSessionViaApi, injectBrowserSession, loginViaApi, TEST_PASSWORD } from './utils/api-auth';
 
 test.describe('Student Evaluations View', () => {
   test('should allow student to view their grades', async ({ page, request }) => {
@@ -13,13 +13,13 @@ test.describe('Student Evaluations View', () => {
     });
     const project = (await projRes.json()).data;
 
-    // Create Student
+    // Create Student via registro público (siempre TEAM_DEVELOPER, sin token)
     const studentEmail = `student_${Date.now()}@test.com`;
-    const studentRes = await request.post('http://localhost:5000/api/auth/register', {
-      headers: { Authorization: `Bearer ${admin.token}` },
-      data: { name: 'Student Eval', email: studentEmail, password: 'password123', role: 'TEAM_DEVELOPER' }
+    const student = await createSessionViaApi(request, undefined, {
+      name: 'Student Eval',
+      email: studentEmail,
+      password: TEST_PASSWORD
     });
-    const student = (await studentRes.json()).user;
 
     // Add Student to Project
     const projectId = project.id;
@@ -68,10 +68,12 @@ test.describe('Student Evaluations View', () => {
     });
 
     // 2. Student Flow
-    // Login as Student by overwriting local storage
-    await page.evaluate((user) => {
-        localStorage.setItem('user', JSON.stringify(user));
-    }, student);
+    // Cambiar a la sesión del estudiante (cookie httpOnly + localStorage.user)
+    await injectBrowserSession(
+      page,
+      { id: student.id, name: student.name, email: student.email, role: student.role },
+      student.token!
+    );
     await page.reload(); // Reload to pick up user session
 
     // Check Sidebar link

@@ -8,11 +8,9 @@ interface SessionContextType {
 	isAuthenticated: boolean;
 	login: (
 		userData: Partial<User> & Pick<User, "id" | "name" | "email" | "role">,
-		token: string,
 	) => void;
 	logout: () => void;
 	permissions: string[];
-	token: string | null;
 }
 
 const SessionContext = createContext<SessionContextType | null>(null);
@@ -21,13 +19,11 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }) => {
 	const [session, setSession] = useState<User | null>(null);
-	const [token, setToken] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [permissions, setPermissions] = useState<string[]>([]);
 
 	useEffect(() => {
 		const userData = localStorage.getItem("user");
-		const storedToken = localStorage.getItem("token");
 		if (userData) {
 			try {
 				const parsedUser = JSON.parse(userData);
@@ -35,9 +31,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 			} catch (error) {
 				console.error("Error al parsear los datos de sesión:", error);
 			}
-		}
-		if (storedToken) {
-			setToken(storedToken);
 		}
 		setLoading(false);
 	}, []);
@@ -53,21 +46,23 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 
 	const login = (
 		userData: Partial<User> & Pick<User, "id" | "name" | "email" | "role">,
-		tokenValue: string,
 	) => {
 		const { password: _password, ...userForStorage } = userData;
 		setSession({ ...userData, password: "" } as User);
-		setToken(tokenValue);
 		localStorage.setItem("user", JSON.stringify(userForStorage));
-		localStorage.setItem("token", tokenValue);
 	};
 
 	const logout = () => {
+		// Revocar la sesión en el servidor (invalida el cookie/token)
+		fetch("/api/auth/logout", {
+			method: "POST",
+			credentials: "include",
+		}).catch(() => {
+			// El cierre de sesión local siempre se completa
+		});
 		setSession(null);
-		setToken(null);
 		setPermissions([]);
 		localStorage.removeItem("user");
-		localStorage.removeItem("token");
 	};
 
 	const value: SessionContextType = {
@@ -77,7 +72,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 		login,
 		logout,
 		permissions,
-		token,
 	};
 
 	return (

@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 import { randomUUID } from "node:crypto";
 
 test.describe("User Management", () => {
 	test.beforeEach(async ({ page }) => {
-		await loginViaApi(page, `admin_um_${Date.now()}@test.com`, "password123", "Admin UM", "ADMIN");
+		await loginViaApi(page, `admin_um_${Date.now()}@test.com`, TEST_PASSWORD, "Admin UM", "ADMIN");
 	});
 
 	test("should create, edit (including password reset) and delete a user", async ({
@@ -24,7 +24,7 @@ test.describe("User Management", () => {
 
 		await page.fill("#edit-name", newUserName);
 		await page.fill("#edit-email", newUserEmail);
-		await page.fill("#edit-password", "password123");
+		await page.fill("#edit-password", TEST_PASSWORD);
 		await page.selectOption("#edit-role", "TEAM_DEVELOPER");
 
         // Use exact text match for button or role
@@ -43,7 +43,7 @@ test.describe("User Management", () => {
 		await page.selectOption("#edit-role", "SCRUM_MASTER");
 
 		// Update Password (Optional test)
-		await page.fill("#edit-password", "newpassword123");
+		await page.fill("#edit-password", "N3wPassword!2026");
 
 		await page.click('button:has-text("Guardar")');
 

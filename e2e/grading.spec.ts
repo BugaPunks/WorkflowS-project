@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, injectBrowserSession, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Grading System", () => {
   let project: any;
@@ -12,8 +12,8 @@ test.describe("Grading System", () => {
 
   test.beforeEach(async ({ page }) => {
     const request = page.request;
-    teacher = await loginViaApi(request, `teacher-${Date.now()}@example.com`, "password123", "Teacher", "ADMIN");
-    student = await loginViaApi(request, `student-${Date.now()}@example.com`, "password123", "Student", "TEAM_DEVELOPER");
+    teacher = await loginViaApi(request, `teacher-${Date.now()}@example.com`, TEST_PASSWORD, "Teacher", "ADMIN");
+    student = await loginViaApi(request, `student-${Date.now()}@example.com`, TEST_PASSWORD, "Student", "TEAM_DEVELOPER");
 
     ts = Date.now();
     // Create Project
@@ -62,11 +62,11 @@ test.describe("Grading System", () => {
 
   test("Teacher can grade a sprint and update it", async ({ page }) => {
     // Login Teacher
-    await page.goto("/");
-    await page.evaluate((u) => {
-      localStorage.setItem("user", JSON.stringify(u));
-      localStorage.setItem("token", u.token);
-    }, teacher);
+    await injectBrowserSession(
+      page,
+      { id: teacher.id, email: teacher.email, name: teacher.name, role: teacher.role },
+      teacher.token,
+    );
     await page.reload();
 
     // Go to Evaluations (Admin View)
@@ -113,11 +113,11 @@ test.describe("Grading System", () => {
     await expect(page.getByText(sprintName)).not.toBeVisible();
 
     // Login Student to View Grade
-    await page.goto("/");
-    await page.evaluate((u) => {
-      localStorage.setItem("user", JSON.stringify(u));
-      localStorage.setItem("token", u.token);
-    }, student);
+    await injectBrowserSession(
+      page,
+      { id: student.id, email: student.email, name: student.name, role: student.role },
+      student.token,
+    );
     await page.reload();
 
     await page.goto("/evaluations");

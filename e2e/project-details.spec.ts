@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { createSessionViaApi } from "./utils/api-auth";
 
 test.describe("Project Details", () => {
 	// Use a unique suffix to avoid conflicts if tests run in parallel or repeatedly
@@ -12,58 +13,14 @@ test.describe("Project Details", () => {
 			console.log(`PAGE ERROR: "${exception}"`),
 		);
 
-		// Register via API to avoid UI flakiness/timeouts
-		const registerRes = await request.post(
-			"http://localhost:5000/api/auth/register",
-			{
-				data: {
-					name: "Test User",
-					email: userEmail,
-					password: "password123",
-					role: "ADMIN",
-				},
-			},
-		);
-
-		// If 400, it might be "User already exists", which is fine for this test run context usually
-		let userId = "";
-		let userName = "Test User";
-		let token = "";
-
-		if (!registerRes.ok()) {
-			const body = await registerRes.json();
-			if (!body.error?.includes("ya existe")) {
-				console.error("API Register failed:", body);
-			}
-			// Ideally we fetch the user id if exists, but for now we might fail if we need ID.
-			// However, local storage mock needs ID.
-			// Let's assume registration success or we login via API to get ID.
-			const loginRes = await request.post(
-				"http://localhost:5000/api/auth/login",
-				{
-					data: { email: userEmail, password: "password123" },
-				},
-			);
-			const loginData = await loginRes.json();
-			userId = loginData.user.id;
-			userName = loginData.user.name;
-			token = loginData.token;
-		} else {
-			const body = await registerRes.json();
-			userId = body.user.id;
-			userName = body.user.name;
-			token = body.token;
-		}
-
-		// Bypass UI Login
+		// Registrar vía API (siempre TEAM_DEVELOPER), promover a ADMIN e iniciar
+		// sesión. La sesión viaja en la cookie httpOnly, no en localStorage.
 		await page.goto("/");
-		await page.evaluate(
-			({ id, name, email, role, token }) => {
-				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
-				localStorage.setItem("token", token);
-			},
-			{ id: userId, name: userName, email: userEmail, role: "ADMIN", token },
-		);
+		await createSessionViaApi(request, page, {
+			name: "Test User",
+			email: userEmail,
+			role: "ADMIN",
+		});
 
 		// Reload to pick up session
 		await page.reload();

@@ -26,6 +26,35 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em; /* tight tracking for headings */
 }
 
+/* Login: pulso secuencial del pipeline ágil */
+.workflowpulse .size-2\.5 {
+  animation: workflowpulse 1.4s ease-in-out infinite;
+}
+.workflowpulse .size-2\.5:nth-child(1) {
+  animation-delay: 0.2s;
+}
+.workflowpulse .size-2\.5:nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+@keyframes workflowpulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workflowpulse .size-2\.5 {
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
 .content {
   display: flex;
   min-height: 100vh;

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, injectBrowserSession, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Task Creation with Assignment", () => {
   let project: any;
@@ -9,14 +9,14 @@ test.describe("Task Creation with Assignment", () => {
   test.beforeEach(async ({ page }) => {
     // 1. API Auth
     const request = page.request;
-    const user = await loginViaApi(request, `user-${Date.now()}@example.com`, "password123", "Task User", "ADMIN");
+    const user = await loginViaApi(request, `user-${Date.now()}@example.com`, TEST_PASSWORD, "Task User", "ADMIN");
 
-    // 2. Set Session in Browser
-    await page.goto("/");
-    await page.evaluate((u) => {
-      localStorage.setItem("user", JSON.stringify(u));
-      localStorage.setItem("token", u.token!);
-    }, user);
+    // 2. Set Session in Browser (cookie + localStorage user)
+    await injectBrowserSession(
+      page,
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      user.token,
+    );
     // Reload to apply session
     await page.reload();
 

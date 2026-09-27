@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Rubrics Management", () => {
 	test.beforeEach(async ({ page }) => {
-		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, "password123", "Rubric Admin", "ADMIN");
+		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, TEST_PASSWORD, "Rubric Admin", "ADMIN");
 
 		// Ensure there is at least one project
 		const response = await page.request.post(

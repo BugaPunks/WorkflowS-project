@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AppLogoIcon } from "@/components/AppLogoIcon";
 import { useSession } from "@/hooks/useSession";
 
 interface LoginFormData {
 	email: string;
 	password: string;
 }
+
+const STAGES = ["Backlog", "Sprint", "Revisión", "Entrega"];
 
 export function LoginForm() {
 	const navigate = useNavigate();
@@ -79,17 +82,14 @@ export function LoginForm() {
 				throw new Error(data.error || "Error al iniciar sesión");
 			}
 
-			// Update session state
-			login(
-				{
-					id: data.user.id,
-					name: data.user.name,
-					email: data.user.email,
-					role: data.user.role,
-					password: "", // Not needed in session
-				},
-				data.token,
-			);
+			// Update session state (el token viaja en la cookie HttpOnly)
+			login({
+				id: data.user.id,
+				name: data.user.name,
+				email: data.user.email,
+				role: data.user.role,
+				password: "", // Not needed in session
+			});
 
 			// Redirigir directamente al dashboard (Proyectos)
 			navigate("/");
@@ -103,84 +103,168 @@ export function LoginForm() {
 	};
 
 	return (
-		<div className="max-w-md mx-auto bg-white shadow-md rounded-lg p-6">
-			<h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-				Iniciar Sesión
-			</h2>
-
-			<form onSubmit={handleSubmit} className="space-y-4">
-				{submitError && (
-					<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-						<p>{submitError}</p>
+		<div className="min-h-screen bg-white font-sans flex">
+			{/* Lado izq: marca */}
+			<aside className="hidden lg:flex w-[46%] bg-linear-to-br from-indigo-950 via-indigo-900 to-indigo-700 text-white flex-col justify-between p-12">
+				<div className="flex items-center gap-3">
+					<div className="bg-white/15 backdrop-blur flex size-10 items-center justify-center rounded-xl">
+						<AppLogoIcon className="size-6 fill-current text-white" />
 					</div>
-				)}
-
-				<div>
-					<label
-						className="block text-gray-700 text-sm font-bold mb-2"
-						htmlFor="email"
-					>
-						Correo Electrónico
-					</label>
-					<input
-						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black ${
-							errors.email ? "border-red-500" : "border-gray-300"
-						}`}
-						id="email"
-						name="email"
-						type="email"
-						placeholder="tu@email.com"
-						value={formData.email}
-						onChange={handleChange}
-					/>
-					{errors.email && (
-						<p className="text-red-500 text-xs mt-1">{errors.email}</p>
-					)}
+					<span className="text-lg font-semibold tracking-tight">
+						WorkflowS
+					</span>
 				</div>
 
 				<div>
-					<label
-						className="block text-gray-700 text-sm font-bold mb-2"
-						htmlFor="password"
+					<h1 className="text-4xl font-bold leading-tight tracking-tight">
+						Todo tu trabajo ágil
+						<br />
+						en un solo flujo.
+					</h1>
+					<p className="mt-4 max-w-xs text-base font-light text-indigo-200">
+						De la idea al entregable: sprints, historias y entregas, siempre en
+						movimiento.
+					</p>
+
+					{/* Pipeline */}
+					<div
+						className="mt-10 flex items-center gap-0"
+						role="img"
+						aria-label="Flujo de trabajo ágil: Backlog, Sprint, Revisión y Entrega"
 					>
-						Contraseña
-					</label>
-					<input
-						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-950 ${
-							errors.password ? "border-red-500" : "border-gray-300"
-						}`}
-						id="password"
-						name="password"
-						type="password"
-						placeholder="••••••••"
-						value={formData.password}
-						onChange={handleChange}
-					/>
-					{errors.password && (
-						<p className="text-red-500 text-xs mt-1">{errors.password}</p>
-					)}
+						{STAGES.map((stage, i) => (
+							<div key={stage} className="flex items-center">
+								<div
+									className="workflowpulse group flex flex-col items-center gap-1.5 px-3"
+									style={{ animationDelay: `${i * 0.7}s` }}
+								>
+									<div className="flex items-center gap-1.5">
+										<i className="block size-2.5 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
+										<i className="block size-2.5 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
+									</div>
+									<span className="text-[10px] font-medium tracking-wide text-indigo-200">
+										{stage}
+									</span>
+								</div>
+								{i < STAGES.length - 1 && (
+									<i
+										className="block h-px w-8 bg-white/30"
+										aria-hidden="true"
+									/>
+								)}
+							</div>
+						))}
+					</div>
 				</div>
 
-				<button
-					type="submit"
-					disabled={isSubmitting}
-					className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition ${
-						isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-					}`}
-				>
-					{isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
-				</button>
-			</form>
+				<p className="text-sm font-light text-indigo-300">
+					© {new Date().getFullYear()} WorkflowS
+				</p>
+			</aside>
 
-			<p className="text-center text-gray-600 text-sm mt-4">
-				¿No tienes cuenta?{" "}
-				<a
-					href="/register"
-					className="text-blue-600 hover:text-blue-700 font-semibold"
-				>
-					Regístrate aquí
-				</a>
-			</p>
+			{/* Lado der: formulario */}
+			<main className="flex flex-1 items-center justify-center p-6">
+				<div className="w-full max-w-sm">
+					<div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
+						<div className="bg-blue-600 text-white flex size-9 items-center justify-center rounded-lg">
+							<AppLogoIcon className="size-5 fill-current" />
+						</div>
+						<span className="text-lg font-semibold tracking-tight text-slate-900">
+							WorkflowS
+						</span>
+					</div>
+
+					<h2 className="text-3xl font-bold tracking-tight text-slate-900">
+						Iniciar sesión
+					</h2>
+					<p className="mt-1.5 text-sm text-slate-500">
+						Bienvenido de nuevo. Ingresa tus credenciales para continuar.
+					</p>
+
+					<form onSubmit={handleSubmit} className="mt-8 space-y-5">
+						{submitError && (
+							<div
+								className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+								role="alert"
+							>
+								{submitError}
+							</div>
+						)}
+
+						<div>
+							<label
+								className="mb-1.5 block text-sm font-medium text-slate-700"
+								htmlFor="email"
+							>
+								Correo electrónico
+							</label>
+							<input
+								className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+									errors.email
+										? "border-red-300 focus:ring-red-500"
+										: "border-slate-300 focus:ring-indigo-500"
+								}`}
+								id="email"
+								name="email"
+								type="email"
+								autoComplete="email"
+								placeholder="tu@email.com"
+								value={formData.email}
+								onChange={handleChange}
+							/>
+							{errors.email && (
+								<p className="mt-1.5 text-xs text-red-600">{errors.email}</p>
+							)}
+						</div>
+
+						<div>
+							<label
+								className="mb-1.5 block text-sm font-medium text-slate-700"
+								htmlFor="password"
+							>
+								Contraseña
+							</label>
+							<input
+								className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
+									errors.password
+										? "border-red-300 focus:ring-red-500"
+										: "border-slate-300 focus:ring-indigo-500"
+								}`}
+								id="password"
+								name="password"
+								type="password"
+								autoComplete="current-password"
+								placeholder="••••••••"
+								value={formData.password}
+								onChange={handleChange}
+							/>
+							{errors.password && (
+								<p className="mt-1.5 text-xs text-red-600">{errors.password}</p>
+							)}
+						</div>
+
+						<button
+							type="submit"
+							disabled={isSubmitting}
+							className={`flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+								isSubmitting ? "cursor-not-allowed opacity-60" : ""
+							}`}
+						>
+							{isSubmitting ? "Iniciando sesión…" : "Iniciar sesión"}
+						</button>
+					</form>
+
+					<p className="mt-6 text-center text-sm text-slate-600">
+						¿No tienes cuenta?{" "}
+						<a
+							href="/register"
+							className="font-semibold text-indigo-600 transition hover:text-indigo-700"
+						>
+							Regístrate aquí
+						</a>
+					</p>
+				</div>
+			</main>
 		</div>
 	);
 }

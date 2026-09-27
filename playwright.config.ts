@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const BASE_ORIGIN = "http://localhost:3000";
+const API_ORIGIN = "http://localhost:5000";
+
 export default defineConfig({
 	testDir: "./e2e",
 	// Run tests in files in parallel
@@ -14,7 +17,7 @@ export default defineConfig({
 	reporter: "list",
 	use: {
 		// Base URL to use in actions like `await page.goto('/')`.
-		baseURL: "http://localhost:3000",
+		baseURL: BASE_ORIGIN,
 
 		// Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer
 		trace: "on-first-retry",
@@ -27,10 +30,21 @@ export default defineConfig({
 		},
 	],
 
-	// Run your local dev server before starting the tests
-	// webServer: {
-	//   command: 'npm run dev',
-	//   url: 'http://localhost:3000',
-	//   reuseExistingServer: !process.env.CI,
-	// },
+	// Arranca la app y la API para los tests. El limitador de login (5 intentos
+	// por 15 min) se desactiva porque la suite crea muchas sesiones.
+	webServer: [
+		{
+			command: "npx tsx src/server/index.ts",
+			url: `${API_ORIGIN}/api/health`,
+			reuseExistingServer: !process.env.CI,
+			env: { DISABLE_RATE_LIMIT: "true" },
+			timeout: 120_000,
+		},
+		{
+			command: "npx rsbuild dev",
+			url: BASE_ORIGIN,
+			reuseExistingServer: !process.env.CI,
+			timeout: 120_000,
+		},
+	],
 });

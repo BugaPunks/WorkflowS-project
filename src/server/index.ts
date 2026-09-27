@@ -1,6 +1,12 @@
 import fs from "node:fs";
+import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { type Express } from "express";
+import express, {
+	type Express,
+	type NextFunction,
+	type Request,
+	type Response,
+} from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import "dotenv/config";
@@ -32,11 +38,38 @@ const PORT = process.env.API_PORT || 5000;
 // Security headers
 app.use(helmet());
 
-// CORS configuration
+// Parseo de cookies para leer el token de sesión
+app.use(cookieParser());
+
+// CORS configuration (con credenciales para cookies)
 const corsOrigins = process.env.CORS_ORIGINS?.split(",") || [
 	"http://localhost:3000",
 ];
-app.use(cors({ origin: corsOrigins }));
+app.use(cors({ origin: corsOrigins, credentials: true }));
+
+// Protección CSRF: rechaza mutaciones cuyo Origin/Referer no esté en CORS_ORIGINS
+const CSRF_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const csrfProtection = (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): void => {
+	if (!CSRF_METHODS.has(req.method)) {
+		next();
+		return;
+	}
+	const rawOrigin = req.headers.origin || req.headers.referer;
+	if (!rawOrigin) {
+		next();
+		return;
+	}
+	const origin = new URL(rawOrigin).origin;
+	if (!corsOrigins.includes(origin)) {
+		res.status(403).json({ error: "Origen no permitido" });
+		return;
+	}
+	next();
+};
 
 const disableRateLimit =
 	process.env.DISABLE_RATE_LIMIT === "true" || process.env.NODE_ENV === "test";
@@ -76,6 +109,9 @@ app.use(express.json());
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", registerLimiter);
 app.use("/api", apiLimiter);
+
+// Protección CSRF antes de las rutas API
+app.use("/api", csrfProtection);
 
 // Rutas API
 app.use("/api/auth", authRouter);

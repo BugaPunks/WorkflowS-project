@@ -1,57 +1,16 @@
 import { expect, test } from "@playwright/test";
+import { loginViaApi } from "./utils/api-auth";
 
 test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 	const uniqueId = Date.now().toString();
 	const userEmail = `admin${uniqueId}@workflow.com`;
 
 	test.beforeEach(async ({ page, request }) => {
-		// Register via API to avoid UI flakiness/timeouts
-		const registerRes = await request.post(
-			"http://localhost:5000/api/auth/register",
-			{
-				data: {
-					name: "Admin User",
-					email: userEmail,
-					password: "password123",
-					role: "ADMIN",
-				},
-			},
-		);
+		// Crear usuario ADMIN vía loginViaApi (promociona rol automáticamente)
+		await loginViaApi(page, request, userEmail, "ADMIN", "Admin User");
 
-		let userId = "";
-		let userName = "Admin User";
-		let token = "";
-
-		if (!registerRes.ok()) {
-			// Login if already exists
-			const loginRes = await request.post(
-				"http://localhost:5000/api/auth/login",
-				{
-					data: { email: userEmail, password: "password123" },
-				},
-			);
-			const loginData = await loginRes.json();
-			userId = loginData.user.id;
-			userName = loginData.user.name;
-			token = loginData.token;
-		} else {
-			const body = await registerRes.json();
-			userId = body.user.id;
-			userName = body.user.name;
-			token = body.token;
-		}
-
-		// Bypass UI Login
+		// Bypass UI Login (cookie ya inyectada por loginViaApi)
 		await page.goto("/");
-		await page.evaluate(
-			({ id, name, email, role, token }) => {
-				localStorage.setItem("user", JSON.stringify({ id, name, email, role }));
-				localStorage.setItem("token", token);
-			},
-			{ id: userId, name: userName, email: userEmail, role: "ADMIN", token },
-		);
-
-		// Reload to pick up session
 		await page.reload();
 	});
 

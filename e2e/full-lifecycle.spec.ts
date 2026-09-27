@@ -1,10 +1,16 @@
 import { expect, test } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import {
+	createSessionViaApi,
+	loginViaApi,
+	switchBrowserSession,
+	TEST_PASSWORD,
+} from "./utils/api-auth";
 
 test.describe("Full Project Lifecycle: Teacher and Student", () => {
 	const timestamp = Date.now();
 	const projectName = `Proyecto Final ${timestamp}`;
 	const studentEmail = `estudiante_${timestamp}@workflow.com`;
+	const studentPassword = TEST_PASSWORD;
 	let projectId: string;
 	let studentId: string;
 	let studentToken: string;
@@ -67,34 +73,15 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		});
 
 		// 1.3 Create Student User (API)
-		const studentRes = await request.post(
-			"http://localhost:5000/api/auth/register",
-			{
-				headers: { Authorization: `Bearer ${token}` },
-				data: {
-					name: "Estudiante Test",
-					email: studentEmail,
-					password: "password123",
-					role: "TEAM_DEVELOPER",
-				},
-			},
-		);
-		if (studentRes.ok()) {
-			const body = await studentRes.json();
-			studentId = body.user.id;
-			studentToken = body.token;
-		} else {
-			const loginRes = await request.post(
-				"http://localhost:5000/api/auth/login",
-				{
-					headers: { Authorization: `Bearer ${token}` },
-					data: { email: studentEmail, password: "password123" },
-				},
-			);
-			const body = await loginRes.json();
-			studentId = body.user.id;
-			studentToken = body.token;
-		}
+		// El registro público siempre crea TEAM_DEVELOPER y no devuelve token,
+		// por lo que se inicia sesión aparte para obtener la cookie de sesión.
+		const student = await createSessionViaApi(request, undefined, {
+			name: "Estudiante Test",
+			email: studentEmail,
+			password: studentPassword,
+		});
+		studentId = student.id;
+		studentToken = student.token ?? "";
 
 		// 1.4 Add Student to Project (UI)
 		await page.getByRole("button", { name: "Miembros" }).click();
@@ -123,21 +110,15 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// =================================================================
 		console.log("--- Step 2: Student Workflow ---");
 
-		await page.evaluate(
-			(data) => {
-				localStorage.clear();
-				localStorage.setItem(
-					"user",
-					JSON.stringify({
-						id: data.id,
-						name: "Estudiante Test",
-						email: data.email,
-						role: "TEAM_DEVELOPER",
-					}),
-				);
-				localStorage.setItem("token", data.token);
+		await switchBrowserSession(
+			page,
+			{
+				id: studentId,
+				email: studentEmail,
+				name: "Estudiante Test",
+				role: "TEAM_DEVELOPER",
 			},
-			{ id: studentId, email: studentEmail, token: studentToken },
+			studentToken,
 		);
 		await page.reload();
 		await page.goto("/");
@@ -189,21 +170,15 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// =================================================================
 		console.log("--- Step 3: Teacher Grading ---");
 
-		await page.evaluate(
-			(data) => {
-				localStorage.clear();
-				localStorage.setItem(
-					"user",
-					JSON.stringify({
-						id: data.id,
-						name: "Docente Admin",
-						email: data.email,
-						role: "ADMIN",
-					}),
-				);
-				localStorage.setItem("token", data.token);
+		await switchBrowserSession(
+			page,
+			{
+				id: teacherId,
+				email: "docente@workflow.com",
+				name: "Docente Admin",
+				role: "ADMIN",
 			},
-			{ id: teacherId, email: "docente@workflow.com", token: token! },
+			token!,
 		);
 		await page.reload();
 
@@ -247,21 +222,15 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// =================================================================
 		console.log("--- Step 4: Student Retrospective & Review ---");
 
-		await page.evaluate(
-			(data) => {
-				localStorage.clear();
-				localStorage.setItem(
-					"user",
-					JSON.stringify({
-						id: data.id,
-						name: "Estudiante Test",
-						email: data.email,
-						role: "TEAM_DEVELOPER",
-					}),
-				);
-				localStorage.setItem("token", data.token);
+		await switchBrowserSession(
+			page,
+			{
+				id: studentId,
+				email: studentEmail,
+				name: "Estudiante Test",
+				role: "TEAM_DEVELOPER",
 			},
-			{ id: studentId, email: studentEmail, token: studentToken },
+			studentToken,
 		);
 		await page.reload();
 

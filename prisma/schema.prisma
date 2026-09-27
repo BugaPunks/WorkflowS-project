@@ -16,15 +16,16 @@ datasource db {
 
 // Usuario del sistema
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      String   @default("TEAM_DEVELOPER") // Role
-  avatar    String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  password     String
+  role         String   @default("TEAM_DEVELOPER") // Role
+  avatar       String?
+  active       Boolean  @default(true)
+  tokenVersion Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relaciones
   projects           Project[]
@@ -43,18 +44,18 @@ model User {
 
 // Proyecto
 model Project {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String?
-  status      String   @default("ACTIVE") // ProjectStatus
+  status      String    @default("ACTIVE") // ProjectStatus
   startDate   DateTime?
   endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relaciones
   ownerId     String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   members     ProjectMember[]
   sprints     Sprint[]
   userStories UserStory[]
@@ -70,19 +71,19 @@ model Project {
 
 // Documentos
 model Document {
-  id          String   @id @default(cuid())
-  projectId   String
-  name        String
-  url         String   // Simulado
-  type        String   // PDF, DOCX, etc.
-  size        Int?     // KB
-  version     Int      @default(1)
-  parentId    String?  // ID del documento original si es una versión
-  uploadedAt  DateTime @default(now())
+  id         String   @id @default(cuid())
+  projectId  String
+  name       String
+  url        String // Simulado
+  type       String // PDF, DOCX, etc.
+  size       Int? // KB
+  version    Int      @default(1)
+  parentId   String? // ID del documento original si es una versión
+  uploadedAt DateTime @default(now())
 
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parent      Document? @relation("DocumentHistory", fields: [parentId], references: [id], onDelete: SetNull)
-  versions    Document[] @relation("DocumentHistory")
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Document?  @relation("DocumentHistory", fields: [parentId], references: [id], onDelete: SetNull)
+  versions Document[] @relation("DocumentHistory")
 
   @@index([projectId])
   @@index([parentId])
@@ -116,11 +117,11 @@ model Sprint {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userStories UserStory[]
-  tasks       Task[]
+  project            Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userStories        UserStory[]
+  tasks              Task[]
   retrospectiveItems RetrospectiveItem[]
-  evaluations Evaluation[]
+  evaluations        Evaluation[]
 
   @@index([projectId])
   @@map("sprints")
@@ -128,27 +129,27 @@ model Sprint {
 
 // User Story
 model UserStory {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   projectId   String
   title       String
   description String
   acceptance  String?
-  priority    String   @default("MEDIUM") // Priority
+  priority    String    @default("MEDIUM") // Priority
   storyPoints Int?
-  status      String   @default("BACKLOG") // UserStoryStatus
+  status      String    @default("BACKLOG") // UserStoryStatus
   completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   projectId_userId String?
-  assigneeId String?
-  assignee   User?    @relation(fields: [assigneeId], references: [id])
+  assigneeId       String?
+  assignee         User?   @relation(fields: [assigneeId], references: [id])
 
-  sprintId    String?
-  sprint      Sprint?      @relation(fields: [sprintId], references: [id])
+  sprintId String?
+  sprint   Sprint? @relation(fields: [sprintId], references: [id])
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks       Task[]
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks   Task[]
 
   @@index([projectId])
   @@index([assigneeId])
@@ -158,25 +159,25 @@ model UserStory {
 
 // Tarea
 model Task {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   projectId   String
   userStoryId String?
   sprintId    String?
   title       String
   description String?
-  priority    String   @default("MEDIUM") // Priority
-  status      String   @default("TODO") // TaskStatus
+  priority    String    @default("MEDIUM") // Priority
+  status      String    @default("TODO") // TaskStatus
   deadline    DateTime?
   completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  assigneeId  String?
-  assignee    User?    @relation(fields: [assigneeId], references: [id])
+  assigneeId String?
+  assignee   User?   @relation(fields: [assigneeId], references: [id])
 
-  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userStory   UserStory?  @relation(fields: [userStoryId], references: [id])
-  sprint      Sprint?     @relation(fields: [sprintId], references: [id])
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userStory   UserStory?   @relation(fields: [userStoryId], references: [id])
+  sprint      Sprint?      @relation(fields: [sprintId], references: [id])
   evaluations Evaluation[]
 
   @@index([projectId])
@@ -186,15 +187,15 @@ model Task {
 
 // Rúbrica de evaluación
 model Rubric {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   projectId   String?
   name        String
   description String?
   criteria    Criteria[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@map("rubrics")
@@ -202,14 +203,14 @@ model Rubric {
 
 // Criterios de evaluación
 model Criteria {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   rubricId    String
   name        String
   description String?
-  maxScore    Int      @default(100)
-  weight      Int      @default(1)
+  maxScore    Int     @default(100)
+  weight      Int     @default(1)
 
-  rubric      Rubric  @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  rubric      Rubric               @relation(fields: [rubricId], references: [id], onDelete: Cascade)
   evaluations EvaluationCriteria[]
 
   @@index([rubricId])
@@ -229,11 +230,11 @@ model Evaluation {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  task        Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  sprint      Sprint?  @relation(fields: [sprintId], references: [id], onDelete: Cascade)
-  evaluator   User     @relation(fields: [evaluatorId], references: [id])
-  criteria    EvaluationCriteria[]
+  project   Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task      Task?                @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  sprint    Sprint?              @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  evaluator User                 @relation(fields: [evaluatorId], references: [id])
+  criteria  EvaluationCriteria[]
 
   @@index([projectId])
   @@index([taskId])
@@ -244,14 +245,14 @@ model Evaluation {
 
 // Detalles de evaluación por criterio
 model EvaluationCriteria {
-  id          String   @id @default(cuid())
+  id           String  @id @default(cuid())
   evaluationId String
-  criteriaId  String
-  score       Int      @default(0)
-  comment     String?
+  criteriaId   String
+  score        Int     @default(0)
+  comment      String?
 
-  evaluation  Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
-  criteria    Criteria   @relation(fields: [criteriaId], references: [id])
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criteria   Criteria   @relation(fields: [criteriaId], references: [id])
 
   @@unique([evaluationId, criteriaId])
   @@map("evaluation_criteria")
@@ -259,15 +260,15 @@ model EvaluationCriteria {
 
 // Chat y conversaciones
 model Chat {
-  id          String   @id @default(cuid())
-  projectId   String?
-  title       String?
-  type        String   @default("PROJECT") // PROJECT, DIRECT
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  projectId String?
+  title     String?
+  type      String   @default("PROJECT") // PROJECT, DIRECT
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  messages    Message[]
+  project      Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages     Message[]
   participants ChatParticipant[]
 
   @@index([projectId])
@@ -286,15 +287,15 @@ model ChatParticipant {
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  chatId         String
-  userId         String
-  content        String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(cuid())
+  chatId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  chat           Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
   @@map("messages")
@@ -306,11 +307,11 @@ model Notification {
   userId    String
   title     String
   message   String
-  type      String   // TASK_ASSIGNED, EVALUATION_COMPLETED, MESSAGE
+  type      String // TASK_ASSIGNED, EVALUATION_COMPLETED, MESSAGE
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("notifications")
@@ -320,13 +321,13 @@ model Notification {
 model RetrospectiveItem {
   id        String   @id @default(cuid())
   sprintId  String
-  type      String   // GOOD, BAD, ACTION
+  type      String // GOOD, BAD, ACTION
   content   String
   userId    String
   createdAt DateTime @default(now())
 
-  sprint    Sprint   @relation(fields: [sprintId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sprint Sprint @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([sprintId])
   @@map("retrospective_items")

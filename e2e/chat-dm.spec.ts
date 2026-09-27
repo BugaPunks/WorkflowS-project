@@ -1,29 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { loginViaApi, injectBrowserSession, TEST_PASSWORD } from './utils/api-auth';
 
 test.describe('Direct Messages', () => {
   test('should allow direct messaging between teacher and student', async ({ page, request }) => {
     // 1. Setup Users
     const timestamp = Date.now();
-    // Create Teacher
-    const teacherRes = await request.post('http://localhost:5000/api/auth/register', {
-      data: { name: `Teacher Chat ${timestamp}`, email: `teacher_chat_${timestamp}@test.com`, password: 'password123', role: 'ADMIN' }
-    });
-    const teacherData = await teacherRes.json();
-    const teacher = teacherData.user;
-    const teacherToken = teacherData.token;
-
-    // Create Student
-    const studentRes = await request.post('http://localhost:5000/api/auth/register', {
-      data: { name: `Student Chat ${timestamp}`, email: `student_chat_${timestamp}@test.com`, password: 'password123', role: 'TEAM_DEVELOPER' }
-    });
-    const studentData = await studentRes.json();
-    const student = studentData.user;
-    const studentToken = studentData.token;
+    // Create Teacher (register siempre crea TEAM_DEVELOPER; promover vía API admin)
+    const teacher = await loginViaApi(request, `teacher_chat_${timestamp}@test.com`, TEST_PASSWORD, `Teacher Chat ${timestamp}`, 'ADMIN');
+    const student = await loginViaApi(request, `student_chat_${timestamp}@test.com`, TEST_PASSWORD, `Student Chat ${timestamp}`, 'TEAM_DEVELOPER');
 
     // 2. Teacher sends message
     // Login Teacher
     await page.goto('/'); // Load context
-    await page.evaluate(({ user, token }) => { localStorage.setItem('user', JSON.stringify(user)); localStorage.setItem('token', token); }, { user: teacher, token: teacherToken });
+    await injectBrowserSession(page, teacher, teacher.token);
     await page.goto('/projects');
 
     // Open Chat Widget
@@ -50,7 +39,7 @@ test.describe('Direct Messages', () => {
 
     // 3. Student replies
     // Login Student
-    await page.evaluate(({ user, token }) => { localStorage.setItem('user', JSON.stringify(user)); localStorage.setItem('token', token); }, { user: student, token: studentToken });
+    await injectBrowserSession(page, student, student.token);
     await page.reload();
 
     // Open chat widget again as it closes on reload

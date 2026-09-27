@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { loginViaApi, injectBrowserSession, TEST_PASSWORD } from "./utils/api-auth";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -10,14 +10,14 @@ test.describe("Document Management", () => {
   test.beforeEach(async ({ page }) => {
     // 1. Create User & Project
     const request = page.request;
-    user = await loginViaApi(request, `doc-user-${Date.now()}@example.com`, "password123", "Doc Admin", "ADMIN");
+    user = await loginViaApi(request, `doc-user-${Date.now()}@example.com`, TEST_PASSWORD, "Doc Admin", "ADMIN");
 
-    // Auth session
-    await page.goto("/");
-    await page.evaluate((u) => {
-      localStorage.setItem("user", JSON.stringify(u));
-      localStorage.setItem("token", u.token);
-    }, user);
+    // Auth session (cookie + localStorage user)
+    await injectBrowserSession(
+      page,
+      { id: user.id, email: user.email, name: user.name, role: user.role },
+      user.token,
+    );
     await page.reload();
 
     const pRes = await request.post("http://localhost:5000/api/projects", {
