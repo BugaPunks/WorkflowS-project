@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "rsbuild build",
-		"check": "biome check --write",
+		"check": "biome check",
+		"check:fix": "biome check --write",
 		"dev": "rsbuild dev --open",
 		"dev:server": "npx tsx src/server/index.ts",
 		"dev:all": "concurrently npm:dev:server npm:dev",
