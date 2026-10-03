@@ -29,52 +29,63 @@ router.get("/:id", authenticateToken, async (req, res) => {
 	}
 });
 
-// GET evaluaciones de una tarea - any authenticated
-router.get("/task/:taskId", authenticateToken, async (req, res) => {
-	try {
-		const { taskId } = req.params;
-		const evaluations = await prisma.evaluation.findMany({
-			where: { taskId },
-			include: {
-				evaluator: {
-					select: { name: true, id: true },
+// GET evaluaciones de una tarea - ADMIN only
+router.get(
+	"/task/:taskId",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			const { taskId } = req.params;
+			const evaluations = await prisma.evaluation.findMany({
+				where: { taskId },
+				include: {
+					evaluator: {
+						select: { name: true, id: true },
+					},
+					criteria: true,
 				},
-				criteria: true,
-			},
-			orderBy: { createdAt: "desc" },
-		});
-		res.json({ data: evaluations });
-	} catch (error) {
-		console.error("Error getting task evaluations:", error);
-		res.status(500).json({ error: "Error al obtener evaluaciones" });
-	}
-});
+				orderBy: { createdAt: "desc" },
+			});
+			res.json({ data: evaluations });
+		} catch (error) {
+			console.error("Error getting task evaluations:", error);
+			res.status(500).json({ error: "Error al obtener evaluaciones" });
+		}
+	},
+);
 
-// GET evaluaciones de un sprint - any authenticated
-router.get("/sprint/:sprintId", authenticateToken, async (req, res) => {
-	try {
-		const { sprintId } = req.params;
-		const evaluations = await prisma.evaluation.findMany({
-			where: { sprintId },
-			include: {
-				evaluator: {
-					select: { name: true, id: true },
+// GET evaluaciones de un sprint - ADMIN only
+router.get(
+	"/sprint/:sprintId",
+	authenticateToken,
+	requireSystemRole("ADMIN"),
+	async (req, res) => {
+		try {
+			const { sprintId } = req.params;
+			const evaluations = await prisma.evaluation.findMany({
+				where: { sprintId },
+				include: {
+					evaluator: {
+						select: { name: true, id: true },
+					},
+					criteria: true,
 				},
-				criteria: true,
-			},
-			orderBy: { createdAt: "desc" },
-		});
-		res.json({ data: evaluations });
-	} catch (error) {
-		console.error("Error getting sprint evaluations:", error);
-		res.status(500).json({ error: "Error al obtener evaluaciones" });
-	}
-});
+				orderBy: { createdAt: "desc" },
+			});
+			res.json({ data: evaluations });
+		} catch (error) {
+			console.error("Error getting sprint evaluations:", error);
+			res.status(500).json({ error: "Error al obtener evaluaciones" });
+		}
+	},
+);
 
-// GET evaluaciones de un proyecto - any authenticated
+// GET evaluaciones de un proyecto - ADMIN only
 router.get(
 	"/project/:projectId/general",
 	authenticateToken,
+	requireSystemRole("ADMIN"),
 	async (req, res) => {
 		try {
 			const { projectId } = req.params;
@@ -100,10 +111,14 @@ router.get(
 	},
 );
 
-// GET evaluaciones de un estudiante - any authenticated
+// GET evaluaciones de un estudiante - any authenticated (own) or ADMIN
 router.get("/student/:studentId", authenticateToken, async (req, res) => {
 	try {
 		const { studentId } = req.params;
+
+		if (req.user!.userId !== studentId && req.user!.role !== "ADMIN") {
+			return res.sendStatus(403);
+		}
 
 		const taskEvaluations = await prisma.evaluation.findMany({
 			where: {

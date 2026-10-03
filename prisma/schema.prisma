@@ -16,27 +16,29 @@ datasource db {
 
 // Usuario del sistema
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  password     String
-  role         String   @default("TEAM_DEVELOPER") // Role
-  avatar       String?
-  active       Boolean  @default(true)
-  tokenVersion Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String
+  password         String
+  role             String   @default("TEAM_DEVELOPER") // Role
+  avatar           String?
+  active           Boolean  @default(true)
+  tokenVersion     Int      @default(0)
+  dashboardModules String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relaciones
-  projects           Project[]
-  tasks              Task[]
-  evaluations        Evaluation[]
-  userStories        UserStory[]
-  messages           Message[]
-  chats              ChatParticipant[]
-  projectMemberships ProjectMember[]
-  notifications      Notification[]
-  retrospectiveItems RetrospectiveItem[]
+  projects                Project[]
+  tasks                   Task[]
+  evaluations             Evaluation[]
+  userStories             UserStory[]
+  messages                Message[]
+  chats                   ChatParticipant[]
+  projectMemberships      ProjectMember[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  retrospectiveItems      RetrospectiveItem[]
 
   @@index([email])
   @@map("users")
@@ -302,19 +304,43 @@ model Message {
 }
 
 // Notificaciones
+enum NotificationType {
+  TASK_ASSIGNED
+  USER_STORY_ASSIGNED
+  EVALUATION_COMPLETED
+  MESSAGE
+  PROJECT_ASSIGNED
+  RETROSPECTIVE_ITEM
+  SPRINT_COMPLETED
+}
+
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  message   String
-  type      String // TASK_ASSIGNED, EVALUATION_COMPLETED, MESSAGE
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String           @id @default(cuid())
+  userId     String
+  title      String
+  message    String
+  type       NotificationType
+  entityType String?
+  entityId   String?
+  read       Boolean          @default(false)
+  createdAt  DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("notifications")
+}
+
+model NotificationPreference {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  enabled Boolean          @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@map("notification_preferences")
 }
 
 // Retrospectiva

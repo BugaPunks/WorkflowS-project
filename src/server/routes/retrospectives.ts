@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
+import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
 
@@ -94,17 +95,19 @@ router.post(
 			const projectMembers = item.sprint.project.members;
 			const notifications = projectMembers
 				.filter((member) => member.userId !== userId)
-				.map((member) => ({
-					userId: member.userId,
-					title: "Nueva Nota en Retrospectiva",
-					message: `Se ha añadido una nota "${type}" en el sprint ${item.sprint.name}`,
-					type: "RETROSPECTIVE_ITEM",
-				}));
+				.map((member) =>
+					notify({
+						userId: member.userId,
+						type: "RETROSPECTIVE_ITEM",
+						title: "Nueva Nota en Retrospectiva",
+						message: `Se ha añadido una nota "${type}" en el sprint ${item.sprint.name}`,
+						entityType: "RETROSPECTIVE_ITEM",
+						entityId: item.id,
+					}),
+				);
 
 			if (notifications.length > 0) {
-				await prisma.notification.createMany({
-					data: notifications,
-				});
+				await Promise.all(notifications);
 			}
 
 			res.status(201).json({ data: item });

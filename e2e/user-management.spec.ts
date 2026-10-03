@@ -1,10 +1,16 @@
-import { test, expect } from "@playwright/test";
-import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 import { randomUUID } from "node:crypto";
+import { expect, test } from "@playwright/test";
+import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("User Management", () => {
 	test.beforeEach(async ({ page }) => {
-		await loginViaApi(page, `admin_um_${Date.now()}@test.com`, TEST_PASSWORD, "Admin UM", "ADMIN");
+		await loginViaApi(
+			page,
+			`admin_um_${Date.now()}@test.com`,
+			TEST_PASSWORD,
+			"Admin UM",
+			"ADMIN",
+		);
 	});
 
 	test("should create, edit (including password reset) and delete a user", async ({
@@ -27,8 +33,8 @@ test.describe("User Management", () => {
 		await page.fill("#edit-password", TEST_PASSWORD);
 		await page.selectOption("#edit-role", "TEAM_DEVELOPER");
 
-        // Use exact text match for button or role
-        await page.click('button:has-text("Crear")');
+		// Use exact text match for button or role
+		await page.click('button:has-text("Crear")');
 
 		// Verify creation
 		await expect(page.locator(`text=${newUserEmail}`)).toBeVisible();
@@ -52,7 +58,11 @@ test.describe("User Management", () => {
 		// "Scrum Master" text might appear in role column
 		// We need to be specific to avoid strict mode violation if multiple "Scrum Master" texts exist
 		// Check within the row
-		await expect(page.locator("tr", { hasText: "Test User Updated" }).locator("text=Scrum Master")).toBeVisible();
+		await expect(
+			page
+				.locator("tr", { hasText: "Test User Updated" })
+				.locator("text=Scrum Master"),
+		).toBeVisible();
 
 		// 4. Delete User
 		page.on("dialog", (dialog) => dialog.accept());

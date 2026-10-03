@@ -8,6 +8,7 @@
 	"files": {
 		"includes": [
 			"src/**/*.{ts,tsx,js,jsx}",
+			"e2e/**/*.{ts,tsx,js,jsx}",
 			"*.config.{ts,js}",
 			"*.json",
 			"*.md",

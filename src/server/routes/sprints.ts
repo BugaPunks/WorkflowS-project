@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
+import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
 import { requireSystemRole } from "../middleware/system-rbac";
@@ -114,6 +115,19 @@ router.put(
 			}
 			const { name, description, startDate, endDate, status } = parsed.data;
 
+			const existingSprint = await prisma.sprint.findUnique({
+				where: { id: req.params.id },
+				include: {
+					project: {
+						include: { members: true },
+					},
+				},
+			});
+
+			if (!existingSprint) {
+				return res.status(404).json({ error: "Sprint no encontrado" });
+			}
+
 			const sprint = await prisma.sprint.update({
 				where: { id: req.params.id },
 				data: {
@@ -124,6 +138,23 @@ router.put(
 					...(status !== undefined && { status }),
 				},
 			});
+
+			if (status === "COMPLETED" && existingSprint.status !== "COMPLETED") {
+				const notifications = existingSprint.project.members.map((member) =>
+					notify({
+						userId: member.userId,
+						type: "SPRINT_COMPLETED",
+						title: "Sprint Completado",
+						message: `El sprint "${sprint.name}" ha sido completado.`,
+						entityType: "SPRINT",
+						entityId: sprint.id,
+					}),
+				);
+				if (notifications.length > 0) {
+					await Promise.all(notifications);
+				}
+			}
+
 			res.json({ data: sprint });
 		} catch (error) {
 			console.error("Error al actualizar sprint:", error);

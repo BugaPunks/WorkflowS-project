@@ -22,7 +22,9 @@ test.describe("HU-10 — Dashboard por rol", () => {
 
 		await page.goto("/");
 
-		await expect(page.getByRole("heading", { name: "Panel de Docente" })).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Panel de Docente" }),
+		).toBeVisible();
 		await expect(
 			page.getByRole("heading", { name: "Panel de Desarrollador" }),
 		).toHaveCount(0);
@@ -43,7 +45,9 @@ test.describe("HU-10 — Dashboard por rol", () => {
 		await expect(
 			page.getByRole("heading", { name: "Panel de Desarrollador" }),
 		).toBeVisible();
-		await expect(page.getByRole("heading", { name: "Panel de Docente" })).toHaveCount(0);
+		await expect(
+			page.getByRole("heading", { name: "Panel de Docente" }),
+		).toHaveCount(0);
 
 		// Enlaces propios del rol desarrollador
 		await expect(page.locator("a[href='/tasks']").first()).toBeVisible();
@@ -58,13 +62,15 @@ test.describe("HU-10 — Dashboard por rol", () => {
 
 		await page.goto("/");
 
-		await expect(page.getByRole("heading", { name: "Panel de Docente" })).toHaveCount(0);
+		await expect(
+			page.getByRole("heading", { name: "Panel de Docente" }),
+		).toHaveCount(0);
 		await expect(
 			page.getByRole("heading", { name: "Panel de Desarrollador" }),
 		).toHaveCount(0);
 	});
 
-	test("DASH-04 · el estudiante accede a su vista de calificaciones", async ({
+	test("DASH-04 · el estudiante no puede acceder a /evaluations (redirección a inicio)", async ({
 		page,
 		request,
 	}) => {
@@ -72,8 +78,7 @@ test.describe("HU-10 — Dashboard por rol", () => {
 
 		await page.goto("/evaluations");
 
-		await expect(
-			page.getByRole("heading", { name: "Mis Calificaciones" }),
-		).toBeVisible();
+		// The RequireSystemRole component redirects to /
+		await expect(page).toHaveURL(/.*\/$/);
 	});
 });

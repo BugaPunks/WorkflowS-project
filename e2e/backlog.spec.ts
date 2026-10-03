@@ -50,7 +50,9 @@ test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 		await page.getByRole("button", { name: "Nuevo Proyecto" }).click();
 		await page.fill('input[name="name"]', `Project For Backlog ${timestamp}`);
 		await page.fill('textarea[name="description"]', "Desc");
-		await page.getByRole("button", { name: "Crear Proyecto", exact: true }).click();
+		await page
+			.getByRole("button", { name: "Crear Proyecto", exact: true })
+			.click();
 
 		// Now go back to stories
 		await page.goto("/user-stories");

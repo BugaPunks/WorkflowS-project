@@ -191,7 +191,9 @@ export async function createSessionViaApi(
 
 		const login = await doLogin(request, opts.email, password);
 		if (!login.ok || !login.token) {
-			throw new Error(`Login final failed for ${opts.email}. Status: ${login.error}`);
+			throw new Error(
+				`Login final failed for ${opts.email}. Status: ${login.error}`,
+			);
 		}
 
 		const session: AuthSession = {

@@ -23,6 +23,7 @@ import documentsRouter from "./routes/documents";
 import evaluationsRouter from "./routes/evaluations";
 import filesRouter from "./routes/files";
 import metricsRouter from "./routes/metrics";
+import notificationPreferencesRouter from "./routes/notification-preferences";
 import notificationsRouter from "./routes/notifications";
 import projectsRouter from "./routes/projects";
 import retrospectivesRouter from "./routes/retrospectives";
@@ -127,6 +128,7 @@ app.use("/api/evaluations", evaluationsRouter);
 app.use("/api/rubrics", rubricsRouter);
 app.use("/api/metrics", metricsRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/notification-preferences", notificationPreferencesRouter);
 app.use("/api/retrospectives", retrospectivesRouter);
 
 // Health check

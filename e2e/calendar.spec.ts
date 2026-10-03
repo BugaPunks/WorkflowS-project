@@ -7,12 +7,11 @@ test.describe("Calendar Module", () => {
 		request,
 	}) => {
 		// 1. Login (Browser & API)
-		const { id: userId, email: userEmail, token } = await loginViaApi(
-			page,
-			request,
-			"admin",
-			"ADMIN",
-		);
+		const {
+			id: userId,
+			email: userEmail,
+			token,
+		} = await loginViaApi(page, request, "admin", "ADMIN");
 
 		// 2. Setup Data
 		const timestamp = Date.now();

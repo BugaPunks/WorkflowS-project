@@ -3,7 +3,13 @@ import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Chat Widget", () => {
 	test.beforeEach(async ({ page }) => {
-		await loginViaApi(page, `chatwidget_admin_${Date.now()}@test.com`, TEST_PASSWORD, "Chat Widget Admin", "ADMIN");
+		await loginViaApi(
+			page,
+			`chatwidget_admin_${Date.now()}@test.com`,
+			TEST_PASSWORD,
+			"Chat Widget Admin",
+			"ADMIN",
+		);
 		await page.goto("/projects");
 	});
 
@@ -37,9 +43,7 @@ test.describe("Chat Widget", () => {
 		const chatItem = page.locator(".w-full.p-3"); // Selector for chat item
 
 		// Wait for content to load
-		await expect(
-			emptyState.or(chatItem.first()),
-		).toBeVisible();
+		await expect(emptyState.or(chatItem.first())).toBeVisible();
 	});
 
 	test("should be able to start a new chat", async ({ page }) => {

@@ -7,7 +7,12 @@ test.describe("Retrospective Board", () => {
 
 	test.beforeEach(async ({ page, request }) => {
 		// 1. Login as Admin to setup
-		const { id: retroId, token: retroToken } = await loginViaApi(page, request, `admin_retro_${Date.now()}@test.com`, "ADMIN");
+		const { id: retroId, token: retroToken } = await loginViaApi(
+			page,
+			request,
+			`admin_retro_${Date.now()}@test.com`,
+			"ADMIN",
+		);
 
 		// 2. Create Project
 		const timestamp = Date.now();
@@ -67,7 +72,7 @@ test.describe("Retrospective Board", () => {
 
 		// Navigate to Project -> Retro
 		await page.goto(`/projects/${projectId}`);
-		await page.waitForLoadState('networkidle');
+		await page.waitForLoadState("networkidle");
 
 		// Wait for button with timeout
 		const retroBtn = page.getByRole("button", { name: "Retrospectiva" });
@@ -78,7 +83,9 @@ test.describe("Retrospective Board", () => {
 		await page.getByRole("button", { name: "+ Añadir Nota" }).first().click();
 		await page.fill("textarea", "Great Teamwork");
 		const postGood = page.waitForResponse(
-			(resp) => resp.url().includes("/api/retrospectives") && resp.request().method() === "POST",
+			(resp) =>
+				resp.url().includes("/api/retrospectives") &&
+				resp.request().method() === "POST",
 		);
 		await page.getByRole("button", { name: "Añadir", exact: true }).click();
 		await postGood;
@@ -88,7 +95,9 @@ test.describe("Retrospective Board", () => {
 		await page.getByRole("button", { name: "+ Añadir Nota" }).nth(1).click();
 		await page.fill("textarea", "Server Downtime");
 		const postBad = page.waitForResponse(
-			(resp) => resp.url().includes("/api/retrospectives") && resp.request().method() === "POST",
+			(resp) =>
+				resp.url().includes("/api/retrospectives") &&
+				resp.request().method() === "POST",
 		);
 		await page.getByRole("button", { name: "Añadir", exact: true }).click();
 		await postBad;

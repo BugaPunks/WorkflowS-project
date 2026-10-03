@@ -58,6 +58,7 @@ router.get(
 					role: true,
 					active: true,
 					createdAt: true,
+					dashboardModules: true,
 					projects: true,
 					tasks: true,
 				},
@@ -70,6 +71,83 @@ router.get(
 		}
 	},
 );
+
+// GET /api/users/:id/dashboard-summary - Self or ADMIN
+router.get("/:id/dashboard-summary", authenticateToken, async (req, res) => {
+	try {
+		if (req.user!.userId !== req.params.id && req.user!.role !== "ADMIN") {
+			return res.sendStatus(403);
+		}
+
+		const user = await prisma.user.findUnique({
+			where: { id: req.params.id },
+			include: {
+				tasks: true,
+				projects: true,
+				projectMemberships: {
+					include: {
+						project: {
+							include: { tasks: true },
+						},
+					},
+				},
+			},
+		});
+
+		if (!user) return res.status(404).json({ error: "No encontrado" });
+
+		let activeTasks = 0;
+		let totalItems = 0;
+
+		if (user.role === "TEAM_DEVELOPER") {
+			activeTasks = user.tasks.filter((t) => t.status !== "COMPLETED").length;
+			totalItems = user.tasks.length;
+		} else if (user.role === "PRODUCT_OWNER" || user.role === "SCRUM_MASTER") {
+			// totalItems = total projects they are member of or own
+			const projects = user.projectMemberships.map((m) => m.project);
+			totalItems = projects.length;
+			// activeTasks = total pending tasks in those projects
+			activeTasks = projects.reduce(
+				(acc, p) =>
+					acc + p.tasks.filter((t) => t.status !== "COMPLETED").length,
+				0,
+			);
+		}
+
+		res.json({
+			activeTasks,
+			totalItems,
+			dashboardModules: user.dashboardModules
+				? JSON.parse(user.dashboardModules)
+				: null,
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Error" });
+	}
+});
+
+// PUT /api/users/:id/dashboard - Self or ADMIN
+router.put("/:id/dashboard", authenticateToken, async (req, res) => {
+	try {
+		if (req.user!.userId !== req.params.id && req.user!.role !== "ADMIN") {
+			return res.sendStatus(403);
+		}
+
+		const modules = req.body.modules;
+		if (!Array.isArray(modules)) {
+			return res.status(400).json({ error: "modules debe ser un array" });
+		}
+
+		await prisma.user.update({
+			where: { id: req.params.id },
+			data: { dashboardModules: JSON.stringify(modules) },
+		});
+		res.json({ message: "Dashboard actualizado" });
+	} catch {
+		res.status(500).json({ error: "Error al actualizar dashboard" });
+	}
+});
 
 // POST crear usuario - ADMIN only
 router.post(

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
+import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
 
@@ -214,13 +215,13 @@ router.post(
 			if (chat && chat.type === "DIRECT") {
 				const recipients = chat.participants.filter((p) => p.userId !== userId);
 				for (const recipient of recipients) {
-					await prisma.notification.create({
-						data: {
-							userId: recipient.userId,
-							title: "Nuevo Mensaje Directo",
-							message: `${message.user.name} te ha enviado un mensaje`,
-							type: "MESSAGE",
-						},
+					await notify({
+						userId: recipient.userId,
+						type: "MESSAGE",
+						title: "Nuevo Mensaje Directo",
+						message: `${message.user.name} te ha enviado un mensaje`,
+						entityType: "MESSAGE",
+						entityId: message.id,
 					});
 				}
 			}

@@ -15,7 +15,9 @@
 		"migrate:dev": "prisma migrate dev",
 		"migrate:prod": "prisma migrate deploy",
 		"prisma:studio": "prisma studio",
-		"switch-db": "./scripts/switch-db.sh"
+		"switch-db": "./scripts/switch-db.sh",
+		"test:unit": "vitest run --exclude e2e",
+		"test:unit:watch": "vitest"
 	},
 	"dependencies": {
 		"@hello-pangea/dnd": "^18.0.1",
@@ -67,7 +69,8 @@
 		"prisma": "^7.1.0",
 		"ts-node": "^10.9.2",
 		"tsx": "^4.20.6",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vitest": "^5.0.3"
 	},
 	"prisma": {
 		"seed": "npx tsx prisma/seed.ts"

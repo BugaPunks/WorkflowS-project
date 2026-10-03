@@ -1,7 +1,11 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import { type APIRequestContext, expect, test } from "@playwright/test";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
-import { API_ORIGIN, extractTokenFromSetCookie, TEST_PASSWORD } from "./utils/api-auth";
+import {
+	API_ORIGIN,
+	extractTokenFromSetCookie,
+	TEST_PASSWORD,
+} from "./utils/api-auth";
 
 const api = (path: string) => `${API_ORIGIN}${path}`;
 
@@ -21,7 +25,10 @@ interface RegisterBody {
 async function register(
 	request: APIRequestContext,
 	body: Record<string, unknown>,
-): Promise<{ res: Awaited<ReturnType<APIRequestContext["post"]>>; body: RegisterBody }> {
+): Promise<{
+	res: Awaited<ReturnType<APIRequestContext["post"]>>;
+	body: RegisterBody;
+}> {
 	const res = await request.post(api("/api/auth/register"), { data: body });
 	return { res, body: (await res.json()) as RegisterBody };
 }
@@ -122,7 +129,11 @@ test.describe("Auth security hardening", () => {
 		request,
 	}) => {
 		const email = `cookie_${Date.now()}@test.com`;
-		await register(request, { name: "Cookie User", email, password: TEST_PASSWORD });
+		await register(request, {
+			name: "Cookie User",
+			email,
+			password: TEST_PASSWORD,
+		});
 
 		const res = await request.post(api("/api/auth/login"), {
 			data: { email, password: TEST_PASSWORD },
@@ -134,7 +145,8 @@ test.describe("Auth security hardening", () => {
 
 		const setCookie = res.headers()["set-cookie"];
 		expect(setCookie).toBeTruthy();
-		const cookie = (Array.isArray(setCookie) ? setCookie : [setCookie])[0] ?? "";
+		const cookie =
+			(Array.isArray(setCookie) ? setCookie : [setCookie])[0] ?? "";
 		expect(cookie).toMatch(/^token=/);
 		expect(cookie.toLowerCase()).toContain("httponly");
 		expect(cookie.toLowerCase()).toContain("samesite=lax");
@@ -142,7 +154,11 @@ test.describe("Auth security hardening", () => {
 
 	test("logout revoca los tokens emitidos previamente", async ({ request }) => {
 		const email = `logout_${Date.now()}@test.com`;
-		await register(request, { name: "Logout User", email, password: TEST_PASSWORD });
+		await register(request, {
+			name: "Logout User",
+			email,
+			password: TEST_PASSWORD,
+		});
 
 		const login = await request.post(api("/api/auth/login"), {
 			data: { email, password: TEST_PASSWORD },
@@ -218,9 +234,14 @@ test.describe("Auth security hardening", () => {
 		expect(res.headers()["access-control-allow-origin"]).toBeUndefined();
 	});
 
-	test("CSRF: una mutación sin Origin ni Referer se permite", async ({ request }) => {
+	test("CSRF: una mutación sin Origin ni Referer se permite", async ({
+		request,
+	}) => {
 		const res = await request.post(api("/api/auth/login"), {
-			data: { email: `no_origin_${Date.now()}@test.com`, password: TEST_PASSWORD },
+			data: {
+				email: `no_origin_${Date.now()}@test.com`,
+				password: TEST_PASSWORD,
+			},
 		});
 
 		expect(res.status()).not.toBe(403);
@@ -275,13 +296,12 @@ test.describe("Logout desde la UI", () => {
 		// --- Logout desde el sidebar ---
 		const logoutResponse = page.waitForResponse(
 			(res) =>
-				res.url().includes("/api/auth/logout") && res.request().method() === "POST",
+				res.url().includes("/api/auth/logout") &&
+				res.request().method() === "POST",
 		);
 		// El sidebar desktop etiqueta el botón como "Salir" y el colapsado como
 		// "Cerrar Sesión" (sr-only), así que se aceptan ambos nombres.
-		await page
-			.getByRole("button", { name: /^(Salir|Cerrar Sesión)$/ })
-			.click();
+		await page.getByRole("button", { name: /^(Salir|Cerrar Sesión)$/ }).click();
 		expect((await logoutResponse).status()).toBe(200);
 		await page.waitForURL(/\/login/);
 
@@ -290,9 +310,7 @@ test.describe("Logout desde la UI", () => {
 			(await page.context().cookies()).find((c) => c.name === "token"),
 			"la cookie de sesión debe eliminarse",
 		).toBeUndefined();
-		expect(
-			await page.evaluate(() => localStorage.getItem("user")),
-		).toBeNull();
+		expect(await page.evaluate(() => localStorage.getItem("user"))).toBeNull();
 
 		// --- El token anterior queda revocado en el servidor ---
 		const revoked = await page.request.get(api("/api/projects"), {

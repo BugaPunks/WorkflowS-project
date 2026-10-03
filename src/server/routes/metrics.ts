@@ -1,5 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../db";
+import {
+	computeBurndown,
+	computeContribution,
+	computeVelocity,
+} from "../lib/metrics";
 import { authenticateToken } from "../middleware/auth";
 import { requireSystemRole } from "../middleware/system-rbac";
 
@@ -32,54 +37,8 @@ router.get(
 				return res.status(404).json({ error: "Sprint not found" });
 			}
 
-			const totalPoints = sprint.userStories.reduce(
-				(acc, item) => acc + (item.storyPoints || 0),
-				0,
-			);
-
-			if (!sprint.startDate || !sprint.endDate) {
-				return res.json({ data: { totalPoints, series: [] } });
-			}
-
-			const start = new Date(sprint.startDate);
-			const end = new Date(sprint.endDate);
-			const daysDiff = Math.ceil(
-				(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-			);
-
-			const series = [];
-
-			const completedItems = sprint.userStories
-				.filter((item) => item.completedAt !== null)
-				.map((item) => ({
-					points: item.storyPoints || 0,
-					date: new Date(item.completedAt as Date),
-				}));
-
-			const idealDecrement = totalPoints / daysDiff;
-
-			for (let i = 0; i <= daysDiff; i++) {
-				const currentDate = new Date(start);
-				currentDate.setDate(start.getDate() + i);
-
-				const burnedSoFar = completedItems
-					.filter((item) => item.date <= currentDate)
-					.reduce((acc, item) => acc + item.points, 0);
-
-				const actualRemaining = totalPoints - burnedSoFar;
-				const idealRemaining = Math.max(0, totalPoints - idealDecrement * i);
-
-				const isFuture = currentDate > new Date();
-
-				series.push({
-					day: i,
-					date: currentDate.toISOString().split("T")[0],
-					ideal: idealRemaining,
-					actual: isFuture ? null : actualRemaining,
-				});
-			}
-
-			res.json({ data: { totalPoints, series } });
+			const metrics = computeBurndown(sprint);
+			res.json({ data: metrics });
 		} catch (error) {
 			console.error("Error fetching burndown:", error);
 			res.status(500).json({ error: "Error calculating metrics" });
@@ -87,10 +46,11 @@ router.get(
 	},
 );
 
-// GET Individual Contribution - any authenticated
+// GET Individual Contribution - ADMIN only
 router.get(
 	"/projects/:projectId/contribution",
 	authenticateToken,
+	requireSystemRole("ADMIN"),
 	async (req, res) => {
 		try {
 			const { projectId } = req.params;
@@ -107,27 +67,7 @@ router.get(
 				},
 			});
 
-			const contributionMap = new Map<
-				string,
-				{ user: { id: string; name: string }; count: number }
-			>();
-
-			tasks.forEach((task) => {
-				if (!task.assignee) return;
-
-				const userId = task.assignee.id;
-				if (!contributionMap.has(userId)) {
-					contributionMap.set(userId, { user: task.assignee, count: 0 });
-				}
-
-				const entry = contributionMap.get(userId);
-				if (entry) entry.count += 1;
-			});
-
-			const data = Array.from(contributionMap.values()).sort(
-				(a, b) => b.count - a.count,
-			);
-
+			const data = computeContribution(tasks);
 			res.json({ data });
 		} catch (error) {
 			console.error(error);
@@ -152,22 +92,7 @@ router.get(
 				orderBy: { startDate: "asc" },
 			});
 
-			const velocityData = sprints.map((sprint) => {
-				const committed = sprint.userStories.reduce(
-					(acc, item) => acc + (item.storyPoints || 0),
-					0,
-				);
-				const completed = sprint.userStories
-					.filter((item) => item.completedAt !== null)
-					.reduce((acc, item) => acc + (item.storyPoints || 0), 0);
-
-				return {
-					name: sprint.name,
-					committed,
-					completed,
-				};
-			});
-
+			const velocityData = computeVelocity(sprints);
 			res.json({ data: velocityData });
 		} catch (error) {
 			console.error("Error fetching velocity:", error);

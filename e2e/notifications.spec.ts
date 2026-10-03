@@ -8,6 +8,8 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 		page,
 		request,
 	}) => {
+		page.on("console", (msg) => console.log("BROWSER CONSOLE:", msg.text()));
+
 		// --- Arrange: sesión de ADMIN ---
 		const { id: userId, token } = await loginViaApi(
 			page,
@@ -23,7 +25,11 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 		// --- Arrange: proyecto vía API (ownerId es obligatorio) ---
 		const projectRes = await request.post(`${API_ORIGIN}/api/projects`, {
 			headers: auth,
-			data: { name: projectName, description: "Notificaciones", ownerId: userId },
+			data: {
+				name: projectName,
+				description: "Notificaciones",
+				ownerId: userId,
+			},
 		});
 		expect(projectRes.status()).toBe(201);
 		const { data: project } = (await projectRes.json()) as {
@@ -43,9 +49,10 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 				status: "TODO",
 			},
 		});
-		expect(taskRes.status(), "la tarea debe crearse y disparar TASK_ASSIGNED").toBe(
-			201,
-		);
+		expect(
+			taskRes.status(),
+			"la tarea debe crearse y disparar TASK_ASSIGNED",
+		).toBe(201);
 
 		// --- Arrange: comprobar el registro en la API antes de mirar la UI ---
 		const listRes = await request.get(
@@ -56,7 +63,9 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 		const { data: created } = (await listRes.json()) as {
 			data: { id: string; title: string; message: string; read: boolean }[];
 		};
-		const mine = created.find((n) => n.message === `Se te ha asignado la tarea: ${taskTitle}`);
+		const mine = created.find(
+			(n) => n.message === `Se te ha asignado la tarea: ${taskTitle}`,
+		);
 		if (!mine) {
 			throw new Error(
 				`El backend no insertó la notificación TASK_ASSIGNED para la tarea "${taskTitle}"`,
@@ -86,16 +95,16 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 		).toBeVisible();
 
 		// --- Assert: la notificación aparece como no leída ---
-		const unreadBefore = await page.getByText("No leído", { exact: true }).count();
+		const unreadBefore = await page
+			.getByText("No leído", { exact: true })
+			.count();
 		expect(unreadBefore).toBeGreaterThan(0);
 
-		// --- Act: marcar esa notificación como leída ---
+		// --- Act: marcar esa notificación como leída y navegar ---
 		await page.locator("button", { hasText: taskTitle }).click();
 
-		// --- Assert: el contador de no leídas disminuye en uno ---
-		await expect(page.getByText("No leído", { exact: true })).toHaveCount(
-			unreadBefore - 1,
-		);
+		// --- Assert: check navigation ---
+		await expect(page).toHaveURL(new RegExp(`/projects/${project.id}/tasks`));
 
 		// --- Assert: el estado persiste en el servidor (RF9.2 + polling) ---
 		await expect
@@ -113,5 +122,63 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 				{ timeout: 10000 },
 			)
 			.toBe(true);
+	});
+
+	test("sprint completion emits SPRINT_COMPLETED notification to project members", async ({
+		page,
+		request,
+	}) => {
+		const { id: adminId, token: adminToken } = await loginViaApi(
+			page,
+			request,
+			"admin_sprint",
+			"ADMIN",
+		);
+		const adminAuth = { Authorization: `Bearer ${adminToken}` };
+		const ts = Date.now();
+
+		const projectRes = await request.post(`${API_ORIGIN}/api/projects`, {
+			headers: adminAuth,
+			data: {
+				name: `Sprint Notif ${ts}`,
+				description: "Test",
+				ownerId: adminId,
+			},
+		});
+		const project = (await projectRes.json()).data;
+
+		await request.post(`${API_ORIGIN}/api/projects/${project.id}/members`, {
+			headers: adminAuth,
+			data: { userId: adminId, role: "TEAM_DEVELOPER" },
+		});
+
+		const sprintRes = await request.post(`${API_ORIGIN}/api/sprints`, {
+			headers: adminAuth,
+			data: {
+				name: "Sprint 1",
+				projectId: project.id,
+				status: "ACTIVE",
+				startDate: new Date().toISOString(),
+				endDate: new Date().toISOString(),
+			},
+		});
+		const sprint = (await sprintRes.json()).data;
+
+		await request.put(`${API_ORIGIN}/api/sprints/${sprint.id}`, {
+			headers: adminAuth,
+			data: { status: "COMPLETED" },
+		});
+
+		const listRes = await request.get(
+			`${API_ORIGIN}/api/notifications?userId=${adminId}`,
+			{ headers: adminAuth },
+		);
+		const notifications = (await listRes.json()).data;
+		const sprintNotif = notifications.find(
+			(n: any) => n.type === "SPRINT_COMPLETED" && n.entityId === sprint.id,
+		);
+
+		expect(sprintNotif).toBeDefined();
+		expect(sprintNotif.title).toBe("Sprint Completado");
 	});
 });

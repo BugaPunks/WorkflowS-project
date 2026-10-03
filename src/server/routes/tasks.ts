@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
+import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
 import { requireSystemRole } from "../middleware/system-rbac";
@@ -107,13 +108,13 @@ router.post(
 			});
 
 			if (assigneeId) {
-				await prisma.notification.create({
-					data: {
-						userId: assigneeId,
-						title: "Nueva Tarea Asignada",
-						message: `Se te ha asignado la tarea: ${title}`,
-						type: "TASK_ASSIGNED",
-					},
+				await notify({
+					userId: assigneeId,
+					type: "TASK_ASSIGNED",
+					title: "Nueva Tarea Asignada",
+					message: `Se te ha asignado la tarea: ${title}`,
+					entityType: "TASK",
+					entityId: task.id,
 				});
 			}
 
@@ -230,13 +231,13 @@ router.post(
 			});
 
 			if (task.assigneeId) {
-				await prisma.notification.create({
-					data: {
-						userId: task.assigneeId,
-						title: "Tarea Evaluada",
-						message: `Tu tarea "${task.title}" ha sido evaluada con ${score}/100`,
-						type: "EVALUATION_COMPLETED",
-					},
+				await notify({
+					userId: task.assigneeId,
+					type: "EVALUATION_COMPLETED",
+					title: "Tarea Evaluada",
+					message: `Tu tarea "${task.title}" ha sido evaluada con ${score}/100`,
+					entityType: "TASK",
+					entityId: task.id,
 				});
 			}
 

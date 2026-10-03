@@ -1,24 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Rubrics Management", () => {
 	test.beforeEach(async ({ page }) => {
-		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, TEST_PASSWORD, "Rubric Admin", "ADMIN");
+		const { id: userId, token } = await loginViaApi(
+			page,
+			`rubric_admin_${Date.now()}@test.com`,
+			TEST_PASSWORD,
+			"Rubric Admin",
+			"ADMIN",
+		);
 
 		// Ensure there is at least one project
-		const response = await page.request.post(
-			"/api/projects",
-			{
-				headers: { Authorization: `Bearer ${token}` },
-				data: {
-					name: "E2E Test Project Rubrics",
-					description: "Project for E2E tests",
-					startDate: new Date().toISOString(),
-					endDate: new Date().toISOString(),
-					ownerId: userId,
-				},
+		const response = await page.request.post("/api/projects", {
+			headers: { Authorization: `Bearer ${token}` },
+			data: {
+				name: "E2E Test Project Rubrics",
+				description: "Project for E2E tests",
+				startDate: new Date().toISOString(),
+				endDate: new Date().toISOString(),
+				ownerId: userId,
 			},
-		);
+		});
 	});
 
 	test("should create, edit and delete a rubric", async ({ page }) => {
@@ -51,16 +54,16 @@ test.describe("Rubrics Management", () => {
 		await page.fill("#rubric-desc", "Description for E2E Test");
 
 		// Fill first criterion
-		const firstCriterionName = page.locator(
-			'input[id^="criterion-name-"]',
-		).first();
+		const firstCriterionName = page
+			.locator('input[id^="criterion-name-"]')
+			.first();
 		await firstCriterionName.fill("Criterion 1");
 
 		// Add another criterion
 		await page.click("text=+ Agregar Criterio");
-		const secondCriterionName = page.locator(
-			'input[id^="criterion-name-"]',
-		).nth(1);
+		const secondCriterionName = page
+			.locator('input[id^="criterion-name-"]')
+			.nth(1);
 		await secondCriterionName.fill("Criterion 2");
 
 		await page.click('button:has-text("Crear Rúbrica")');

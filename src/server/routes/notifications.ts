@@ -25,6 +25,31 @@ router.get("/", authenticateToken, async (req, res) => {
 		res.status(500).json({ error: "Error al obtener notificaciones" });
 	}
 });
+// GET unread count
+router.get("/unread-count", authenticateToken, async (req, res) => {
+	try {
+		const count = await prisma.notification.count({
+			where: { userId: req.user!.userId, read: false },
+		});
+		console.log(`UNREAD COUNT HIT FOR ${req.user!.userId} => ${count}`);
+		res.json({ data: count });
+	} catch (error) {
+		res.status(500).json({ error: "Error counting unread notifications" });
+	}
+});
+
+// PUT mark all as read
+router.put("/read-all", authenticateToken, async (req, res) => {
+	try {
+		await prisma.notification.updateMany({
+			where: { userId: req.user!.userId, read: false },
+			data: { read: true },
+		});
+		res.json({ message: "Todas marcadas como leídas" });
+	} catch (error) {
+		res.status(500).json({ error: "Error updating notifications" });
+	}
+});
 
 // PUT marcar como leída - own or ADMIN
 router.put("/:id/read", authenticateToken, async (req, res) => {

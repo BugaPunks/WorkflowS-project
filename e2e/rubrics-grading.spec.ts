@@ -1,11 +1,17 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Rubrics and Grading Flow", () => {
 	test("should create a global rubric and grade a task", async ({ page }) => {
 		// 1. Login as Admin (Docente)
-		const { id: userId, token } = await loginViaApi(page, `rubric_admin_${Date.now()}@test.com`, TEST_PASSWORD, "Rubric Admin", "ADMIN");
-		console.log('Logged in user:', userId);
+		const { id: userId, token } = await loginViaApi(
+			page,
+			`rubric_admin_${Date.now()}@test.com`,
+			TEST_PASSWORD,
+			"Rubric Admin",
+			"ADMIN",
+		);
+		console.log("Logged in user:", userId);
 
 		// 2. Create a Global Rubric
 		await page.goto("/rubrics");
@@ -18,7 +24,10 @@ test.describe("Rubrics and Grading Flow", () => {
 		await page.fill("#rubric-desc", "Rúbrica de prueba creada por E2E");
 
 		// Fill criteria 1
-		await page.locator('input[id^="criterion-name-"]').first().fill("Calidad de Código");
+		await page
+			.locator('input[id^="criterion-name-"]')
+			.first()
+			.fill("Calidad de Código");
 
 		await page.click("text=Crear Rúbrica");
 
@@ -31,18 +40,18 @@ test.describe("Rubrics and Grading Flow", () => {
 
 		// 3. Create a Project (to have tasks)
 		const projectName = `Project For Grading ${Date.now()}`;
-		console.log('Creating project with owner:', userId);
+		console.log("Creating project with owner:", userId);
 		const projectRes = await page.request.post("/api/projects", {
 			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				name: projectName,
 				description: "Testing grading flow",
-				ownerId: userId
-			}
+				ownerId: userId,
+			},
 		});
 		const projectData = await projectRes.json();
 		if (!projectRes.ok()) {
-			console.log('Create Project Failed:', projectData);
+			console.log("Create Project Failed:", projectData);
 		}
 		const projectId = projectData.id || projectData.data?.id;
 		// If project creation fails or structure is different, log it
@@ -56,8 +65,8 @@ test.describe("Rubrics and Grading Flow", () => {
 				projectId,
 				title: taskTitle,
 				description: "This needs grading",
-				priority: "HIGH"
-			}
+				priority: "HIGH",
+			},
 		});
 		if (!taskRes.ok()) {
 			console.log("Create Task Failed:", await taskRes.json());
@@ -84,7 +93,7 @@ test.describe("Rubrics and Grading Flow", () => {
 		// Select our rubric if not selected
 		// We select by label text matching our rubric name
 		const option = rubricSelect.locator(`option:has-text("${rubricName}")`);
-		if (await option.count() > 0) {
+		if ((await option.count()) > 0) {
 			const val = await option.getAttribute("value");
 			if (val) await rubricSelect.selectOption(val);
 		}
@@ -98,15 +107,15 @@ test.describe("Rubrics and Grading Flow", () => {
 		// Enter feedback
 		// Use specific selectors to avoid ambiguity or strict mode issues
 		// Assuming first textarea is for the criterion
-		const feedbackInput = page.locator('textarea').first();
+		const feedbackInput = page.locator("textarea").first();
 		await feedbackInput.fill("Good job");
 
 		// Enter overall feedback (last textarea)
-		const overallFeedback = page.locator('textarea').last();
+		const overallFeedback = page.locator("textarea").last();
 		await overallFeedback.fill("Overall good");
 
 		// Save
-		page.on('dialog', dialog => dialog.accept());
+		page.on("dialog", (dialog) => dialog.accept());
 		await page.click('button:has-text("Guardar Calificación")');
 
 		// Verify redirection

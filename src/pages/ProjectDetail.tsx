@@ -1071,7 +1071,7 @@ export default function ProjectDetail() {
 															>
 																{story.priority}
 															</span>
-															{story.storyPoints && (
+															{story.storyPoints != null && (
 																<span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
 																	{story.storyPoints} pts
 																</span>
@@ -1175,7 +1175,7 @@ export default function ProjectDetail() {
 																			{story.description}
 																		</p>
 																	</div>
-																	{story.storyPoints && (
+																	{story.storyPoints != null && (
 																		<span className="text-xs font-bold bg-white text-blue-600 px-2 py-1 rounded border border-blue-100">
 																			{story.storyPoints}
 																		</span>

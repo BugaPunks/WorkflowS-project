@@ -4,11 +4,14 @@ import { LoginForm } from "@/auth/LoginForm";
 import { LoginSuccess } from "@/auth/LoginSuccess";
 import { RegisterForm } from "@/auth/RegisterForm";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { RequireSystemRole } from "@/components/RequireSystemRole";
 import { SessionProvider } from "@/hooks/useSession";
 import Calendar from "@/pages/Calendar";
 import Dashboard from "@/pages/Dashboard";
 import Evaluations from "@/pages/Evaluations";
 import GradingView from "@/pages/GradingView";
+import MyEvaluations from "@/pages/MyEvaluations";
+import NotificationPreferences from "@/pages/NotificationPreferences";
 import ProjectDetail from "@/pages/ProjectDetail";
 import Projects from "@/pages/Projects";
 import Reports from "@/pages/Reports";
@@ -58,7 +61,18 @@ const App = () => {
 						<Route path="/rubrics" element={<Rubrics />} />
 						<Route path="/user-management" element={<UserManagement />} />
 						<Route path="/reports" element={<Reports />} />
-						<Route path="/evaluations" element={<Evaluations />} />
+						<Route
+							path="/notifications/preferences"
+							element={<NotificationPreferences />}
+						/>
+
+						<Route path="/my-evaluations" element={<MyEvaluations />} />
+
+						{/* Rutas protegidas por ADMIN */}
+						<Route element={<RequireSystemRole allowedRole="ADMIN" />}>
+							<Route path="/evaluations" element={<Evaluations />} />
+						</Route>
+
 						<Route path="/calendar" element={<Calendar />} />
 					</Route>
 				</Routes>

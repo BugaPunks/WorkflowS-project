@@ -156,12 +156,11 @@ test.describe("RF8 — Métricas y reportes (HU-08)", () => {
 		page,
 		request,
 	}) => {
-		const { id: userId, email: userEmail, token } = await loginViaApi(
-			page,
-			request,
-			"admin",
-			"ADMIN",
-		);
+		const {
+			id: userId,
+			email: userEmail,
+			token,
+		} = await loginViaApi(page, request, "admin", "ADMIN");
 		const auth = { Authorization: `Bearer ${token}` };
 		const ts = Date.now();
 		const projectName = `Metrics UI ${ts}`;
@@ -247,7 +246,9 @@ test.describe("RF8 — Métricas y reportes (HU-08)", () => {
 		await page.goto("/reports");
 
 		// --- Assert: selector de proyecto y sección (HU-08, criterio de aceptación) ---
-		await expect(page.getByRole("heading", { name: "Reportes y Métricas" })).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Reportes y Métricas" }),
+		).toBeVisible();
 		const projectSelect = page.locator("#project-select");
 		await expect(projectSelect).toBeVisible();
 		await projectSelect.selectOption({ label: projectName });
@@ -255,11 +256,15 @@ test.describe("RF8 — Métricas y reportes (HU-08)", () => {
 		// --- Assert: el sprint del proyecto aparece en el selector de burndown ---
 		const sprintSelect = page.locator("#sprint-select");
 		await expect(sprintSelect).toBeEnabled();
-		await expect(sprintSelect.locator("option", { hasText: sprintName })).toHaveCount(1);
+		await expect(
+			sprintSelect.locator("option", { hasText: sprintName }),
+		).toHaveCount(1);
 		await expect(sprintSelect).toHaveValue(sprint.id);
 
 		// --- Assert: gráfico de burndown renderizado con los 100 puntos ---
-		await expect(page.getByRole("heading", { name: "Burndown Chart" })).toBeVisible();
+		await expect(
+			page.getByRole("heading", { name: "Burndown Chart" }),
+		).toBeVisible();
 		await expect(page.getByText("Puntos Totales:")).toBeVisible();
 		await expect(
 			page.locator("span.font-bold", { hasText: String(TOTAL_POINTS) }),
@@ -270,18 +275,20 @@ test.describe("RF8 — Métricas y reportes (HU-08)", () => {
 			page.getByRole("heading", { name: /Velocidad del Equipo/ }),
 		).toBeVisible();
 		await expect(page.getByText("No hay datos de velocidad.")).toHaveCount(0);
-		await expect(
-			page.getByText("Comprometido", { exact: true }),
-		).toBeVisible();
+		await expect(page.getByText("Comprometido", { exact: true })).toBeVisible();
 
 		// --- Assert: Recharts pintó los dos gráficos ---
-		expect(await page.locator(".recharts-surface").count()).toBeGreaterThanOrEqual(2);
+		expect(
+			await page.locator(".recharts-surface").count(),
+		).toBeGreaterThanOrEqual(2);
 
 		// --- Assert: RF8.2 contribución individual ---
 		await expect(
 			page.getByRole("heading", { name: /Contribución Individual/ }),
 		).toBeVisible();
-		await expect(page.getByRole("columnheader", { name: "Usuario" })).toBeVisible();
+		await expect(
+			page.getByRole("columnheader", { name: "Usuario" }),
+		).toBeVisible();
 		await expect(
 			page.getByRole("columnheader", { name: "Tareas Completadas" }),
 		).toBeVisible();

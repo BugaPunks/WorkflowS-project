@@ -1,5 +1,9 @@
-import { test, expect } from "@playwright/test";
-import { loginViaApi, injectBrowserSession, TEST_PASSWORD } from "./utils/api-auth";
+import { expect, test } from "@playwright/test";
+import {
+	injectBrowserSession,
+	loginViaApi,
+	TEST_PASSWORD,
+} from "./utils/api-auth";
 
 test.describe("Document Management", () => {
 	let projectId: string;
@@ -63,7 +67,7 @@ test.describe("Document Management", () => {
 		});
 
 		// Wait for modal to be visible and stable
-		const modal = page.locator('.fixed.inset-0.z-50');
+		const modal = page.locator(".fixed.inset-0.z-50");
 		await expect(modal).toBeVisible();
 
 		// Click the submit button specifically inside the modal
@@ -75,29 +79,33 @@ test.describe("Document Management", () => {
 		await expect(page.locator("text=test-doc.txt")).toBeVisible();
 	});
 
-	test("should upload a new version of an existing document", async ({ page }) => {
+	test("should upload a new version of an existing document", async ({
+		page,
+	}) => {
 		// 1. Ensure a doc exists (reuse flow or create via API)
 		// The API requires multipart form for uploads, which Playwright request can handle but it's cleaner to simulate upload or skip strict check if test fails.
 		// However, we can use the UI to upload first if API is tricky without file.
 		// Or construct multipart request.
 
-		const buffer = Buffer.from('test content');
+		const buffer = Buffer.from("test content");
 		await page.request.post(`/api/documents/${projectId}`, {
 			headers: { Authorization: `Bearer ${docToken}` },
 			multipart: {
 				file: {
-					name: 'version-test.txt',
-					mimeType: 'text/plain',
-					buffer: buffer
-				}
-			}
+					name: "version-test.txt",
+					mimeType: "text/plain",
+					buffer: buffer,
+				},
+			},
 		});
 
 		await page.reload();
 		await page.click("text=Documentos");
 
 		// Find the document card
-		const docCard = page.locator(".border.rounded-lg").filter({ hasText: "version-test.txt" });
+		const docCard = page
+			.locator(".border.rounded-lg")
+			.filter({ hasText: "version-test.txt" });
 		await expect(docCard).toBeVisible();
 
 		// Click "Nueva Versión"
@@ -112,7 +120,7 @@ test.describe("Document Management", () => {
 		});
 
 		// Wait for modal
-		const modal = page.locator('.fixed.inset-0.z-50');
+		const modal = page.locator(".fixed.inset-0.z-50");
 		await expect(modal).toBeVisible();
 
 		// Click the submit button specifically inside the modal
@@ -125,36 +133,38 @@ test.describe("Document Management", () => {
 
 	test("should view version history", async ({ page }) => {
 		// 1. Create doc and version 2 via API
-		const buffer1 = Buffer.from('v1');
+		const buffer1 = Buffer.from("v1");
 		const res = await page.request.post(`/api/documents/${projectId}`, {
 			headers: { Authorization: `Bearer ${docToken}` },
 			multipart: {
 				file: {
-					name: 'history-test.txt',
-					mimeType: 'text/plain',
-					buffer: buffer1
-				}
-			}
+					name: "history-test.txt",
+					mimeType: "text/plain",
+					buffer: buffer1,
+				},
+			},
 		});
 		const doc = await res.json();
 		const docId = doc.id;
 
-		const buffer2 = Buffer.from('v2');
+		const buffer2 = Buffer.from("v2");
 		await page.request.post(`/api/documents/${docId}/versions`, {
 			headers: { Authorization: `Bearer ${docToken}` },
 			multipart: {
 				file: {
-					name: 'history-test.txt',
-					mimeType: 'text/plain',
-					buffer: buffer2
-				}
-			}
+					name: "history-test.txt",
+					mimeType: "text/plain",
+					buffer: buffer2,
+				},
+			},
 		});
 
 		await page.reload();
 		await page.click("text=Documentos");
 
-		const docCard = page.locator(".border.rounded-lg").filter({ hasText: "history-test.txt" });
+		const docCard = page
+			.locator(".border.rounded-lg")
+			.filter({ hasText: "history-test.txt" });
 
 		// Click History
 		await docCard.locator("text=Historial").click();

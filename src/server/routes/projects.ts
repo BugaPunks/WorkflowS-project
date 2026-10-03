@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
+import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireSystemRole } from "../middleware/system-rbac";
 
@@ -201,13 +202,13 @@ router.post(
 			});
 
 			// Notificar al usuario
-			await prisma.notification.create({
-				data: {
-					userId,
-					title: "Nuevo Proyecto Asignado",
-					message: `Has sido añadido al proyecto "${member.project.name}" como ${role}`,
-					type: "PROJECT_ASSIGNED",
-				},
+			await notify({
+				userId,
+				type: "PROJECT_ASSIGNED",
+				title: "Nuevo Proyecto Asignado",
+				message: `Has sido añadido al proyecto "${member.project.name}" como ${role}`,
+				entityType: "PROJECT",
+				entityId: projectId,
 			});
 
 			res.status(201).json({ data: member });

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
+import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
 import { requireSystemRole } from "../middleware/system-rbac";
@@ -9,7 +10,7 @@ const router = Router();
 
 const userStoryCreateSchema = z.object({
 	title: z.string().min(1).max(200),
-	description: z.string().max(2000).optional(),
+	description: z.string().min(1).max(2000),
 	acceptance: z.string().max(2000).optional(),
 	projectId: z.string(),
 	assigneeId: z.string().optional(),
@@ -19,7 +20,7 @@ const userStoryCreateSchema = z.object({
 
 const userStoryUpdateSchema = z.object({
 	title: z.string().min(1).max(200).optional(),
-	description: z.string().max(2000).optional(),
+	description: z.string().min(1).max(2000).optional(),
 	acceptance: z.string().max(2000).optional(),
 	assigneeId: z.string().optional(),
 	priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
@@ -170,13 +171,13 @@ router.put(
 				dataToUpdate.assigneeId &&
 				dataToUpdate.assigneeId !== previousStory?.assigneeId
 			) {
-				await prisma.notification.create({
-					data: {
-						userId: dataToUpdate.assigneeId as string,
-						title: "Historia de Usuario Asignada",
-						message: `Se te ha asignado la historia "${userStory.title}" en el proyecto ${userStory.project.name}`,
-						type: "TASK_ASSIGNED",
-					},
+				await notify({
+					userId: dataToUpdate.assigneeId as string,
+					type: "USER_STORY_ASSIGNED",
+					title: "Historia de Usuario Asignada",
+					message: `Se te ha asignado la historia "${userStory.title}" en el proyecto ${userStory.project.name}`,
+					entityType: "USER_STORY",
+					entityId: userStory.id,
 				});
 			}
 

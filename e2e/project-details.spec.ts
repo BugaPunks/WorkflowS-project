@@ -36,7 +36,9 @@ test.describe("Project Details", () => {
 		await page.getByRole("button", { name: "Nuevo Proyecto" }).click();
 		await page.fill('input[name="name"]', projectName);
 		await page.fill('textarea[name="description"]', "Project Description");
-		await page.getByRole("button", { name: "Crear Proyecto", exact: true }).click();
+		await page
+			.getByRole("button", { name: "Crear Proyecto", exact: true })
+			.click();
 
 		// Should appear in list
 		await expect(page.getByText(projectName)).toBeVisible();
@@ -83,7 +85,9 @@ test.describe("Project Details", () => {
 		const pName = `${projectName} Tabs`;
 		await page.fill('input[name="name"]', pName);
 		await page.fill('textarea[name="description"]', "Desc");
-		await page.getByRole("button", { name: "Crear Proyecto", exact: true }).click();
+		await page
+			.getByRole("button", { name: "Crear Proyecto", exact: true })
+			.click();
 
 		// Navigate
 		await page

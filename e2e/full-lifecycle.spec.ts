@@ -34,18 +34,20 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 
 		// 1.1 Create Project (UI)
 		await page.goto("/projects");
-		await page.waitForLoadState('networkidle');
+		await page.waitForLoadState("networkidle");
 
 		const btn = page.getByRole("button", { name: "Nuevo Proyecto" });
-		if (!await btn.isVisible()) {
-			console.log('Button not found by role, trying text');
-			await page.click('text=Nuevo Proyecto');
+		if (!(await btn.isVisible())) {
+			console.log("Button not found by role, trying text");
+			await page.click("text=Nuevo Proyecto");
 		} else {
 			await btn.click();
 		}
 		await page.fill('input[name="name"]', projectName);
 		await page.fill('textarea[name="description"]', "Proyecto de prueba E2E");
-		await page.getByRole("button", { name: "Crear Proyecto", exact: true }).click();
+		await page
+			.getByRole("button", { name: "Crear Proyecto", exact: true })
+			.click();
 
 		await page
 			.locator(".bg-white")
@@ -96,13 +98,16 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		await page.locator("#role-select").selectOption("SCRUM_MASTER");
 
 		const addMemberPromise = page.waitForResponse(
-			(resp) => resp.url().includes("/api/projects") && resp.url().includes("/members") && resp.status() === 201,
+			(resp) =>
+				resp.url().includes("/api/projects") &&
+				resp.url().includes("/members") &&
+				resp.status() === 201,
 		);
 		await page.getByRole("button", { name: "Añadir", exact: true }).click();
 		await addMemberPromise;
 
 		await expect(
-			page.locator("div").filter({ hasText: "Estudiante Test" }).last()
+			page.locator("div").filter({ hasText: "Estudiante Test" }).last(),
 		).toBeVisible();
 
 		// =================================================================
@@ -143,7 +148,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		await page.fill("#sprint-name", sprintName);
 		await page.fill("#sprint-desc", "Primer sprint");
 		const today = new Date().toISOString().split("T")[0];
-		const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+		const tomorrow = new Date(Date.now() + 86400000)
+			.toISOString()
+			.split("T")[0];
 		await page.fill("#sprint-start", today);
 		await page.fill("#sprint-end", tomorrow);
 		await page.getByRole("button", { name: "Crear", exact: true }).click();
@@ -151,7 +158,7 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 
 		// Get Sprint ID for later use via API
 		const sprintsRes = await request.get("http://localhost:5000/api/sprints", {
-			headers: { Authorization: `Bearer ${token}` }
+			headers: { Authorization: `Bearer ${token}` },
 		});
 		const sprintsData = await sprintsRes.json();
 		const sprintObj = sprintsData.data.find((s: any) => s.name === sprintName);
@@ -161,9 +168,8 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		// For simplicity and robustness, let's use API to close the sprint.
 		await request.put(`http://localhost:5000/api/sprints/${sprintObj.id}`, {
 			headers: { Authorization: `Bearer ${token}` },
-			data: { status: "COMPLETED" }
+			data: { status: "COMPLETED" },
 		});
-
 
 		// =================================================================
 		// 3. TEACHER: Grade Sprint
@@ -208,8 +214,10 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		await inputs.nth(0).fill("9");
 		await inputs.nth(1).fill("8");
 
-		await page.getByPlaceholder(/Proporcione un feedback general/).fill("Excelente trabajo en el sprint.");
-		page.on('dialog', dialog => dialog.accept());
+		await page
+			.getByPlaceholder(/Proporcione un feedback general/)
+			.fill("Excelente trabajo en el sprint.");
+		page.on("dialog", (dialog) => dialog.accept());
 		await page.getByRole("button", { name: "Guardar Calificación" }).click();
 
 		// 3.4 Verify return
@@ -235,11 +243,23 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		await page.reload();
 
 		// 4.1 Check Grade
-		await page.goto("/evaluations");
+		// RNF3.2: /evaluations is ADMIN-only; a member reads their own
+		// grades from /my-evaluations.
+		await page.goto("/my-evaluations");
+		await expect(page.getByText("Mis Calificaciones")).toBeVisible();
 		await expect(page.getByText(sprintName)).toBeVisible();
-		await expect(page.getByText("Excelente trabajo en el sprint.")).toBeVisible();
+		await expect(
+			page.getByText("Excelente trabajo en el sprint."),
+		).toBeVisible();
 
-		// 4.2 Velocity (Optional check)
+		// 4.2 The evaluations route is not reachable for a member
+		await page.goto("/evaluations");
+		await expect(page.getByText("Mis Calificaciones")).toBeHidden();
+		await expect(
+			page.getByRole("heading", { name: /Gestión de Calificaciones/ }),
+		).toBeHidden();
+
+		// 4.3 Velocity (Optional check)
 		await page.goto("/reports");
 		await page.waitForTimeout(1000);
 		// Just ensure page loads without error
