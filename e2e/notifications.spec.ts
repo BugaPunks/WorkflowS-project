@@ -1,99 +1,117 @@
 import { expect, test } from "@playwright/test";
 import { loginViaApi } from "./utils/api-auth";
 
-test.describe("Notification System", () => {
-	test("Should receive notification when assigned a task", async ({
+const API_ORIGIN = "http://localhost:5000";
+
+test.describe("RF9 — Notificaciones (HU-09)", () => {
+	test("NTF-01 · una tarea asignada genera una notificación que el usuario puede marcar como leída", async ({
 		page,
 		request,
 	}) => {
-		// 1. Login as Admin
-		const { id: userId, email: userEmail, token } = await loginViaApi(
+		// --- Arrange: sesión de ADMIN ---
+		const { id: userId, token } = await loginViaApi(
 			page,
 			request,
 			"admin",
 			"ADMIN",
 		);
+		const auth = { Authorization: `Bearer ${token}` };
+		const ts = Date.now();
+		const projectName = `Notif Project ${ts}`;
+		const taskTitle = `Tarea Notificación ${ts}`;
 
-		// 2. Create Project via UI
-		const timestamp = Date.now();
-		const projectName = `Notif Project ${timestamp}`;
-		await page.goto("/projects");
-		await page.getByRole("button", { name: "Nuevo Proyecto" }).click();
-		await page.fill('input[name="name"]', projectName);
-		await page.fill('textarea[name="description"]', "Desc");
-		await page.getByRole("button", { name: "Crear Proyecto", exact: true }).click();
+		// --- Arrange: proyecto vía API (ownerId es obligatorio) ---
+		const projectRes = await request.post(`${API_ORIGIN}/api/projects`, {
+			headers: auth,
+			data: { name: projectName, description: "Notificaciones", ownerId: userId },
+		});
+		expect(projectRes.status()).toBe(201);
+		const { data: project } = (await projectRes.json()) as {
+			data: { id: string };
+		};
 
-		// Get project ID
-		await page
-			.locator(".bg-white")
-			.filter({ hasText: projectName })
-			.first()
-			.getByRole("button", { name: "Ver Proyecto" })
-			.click();
-		// Wait for navigation
-		await expect(page).toHaveURL(/\/projects\//);
-		const url = page.url();
-		const projectId = url.split("/projects/")[1];
-
-		// 3. Create Task via API assigned to self
-		const taskTitle = `Tarea Notificación ${timestamp}`;
-		const taskRes = await request.post("http://localhost:5000/api/tasks", {
-			headers: { Authorization: `Bearer ${token}` },
+		// --- Arrange: tarea asignada al propio usuario.
+		// La aserción es obligatoria: si la tarea no se crea, no hay notificación
+		// que verificar y el test debe fallar en lugar de continuar.
+		const taskRes = await request.post(`${API_ORIGIN}/api/tasks`, {
+			headers: auth,
 			data: {
 				title: taskTitle,
 				description: "Testing notifications",
-				projectId: projectId,
+				projectId: project.id,
 				assigneeId: userId,
 				status: "TODO",
 			},
 		});
+		expect(taskRes.status(), "la tarea debe crearse y disparar TASK_ASSIGNED").toBe(
+			201,
+		);
 
-		// If API fails (e.g. tasks need Sprint or Story), we might need to adjust.
-		// Assuming simple task creation works.
-		if (!taskRes.ok()) {
-			console.log("Task creation failed", await taskRes.json());
+		// --- Arrange: comprobar el registro en la API antes de mirar la UI ---
+		const listRes = await request.get(
+			`${API_ORIGIN}/api/notifications?userId=${userId}`,
+			{ headers: auth },
+		);
+		expect(listRes.status()).toBe(200);
+		const { data: created } = (await listRes.json()) as {
+			data: { id: string; title: string; message: string; read: boolean }[];
+		};
+		const mine = created.find((n) => n.message === `Se te ha asignado la tarea: ${taskTitle}`);
+		if (!mine) {
+			throw new Error(
+				`El backend no insertó la notificación TASK_ASSIGNED para la tarea "${taskTitle}"`,
+			);
 		}
-		// expect(taskRes.ok()).toBeTruthy(); // Relaxed for now if endpoint differs
+		expect(mine.read).toBe(false);
 
-		// 4. Check Notification Bell
-		// It polls every 10s or similar.
-		// The frontend might need a reload to fetch new notifications if not using SSE/WebSockets or aggressive polling.
-		// The memory says: "The NotificationBell.tsx component relies on polling or session state to fetch notifications. In E2E tests ... a page.reload() is often necessary"
-
+		// --- Act: cargar la app; el NotificationBell hace polling al montar ---
+		await page.goto("/projects");
 		await page.reload();
 
-		// Since we just created it, we might need to wait.
-		// For testing speed, we can check if the bell badge appears.
-		// Use a generous timeout.
+		const bell = page.getByLabel("Notificaciones");
+		const badge = bell.locator("span").first();
+
+		// --- Assert: el indicador de no leídas aparece tras la recarga ---
+		await expect(badge).toBeVisible({ timeout: 15000 });
+
+		// --- Act: abrir el panel ---
+		await bell.click();
+
+		// --- Assert: título y mensaje del evento (Tabla 24 de Iteracion3.md) ---
 		await expect(
-			page.locator('button[aria-label="Notificaciones"] span').last(),
+			page.getByRole("heading", { name: "Nueva Tarea Asignada" }).first(),
 		).toBeVisible({ timeout: 15000 });
-
-		// 5. Open Notifications
-		await page.getByLabel("Notificaciones").click();
-
-		// 6. Verify Content
-		// It might be polling, so we wait.
-		// Reload if necessary (notifications might only fetch on load or poll)
-		// Let's try to reload if not visible after a short wait?
-		// Or just wait longer.
-		// Use .first() to avoid strict mode violation if multiple notifications exist
-		await expect(page.getByText("Nueva Tarea Asignada").first()).toBeVisible({
-			timeout: 15000,
-		});
 		await expect(
 			page.getByText(`Se te ha asignado la tarea: ${taskTitle}`).first(),
 		).toBeVisible();
 
-		// 7. Mark as read
-		await page.getByText("Nueva Tarea Asignada").first().click();
+		// --- Assert: la notificación aparece como no leída ---
+		const unreadBefore = await page.getByText("No leído", { exact: true }).count();
+		expect(unreadBefore).toBeGreaterThan(0);
 
-		// 8. Verify badge update
-		// Close and reopen to refresh state if needed, or observe UI change
-		// Use .first() to target desktop sidebar if both exist or specificity
-		await page.getByLabel("Notificaciones").first().click(); // Close
-		await page.getByLabel("Notificaciones").first().click(); // Open
+		// --- Act: marcar esa notificación como leída ---
+		await page.locator("button", { hasText: taskTitle }).click();
 
-		// Check visual indicator (optional)
+		// --- Assert: el contador de no leídas disminuye en uno ---
+		await expect(page.getByText("No leído", { exact: true })).toHaveCount(
+			unreadBefore - 1,
+		);
+
+		// --- Assert: el estado persiste en el servidor (RF9.2 + polling) ---
+		await expect
+			.poll(
+				async () => {
+					const res = await request.get(
+						`${API_ORIGIN}/api/notifications?userId=${userId}`,
+						{ headers: auth },
+					);
+					const body = (await res.json()) as {
+						data: { id: string; read: boolean }[];
+					};
+					return body.data.find((n) => n.id === mine.id)?.read;
+				},
+				{ timeout: 10000 },
+			)
+			.toBe(true);
 	});
 });

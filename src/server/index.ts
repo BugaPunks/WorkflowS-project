@@ -146,4 +146,11 @@ const server = app.listen(PORT, () => {
 	);
 });
 
+// Node cierra las conexiones keep-alive a los 5s por defecto. Los clientes que
+// reutilizan el socket (p. ej. el APIRequestContext de Playwright) llegan al
+// siguiente request con una conexión ya cerrada y la escritura falla con
+// ECONNRESET. Se alinean los timeouts con los del proxy (60s) para evitarlo.
+server.keepAliveTimeout = 65_000;
+server.headersTimeout = 66_000;
+
 export default server;
