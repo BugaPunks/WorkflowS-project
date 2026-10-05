@@ -64,6 +64,60 @@ export default function Reports() {
 
 	const [_loading, setLoading] = useState(true);
 
+	// Exportación CSV (HU-14). `exportSprint` es el alcance elegido por el
+	// docente: "" significa todos los sprints del proyecto.
+	const [exportSprint, setExportSprint] = useState<string>("");
+	const [exportError, setExportError] = useState<string>("");
+	const [exporting, setExporting] = useState(false);
+
+	/** Descarga el CSV pedido al servidor y lo guarda con el nombre que él anuncia. */
+	const handleExport = async () => {
+		if (!selectedProject || exporting) return;
+
+		setExporting(true);
+		setExportError("");
+		let objectUrl: string | null = null;
+
+		try {
+			const query = exportSprint
+				? `?sprintId=${encodeURIComponent(exportSprint)}`
+				: "";
+			const res = await fetch(
+				`/api/metrics/export/projects/${selectedProject}${query}`,
+			);
+
+			if (!res.ok) {
+				const body = (await res.json().catch(() => null)) as {
+					error?: string;
+				} | null;
+				setExportError(
+					body?.error ??
+						`No se pudo exportar el proyecto (error ${res.status})`,
+				);
+				return;
+			}
+
+			const disposition = res.headers.get("Content-Disposition") ?? "";
+			const filename =
+				/filename="?([^";]+)"?/.exec(disposition)?.[1] ??
+				`project-${selectedProject}-report.csv`;
+
+			const blob = await res.blob();
+			objectUrl = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = objectUrl;
+			link.download = filename;
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+		} catch {
+			setExportError("No se pudo exportar el proyecto. Intenta de nuevo.");
+		} finally {
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
+			setExporting(false);
+		}
+	};
+
 	useEffect(() => {
 		const loadData = async () => {
 			if (!user) return;
@@ -75,9 +129,14 @@ export default function Reports() {
 				})) as Project[];
 				setProjects(projectsData || []);
 
-				if (projectsData && projectsData.length > 0) {
-					setSelectedProject(projectsData[0].id);
-				}
+				// No pisar la selección del usuario cuando la lista se recarga
+				// (StrictMode monta el efecto dos veces y la segunda respuesta
+				// llegaba después de elegir un proyecto).
+				setSelectedProject((prev) =>
+					projectsData?.some((p) => p.id === prev)
+						? prev
+						: (projectsData?.[0]?.id ?? ""),
+				);
 			} catch (error) {
 				console.error(error);
 			} finally {
@@ -89,6 +148,11 @@ export default function Reports() {
 
 	// Load Sprints and Contributions when Project changes
 	useEffect(() => {
+		// El alcance de exportación se reinicia con el proyecto: un sprint del
+		// proyecto anterior haría que el servidor respondiera 400.
+		setExportSprint("");
+		setExportError("");
+
 		if (selectedProject) {
 			// Load Sprints
 			fetch("/api/sprints")
@@ -136,17 +200,43 @@ export default function Reports() {
 			<div className="bg-white p-6 rounded-lg shadow-md mb-8">
 				<div className="flex justify-between items-center mb-4 border-b pb-2">
 					<h2 className="text-xl font-semibold text-gray-800">Configuración</h2>
-					{selectedProject && (
-						<a
-							href={`/api/metrics/export/projects/${selectedProject}`}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium flex items-center gap-2"
+					<div className="flex items-center gap-3">
+						<label
+							htmlFor="export-sprint-select"
+							className="text-sm font-medium text-gray-700"
 						>
-							📥 Exportar Datos
-						</a>
-					)}
+							Alcance
+						</label>
+						<select
+							id="export-sprint-select"
+							className="border rounded-md px-3 py-2 text-sm"
+							value={exportSprint}
+							onChange={(e) => setExportSprint(e.target.value)}
+							disabled={!selectedProject || sprints.length === 0}
+						>
+							<option value="">Todos los sprints</option>
+							{sprints.map((s) => (
+								<option key={s.id} value={s.id}>
+									{s.name}
+								</option>
+							))}
+						</select>
+						<button
+							type="button"
+							onClick={handleExport}
+							disabled={!selectedProject || exporting}
+							aria-busy={exporting}
+							className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed text-sm font-medium flex items-center gap-2"
+						>
+							{exporting ? "Exportando…" : "📥 Exportar Datos"}
+						</button>
+					</div>
 				</div>
+				{exportError && (
+					<p role="alert" className="mb-4 text-sm text-red-600">
+						{exportError}
+					</p>
+				)}
 				<div className="flex gap-4 mb-6">
 					<div>
 						<label

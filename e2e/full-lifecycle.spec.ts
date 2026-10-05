@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import {
 	createSessionViaApi,
@@ -5,6 +6,7 @@ import {
 	switchBrowserSession,
 	TEST_PASSWORD,
 } from "./utils/api-auth";
+import { PROJECT_REPORT_HEADER, parseProjectReport } from "./utils/csv";
 
 test.describe("Full Project Lifecycle: Teacher and Student", () => {
 	const timestamp = Date.now();
@@ -259,10 +261,86 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 			page.getByRole("heading", { name: /Gestión de Calificaciones/ }),
 		).toBeHidden();
 
-		// 4.3 Velocity (Optional check)
+		// 4.3 /reports exige ADMIN (App.tsx), así que la sesión de estudiante
+		// es expulsada a / en lugar de encontrar la vista.
 		await page.goto("/reports");
-		await page.waitForTimeout(1000);
-		// Just ensure page loads without error
-		await expect(page.getByText("Reportes y Métricas")).toBeVisible();
+		await expect(page).toHaveURL(/.*\/$/);
+		await expect(page.getByText("Reportes y Métricas")).toHaveCount(0);
+
+		// =================================================================
+		// 5. TEACHER: Velocity & Reportes
+		// =================================================================
+		console.log("--- Step 5: Teacher Velocity & Reports ---");
+
+		if (!token) throw new Error("La sesión del docente no devolvió token");
+
+		// 5.1 Una tarea en el sprint del flujo, para que la exportación tenga
+		// una fila real que afirmar y no solo la cabecera.
+		const exportTaskTitle = `Tarea de cierre, "final" ${timestamp}`;
+		const exportTaskRes = await request.post(
+			"http://localhost:5000/api/tasks",
+			{
+				headers: { Authorization: `Bearer ${token}` },
+				data: {
+					title: exportTaskTitle,
+					projectId,
+					sprintId: sprintObj.id,
+					assigneeId: studentId,
+					status: "COMPLETED",
+				},
+			},
+		);
+		expect(exportTaskRes.status()).toBe(201);
+
+		await switchBrowserSession(
+			page,
+			{
+				id: teacherId,
+				email: "docente@workflow.com",
+				name: "Docente Admin",
+				role: "ADMIN",
+			},
+			token,
+		);
+		await page.goto("/reports");
+		await expect(
+			page.getByRole("heading", { name: "Reportes y Métricas" }),
+		).toBeVisible();
+
+		// 5.2 Descargar la exportación del proyecto que creó este mismo flujo y
+		// afirmar sobre el contenido real del archivo.
+		await page.locator("#project-select").selectOption({ label: projectName });
+
+		const exportButton = page.getByRole("button", { name: /Exportar Datos/ });
+		await expect(exportButton).toBeEnabled();
+		const downloadPromise = page.waitForEvent("download");
+		await exportButton.click();
+		const download = await downloadPromise;
+
+		expect(download.suggestedFilename()).toBe(
+			`project-${projectId}-report.csv`,
+		);
+		const downloadPath = await download.path();
+		expect(downloadPath).toBeTruthy();
+		const { header, rows } = parseProjectReport(
+			readFileSync(downloadPath as string, "utf8"),
+		);
+		expect(header.join(",")).toBe(PROJECT_REPORT_HEADER);
+		// El sprint del flujo aparece en el archivo con la tarea recién creada, y
+		// todas las filas mantienen las 6 columnas: esa es la propiedad que
+		// garantiza el escapado, y el título lleva coma y comillas a propósito.
+		const exportedRow = rows.find((row) => row[0] === sprintName);
+		expect(
+			exportedRow,
+			`el archivo debe incluir una fila del sprint ${sprintName}`,
+		).toBeTruthy();
+		expect(exportedRow?.[1]).toBe(exportTaskTitle);
+		expect(exportedRow?.[5]).toBe("N/A");
+		for (const row of rows) {
+			expect(
+				row,
+				`la fila ${JSON.stringify(row)} debe tener 6 columnas`,
+			).toHaveLength(6);
+		}
 	});
 });

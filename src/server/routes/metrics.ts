@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../db";
+import { buildProjectReportCsv, projectReportFileName } from "../lib/csv";
 import {
 	computeBurndown,
 	computeContribution,
@@ -9,14 +10,6 @@ import { authenticateToken } from "../middleware/auth";
 import { requireSystemRole } from "../middleware/system-rbac";
 
 const router = Router();
-
-const sanitizeCsvCell = (value: string): string => {
-	const dangerous = ["=", "+", "-", "@", "\t", "\n"];
-	if (dangerous.some((c) => value.startsWith(c))) {
-		return `'${value}`;
-	}
-	return value;
-};
 
 // GET Burndown Data for a Sprint - any authenticated
 router.get(
@@ -109,15 +102,27 @@ router.get(
 	async (req, res) => {
 		try {
 			const { projectId } = req.params;
+			const sprintId =
+				typeof req.query.sprintId === "string" && req.query.sprintId
+					? req.query.sprintId
+					: undefined;
 
+			// `select` en lugar de `include`: el archivo solo necesita el nombre del
+			// sprint, el título, estado y prioridad de la tarea y el nombre del
+			// responsable. Con `include` se cargaba además el hash de contraseña.
 			const project = await prisma.project.findUnique({
 				where: { id: projectId },
-				include: {
+				select: {
 					sprints: {
-						include: {
+						where: sprintId ? { id: sprintId } : undefined,
+						select: {
+							name: true,
 							tasks: {
-								include: {
-									assignee: true,
+								select: {
+									title: true,
+									status: true,
+									priority: true,
+									assignee: { select: { name: true } },
 								},
 							},
 						},
@@ -129,24 +134,32 @@ router.get(
 				return res.status(404).json({ error: "Project not found" });
 			}
 
-			const rows = ["Sprint,Tarea,Asignado,Estado,Prioridad,Puntos"];
-
-			project.sprints.forEach((sprint) => {
-				sprint.tasks.forEach((task) => {
-					rows.push(
-						`${sanitizeCsvCell(sprint.name)},"${sanitizeCsvCell(task.title)}",${sanitizeCsvCell(task.assignee?.name || "Sin asignar")},${task.status},${task.priority},N/A`,
-					);
+			// Un sprint pedido que no aparece puede no existir o pertenecer a otro
+			// proyecto. Se rechaza en lugar de devolver un archivo vacío, que el
+			// docente tomaría por un informe completo del proyecto.
+			if (sprintId && project.sprints.length === 0) {
+				return res.status(400).json({
+					error: "El sprint indicado no existe o no pertenece al proyecto",
 				});
-			});
+			}
 
-			const csvContent = rows.join("\n");
+			const rows = project.sprints.flatMap((sprint) =>
+				sprint.tasks.map((task) => ({
+					sprint: sprint.name,
+					title: task.title,
+					assignee: task.assignee?.name || "Sin asignar",
+					status: task.status,
+					priority: task.priority,
+					points: "N/A",
+				})),
+			);
 
 			res.setHeader("Content-Type", "text/csv");
 			res.setHeader(
 				"Content-Disposition",
-				`attachment; filename="project-${projectId}-report.csv"`,
+				`attachment; filename="${projectReportFileName(projectId)}"`,
 			);
-			res.send(csvContent);
+			res.send(buildProjectReportCsv(rows));
 		} catch (error) {
 			console.error("Error exporting data:", error);
 			res.status(500).json({ error: "Error exporting data" });

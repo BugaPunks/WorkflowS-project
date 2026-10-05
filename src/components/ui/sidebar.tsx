@@ -133,7 +133,6 @@ export function SidebarTrigger({
 			data-slot="sidebar-trigger"
 			className={`inline-flex items-center justify-center rounded-md h-7 w-7 p-1 text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${classStr}`}
 			onClick={(event) => {
-				console.log("SidebarTrigger clicked");
 				onClick?.(event);
 				toggleSidebar();
 			}}

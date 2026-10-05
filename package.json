@@ -16,6 +16,9 @@
 		"migrate:prod": "prisma migrate deploy",
 		"prisma:studio": "prisma studio",
 		"switch-db": "./scripts/switch-db.sh",
+		"lint": "biome check",
+		"test": "vitest run --exclude e2e",
+		"e2e": "playwright test",
 		"test:unit": "vitest run --exclude e2e",
 		"test:unit:watch": "vitest"
 	},

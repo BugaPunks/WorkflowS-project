@@ -60,7 +60,6 @@ const App = () => {
 						<Route path="/user-stories" element={<UserStories />} />
 						<Route path="/rubrics" element={<Rubrics />} />
 						<Route path="/user-management" element={<UserManagement />} />
-						<Route path="/reports" element={<Reports />} />
 						<Route
 							path="/notifications/preferences"
 							element={<NotificationPreferences />}
@@ -71,6 +70,9 @@ const App = () => {
 						{/* Rutas protegidas por ADMIN */}
 						<Route element={<RequireSystemRole allowedRole="ADMIN" />}>
 							<Route path="/evaluations" element={<Evaluations />} />
+							{/* La exportación CSV exige ADMIN en la API; la vista se
+						    alinea con ella para que el rol no reciba un 403. */}
+							<Route path="/reports" element={<Reports />} />
 						</Route>
 
 						<Route path="/calendar" element={<Calendar />} />

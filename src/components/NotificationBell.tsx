@@ -37,7 +37,6 @@ export function NotificationBell() {
 
 			if (unreadRes.ok) {
 				const unreadData = await unreadRes.json();
-				console.log("UNREAD DATA:", unreadData);
 				setUnreadCount(unreadData.data || 0);
 			} else {
 				console.error("UNREAD ERROR:", await unreadRes.text());

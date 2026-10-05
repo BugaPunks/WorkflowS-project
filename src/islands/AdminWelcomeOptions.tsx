@@ -11,14 +11,6 @@ export default function AdminWelcomeOptions() {
 				{ label: "Gestionar roles", href: "/admin/roles" },
 			],
 		},
-		{
-			items: [
-				{
-					label: "Exportar lista de usuarios",
-					onClick: () => console.log("Exportar usuarios"),
-				},
-			],
-		},
 	];
 
 	// Menú de gestión de proyectos
@@ -44,14 +36,6 @@ export default function AdminWelcomeOptions() {
 				{ label: "Resumen general", href: "/reports/dashboard" },
 				{ label: "Rendimiento por proyecto", href: "/reports/performance" },
 				{ label: "Progreso de sprints", href: "/reports/sprints" },
-			],
-		},
-		{
-			items: [
-				{
-					label: "Exportar reportes",
-					onClick: () => console.log("Exportar reportes"),
-				},
 			],
 		},
 	];

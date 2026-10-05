@@ -91,8 +91,10 @@ export default function ProductOwnerWelcomeOptions({
 							Ir a Proyectos para planificar
 						</span>
 					</a>
+					{/* /reports está restringida a ADMIN (App.tsx), así que se
+					    ofrece una acción que el rol PRODUCT_OWNER sí puede usar. */}
 					<a
-						href="/reports"
+						href="/sprints"
 						className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors"
 					>
 						<svg
@@ -103,16 +105,16 @@ export default function ProductOwnerWelcomeOptions({
 							stroke="currentColor"
 							aria-hidden="true"
 						>
-							<title>Icono de reporte</title>
+							<title>Icono de sprint</title>
 							<path
 								strokeLinecap="round"
 								strokeLinejoin="round"
 								strokeWidth="2"
-								d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+								d="M13 10V3L4 14h7v7l9-11h-7z"
 							/>
 						</svg>
 						<span className="text-sm font-medium text-gray-700">
-							Ver Reportes
+							Gestionar Sprints
 						</span>
 					</a>
 				</div>

@@ -82,7 +82,6 @@ export default function SidebarProvider({
 
 	// Función para alternar el sidebar
 	const toggleSidebar = () => {
-		console.log("toggleSidebar called", { isMobile, open, openMobile });
 		if (isMobile) {
 			setOpenMobile(!openMobile);
 		} else {

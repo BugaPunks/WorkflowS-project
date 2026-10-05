@@ -47,8 +47,6 @@ export default function SprintDetail() {
 			const response = await fetch(`/api/sprints/${id}`);
 			if (!response.ok) throw new Error("Sprint no encontrado");
 			const data = await response.json();
-			console.log("Sprint Data Loaded:", data);
-			console.log("Tasks:", data.data.tasks);
 			setSprint(data.data);
 			setTasks(data.data.tasks || []);
 		} catch (err) {

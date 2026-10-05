@@ -31,7 +31,6 @@ router.get("/unread-count", authenticateToken, async (req, res) => {
 		const count = await prisma.notification.count({
 			where: { userId: req.user!.userId, read: false },
 		});
-		console.log(`UNREAD COUNT HIT FOR ${req.user!.userId} => ${count}`);
 		res.json({ data: count });
 	} catch (error) {
 		res.status(500).json({ error: "Error counting unread notifications" });
