@@ -5,10 +5,10 @@ const API_ORIGIN = "http://localhost:5000";
 
 export default defineConfig({
 	testDir: "./e2e",
-	// Data isolation per worker isn't implemented (we use a single dev.db),
+	// Data isolation per worker isn't implemented (we use a single dev database),
 	// so tests cannot run in parallel without colliding on data state.
-	// NOTE: Because there is no cleanup step, dev.db accumulates test data
-	// over consecutive test runs unless explicitly cleared.
+	// NOTE: Because there is no cleanup step, the dev database accumulates test
+	// data over consecutive test runs unless explicitly cleared.
 	fullyParallel: false,
 	// Fail the build on CI if you accidentally left test.only in the source code.
 	forbidOnly: !!process.env.CI,
@@ -42,7 +42,9 @@ export default defineConfig({
 			reuseExistingServer: !process.env.CI,
 			env: {
 				DISABLE_RATE_LIMIT: "true",
-				DATABASE_URL: process.env.DATABASE_URL || "file:./dev.db",
+				DATABASE_URL:
+					process.env.DATABASE_URL ||
+					"postgresql://postgres:123456@localhost:5432/workflow_db?schema=public",
 			},
 			timeout: 120_000,
 		},

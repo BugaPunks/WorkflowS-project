@@ -1,0 +1,11 @@
+# Los scripts de shell deben quedar en LF: con CRLF, bash falla con
+# "syntax error near unexpected token $'{\r'" y el script no arranca.
+*.sh text eol=lf
+
+# Los wrappers de Windows necesitan CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Fijar LF tambien para archivos de configuracion que ejecutan otras ferramentas
+*.yml text eol=lf
+*.yaml text eol=lf
