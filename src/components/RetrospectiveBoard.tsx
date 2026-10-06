@@ -177,7 +177,7 @@ export default function RetrospectiveBoard({ sprintId }: Props) {
 										<button
 											type="button"
 											onClick={() => handleAddItem(col.id)}
-											className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 shadow-sm"
+											className="bg-blue-950 text-white px-3 py-1 rounded text-xs hover:bg-blue-900 shadow-sm"
 										>
 											Añadir
 										</button>

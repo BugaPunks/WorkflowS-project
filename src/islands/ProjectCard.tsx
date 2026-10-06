@@ -65,7 +65,7 @@ export default function ProjectCard({
 	return (
 		<div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300">
 			{/* Cabecera de la tarjeta */}
-			<div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+			<div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-50">
 				<div className="flex justify-between items-start">
 					<h3 className="text-lg font-semibold text-gray-800 truncate">
 						{project.name}
@@ -118,7 +118,7 @@ export default function ProjectCard({
 			<div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
 				<a
 					href={`/projects/${project.id}`}
-					className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+					className="inline-flex items-center text-sm text-blue-950 hover:text-blue-800"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

@@ -6,7 +6,7 @@ export default function CommonWelcomeOptions() {
 				<p className="text-gray-600 mb-3">
 					Descubre todas las funcionalidades disponibles para tu rol.
 				</p>
-				<a href="/welcome" className="text-blue-600 hover:underline">
+				<a href="/welcome" className="text-blue-950 hover:underline">
 					Comenzar exploración →
 				</a>
 			</div>
@@ -16,7 +16,7 @@ export default function CommonWelcomeOptions() {
 				<p className="text-gray-600 mb-3">
 					Añade más información a tu perfil para mejorar tu experiencia.
 				</p>
-				<a href="/profile" className="text-blue-600 hover:underline">
+				<a href="/profile" className="text-blue-950 hover:underline">
 					Editar perfil →
 				</a>
 			</div>

@@ -160,7 +160,7 @@ export default function UserManagement() {
 				<button
 					type="button"
 					onClick={openCreateModal}
-					className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					+ Nuevo Usuario
 				</button>
@@ -168,7 +168,7 @@ export default function UserManagement() {
 
 			{isLoading ? (
 				<div className="text-center py-12">
-					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando usuarios...</p>
 				</div>
 			) : (
@@ -230,7 +230,7 @@ export default function UserManagement() {
 										<button
 											type="button"
 											onClick={() => openEditModal(user)}
-											className="text-indigo-600 hover:text-indigo-900 mr-4"
+											className="text-blue-950 hover:text-blue-950 mr-4"
 										>
 											Editar
 										</button>
@@ -270,7 +270,7 @@ export default function UserManagement() {
 							onChange={(e) =>
 								setFormData({ ...formData, name: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 						/>
 					</div>
@@ -288,7 +288,7 @@ export default function UserManagement() {
 							onChange={(e) =>
 								setFormData({ ...formData, email: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 							disabled={isEditing} // Disable email on edit to prevent identity change issues if desired, or keep enabled
 						/>
@@ -307,7 +307,7 @@ export default function UserManagement() {
 							onChange={(e) =>
 								setFormData({ ...formData, password: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder={
 								isEditing
 									? "Dejar en blanco para mantener la actual"
@@ -333,7 +333,7 @@ export default function UserManagement() {
 									role: e.target.value as UserRole,
 								})
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 						>
 							<option value="ADMIN">Administrador</option>
 							<option value="PRODUCT_OWNER">Product Owner</option>
@@ -350,7 +350,7 @@ export default function UserManagement() {
 									onChange={(e) =>
 										setFormData({ ...formData, active: e.target.checked })
 									}
-									className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+									className="rounded border-gray-300 text-blue-950 focus:ring-blue-700"
 								/>
 								<span className="ml-2 text-sm text-gray-700">
 									Usuario activo
@@ -369,7 +369,7 @@ export default function UserManagement() {
 						</button>
 						<button
 							type="submit"
-							className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+							className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium"
 						>
 							{isEditing ? "Guardar" : "Crear"}
 						</button>

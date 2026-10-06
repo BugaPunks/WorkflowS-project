@@ -118,20 +118,20 @@ export function NotificationBell() {
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
-				className="relative p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+				className="relative p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-700/50"
 				aria-label="Notificaciones"
 				aria-expanded={isOpen}
 			>
 				<Bell size={20} />
 				{unreadCount > 0 && (
-					<span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+					<span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
 						{unreadCount > 9 ? "9+" : unreadCount}
 					</span>
 				)}
 			</button>
 
 			{isOpen && (
-				<div className="absolute bottom-full left-0 mb-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl shadow-indigo-500/10 overflow-hidden z-50 border border-gray-100 animate-in slide-in-from-bottom-2 duration-200 origin-bottom-left max-h-[80vh] flex flex-col">
+				<div className="absolute bottom-full left-0 mb-2 w-80 sm:w-96 bg-white rounded-xl shadow-2xl shadow-blue-700/10 overflow-hidden z-50 border border-gray-100 animate-in slide-in-from-bottom-2 duration-200 origin-bottom-left max-h-[80vh] flex flex-col">
 					<div className="p-4 bg-white border-b border-gray-50 flex justify-between items-center sticky top-0 z-10">
 						<h3 className="font-semibold text-gray-900">Notificaciones</h3>
 						<div className="flex gap-2">
@@ -139,7 +139,7 @@ export function NotificationBell() {
 								<button
 									type="button"
 									onClick={handleMarkAllRead}
-									className="text-indigo-600 hover:text-indigo-700 p-1 hover:bg-indigo-50 rounded-md transition-colors text-xs font-medium"
+									className="text-blue-950 hover:text-blue-900 p-1 hover:bg-blue-50 rounded-md transition-colors text-xs font-medium"
 									aria-label="Marcar todas como leídas"
 								>
 									Marcar leídas
@@ -151,7 +151,7 @@ export function NotificationBell() {
 									setIsOpen(false);
 									navigate("/notifications/preferences");
 								}}
-								className="text-gray-400 hover:text-indigo-600 p-1 hover:bg-indigo-50 rounded-md transition-colors text-xs flex items-center gap-1 font-medium"
+								className="text-gray-400 hover:text-blue-950 p-1 hover:bg-blue-50 rounded-md transition-colors text-xs flex items-center gap-1 font-medium"
 								aria-label="Preferencias"
 							>
 								Preferencias
@@ -182,7 +182,7 @@ export function NotificationBell() {
 										className={cn(
 											"p-4 text-left hover:bg-gray-50 transition-colors w-full focus:outline-none focus:bg-gray-50",
 											!notification.read
-												? "bg-indigo-50/30 hover:bg-indigo-50/50"
+												? "bg-blue-50/30 hover:bg-blue-50/50"
 												: "bg-white",
 										)}
 									>
@@ -191,7 +191,7 @@ export function NotificationBell() {
 												className={cn(
 													"text-sm line-clamp-1",
 													!notification.read
-														? "font-bold text-indigo-900"
+														? "font-bold text-blue-950"
 														: "font-medium text-gray-700",
 												)}
 											>
@@ -208,7 +208,7 @@ export function NotificationBell() {
 											className={cn(
 												"text-xs line-clamp-2",
 												!notification.read
-													? "text-indigo-700/80"
+													? "text-blue-900/80"
 													: "text-gray-500",
 											)}
 										>
@@ -216,8 +216,8 @@ export function NotificationBell() {
 										</p>
 										{!notification.read && (
 											<div className="mt-2 flex items-center gap-1">
-												<div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-												<span className="text-[10px] font-medium text-indigo-600">
+												<div className="w-1.5 h-1.5 rounded-full bg-blue-700" />
+												<span className="text-[10px] font-medium text-blue-950">
 													No leído
 												</span>
 											</div>
@@ -231,7 +231,7 @@ export function NotificationBell() {
 						<div className="p-2 bg-gray-50 border-t border-gray-100 text-center">
 							<button
 								type="button"
-								className="text-xs text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
+								className="text-xs text-blue-950 hover:text-blue-900 font-medium hover:underline"
 							>
 								Ver todas
 							</button>

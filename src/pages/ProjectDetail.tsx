@@ -118,7 +118,7 @@ function ChatSection({ projectId }: { projectId: string }) {
 							className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
 						>
 							<div
-								className={`max-w-[80%] rounded-lg p-3 ${isMe ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}
+								className={`max-w-[80%] rounded-lg p-3 ${isMe ? "bg-blue-950 text-white" : "bg-white border border-gray-200 text-gray-800"}`}
 							>
 								{!isMe && (
 									<p className="text-xs font-bold mb-1 opacity-75">
@@ -134,14 +134,14 @@ function ChatSection({ projectId }: { projectId: string }) {
 			<form onSubmit={handleSend} className="flex gap-2">
 				<input
 					type="text"
-					className="flex-1 border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					className="flex-1 border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-700"
 					placeholder="Escribe un mensaje..."
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
 				/>
 				<button
 					type="submit"
-					className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium transition-colors"
 				>
 					Enviar
 				</button>
@@ -255,7 +255,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 						type="button"
 						onClick={() => openUploadModal(null)}
 						disabled={uploading}
-						className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded font-medium transition-colors"
+						className="text-sm bg-blue-100 hover:bg-blue-200 text-blue-900 px-4 py-2 rounded font-medium transition-colors"
 					>
 						+ Subir Archivo
 					</button>
@@ -274,7 +274,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 						{documents.map((doc) => (
 							<div
 								key={doc.id}
-								className={`border rounded-lg p-4 flex flex-col transition-shadow bg-white ${showHistory === doc.id ? "ring-2 ring-blue-500" : "hover:shadow-md"}`}
+								className={`border rounded-lg p-4 flex flex-col transition-shadow bg-white ${showHistory === doc.id ? "ring-2 ring-blue-700" : "hover:shadow-md"}`}
 							>
 								<div className="flex justify-between items-start mb-2">
 									<div className="flex gap-2">
@@ -282,7 +282,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 											{doc.type}
 										</span>
 										{doc.latestVersion && doc.latestVersion > 1 && (
-											<span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded">
+											<span className="bg-blue-100 text-blue-900 text-xs font-bold px-2 py-1 rounded">
 												V{doc.latestVersion}
 											</span>
 										)}
@@ -309,7 +309,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 											href={doc.url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="flex-1 text-center block bg-gray-50 hover:bg-gray-100 text-blue-600 text-sm py-2 rounded"
+											className="flex-1 text-center block bg-gray-50 hover:bg-gray-100 text-blue-950 text-sm py-2 rounded"
 										>
 											Descargar
 										</a>
@@ -326,7 +326,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 									<button
 										type="button"
 										onClick={() => openUploadModal(doc.id)}
-										className="w-full text-center text-xs text-blue-600 hover:text-blue-800 border border-dashed border-blue-200 hover:border-blue-400 rounded py-1"
+										className="w-full text-center text-xs text-blue-950 hover:text-blue-800 border border-dashed border-blue-200 hover:border-blue-400 rounded py-1"
 									>
 										+ Nueva Versión
 									</button>
@@ -368,7 +368,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 									href={ver.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-xs text-blue-600 hover:underline block mt-1"
+									className="text-xs text-blue-950 hover:underline block mt-1"
 								>
 									Descargar Archivo
 								</a>
@@ -399,7 +399,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
                 file:text-sm file:font-semibold
-                file:bg-blue-50 file:text-blue-700
+                file:bg-blue-50 file:text-blue-900
                 hover:file:bg-blue-100"
 							required
 						/>
@@ -426,7 +426,7 @@ function DocumentsSection({ projectId }: { projectId: string }) {
 						<button
 							type="submit"
 							disabled={uploading}
-							className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+							className="px-4 py-2 bg-blue-950 text-white rounded hover:bg-blue-900"
 						>
 							{uploading ? "Subiendo..." : "Subir"}
 						</button>
@@ -527,7 +527,7 @@ function MembersSection({
 							loadUsers();
 							setShowAddModal(true);
 						}}
-						className="text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded"
+						className="text-sm bg-blue-100 text-blue-900 hover:bg-blue-200 px-3 py-1 rounded"
 					>
 						+ Añadir Miembro
 					</button>
@@ -633,7 +633,7 @@ function MembersSection({
 								</button>
 								<button
 									type="submit"
-									className="px-4 py-2 bg-blue-600 text-white rounded"
+									className="px-4 py-2 bg-blue-950 text-white rounded"
 								>
 									Añadir
 								</button>
@@ -864,7 +864,7 @@ export default function ProjectDetail() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
-					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando proyecto...</p>
 				</div>
 			</div>
@@ -880,7 +880,7 @@ export default function ProjectDetail() {
 				<button
 					type="button"
 					onClick={() => navigate("/projects")}
-					className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+					className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					Volver a Proyectos
 				</button>
@@ -895,7 +895,7 @@ export default function ProjectDetail() {
 				<button
 					type="button"
 					onClick={() => navigate("/projects")}
-					className="text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-2"
+					className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
 				>
 					← Volver a Proyectos
 				</button>
@@ -907,7 +907,7 @@ export default function ProjectDetail() {
 							<button
 								type="button"
 								onClick={() => navigate(`/projects/${project.id}/grade`)}
-								className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+								className="mt-3 text-sm text-blue-950 hover:text-blue-800 font-medium flex items-center gap-1"
 							>
 								<svg
 									className="w-4 h-4"
@@ -931,35 +931,35 @@ export default function ProjectDetail() {
 						<button
 							type="button"
 							onClick={() => setActiveTab("board")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "board" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "board" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
 						>
 							Tablero & Sprints
 						</button>
 						<button
 							type="button"
 							onClick={() => setActiveTab("members")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "members" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "members" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
 						>
 							Miembros
 						</button>
 						<button
 							type="button"
 							onClick={() => setActiveTab("chat")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "chat" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "chat" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
 						>
 							Chat
 						</button>
 						<button
 							type="button"
 							onClick={() => setActiveTab("docs")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "docs" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "docs" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
 						>
 							Documentos
 						</button>
 						<button
 							type="button"
 							onClick={() => setActiveTab("retro")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "retro" ? "bg-blue-100 text-blue-700" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "retro" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
 						>
 							Retrospectiva
 						</button>
@@ -1095,7 +1095,7 @@ export default function ProjectDetail() {
 									<button
 										type="button"
 										onClick={() => setShowSprintModal(true)}
-										className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
+										className="bg-blue-950 text-white px-4 py-2 rounded-lg hover:bg-blue-900 text-sm font-medium"
 									>
 										+ Nuevo Sprint
 									</button>
@@ -1131,7 +1131,7 @@ export default function ProjectDetail() {
 																`/projects/${project.id}/sprints/${sprint.id}/grade`,
 															)
 														}
-														className="text-xs text-blue-600 hover:text-blue-800 font-medium underline"
+														className="text-xs text-blue-950 hover:text-blue-800 font-medium underline"
 													>
 														Calificar Sprint
 													</button>
@@ -1171,12 +1171,12 @@ export default function ProjectDetail() {
 																		<p className="font-medium text-sm text-blue-900">
 																			{story.title}
 																		</p>
-																		<p className="text-xs text-blue-600 mt-0.5 line-clamp-1">
+																		<p className="text-xs text-blue-950 mt-0.5 line-clamp-1">
 																			{story.description}
 																		</p>
 																	</div>
 																	{story.storyPoints != null && (
-																		<span className="text-xs font-bold bg-white text-blue-600 px-2 py-1 rounded border border-blue-100">
+																		<span className="text-xs font-bold bg-white text-blue-950 px-2 py-1 rounded border border-blue-100">
 																			{story.storyPoints}
 																		</span>
 																	)}
@@ -1296,7 +1296,7 @@ export default function ProjectDetail() {
 								</button>
 								<button
 									type="submit"
-									className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+									className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900"
 								>
 									Crear
 								</button>

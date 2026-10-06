@@ -88,7 +88,7 @@ export default function TaskDetail() {
 			<AppShell user={user || undefined}>
 				<div className="flex items-center justify-center min-h-screen">
 					<div className="text-center">
-						<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+						<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
 						<p className="text-gray-600 mt-4">Cargando tarea...</p>
 					</div>
 				</div>
@@ -106,7 +106,7 @@ export default function TaskDetail() {
 					<button
 						type="button"
 						onClick={() => navigate("/tasks")}
-						className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+						className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 					>
 						Volver a Tareas
 					</button>
@@ -118,7 +118,7 @@ export default function TaskDetail() {
 	const getStatusColor = (status: string) => {
 		const colors: Record<string, string> = {
 			PENDING: "bg-yellow-100 text-yellow-700",
-			IN_PROGRESS: "bg-blue-100 text-blue-700",
+			IN_PROGRESS: "bg-blue-100 text-blue-900",
 			COMPLETED: "bg-green-100 text-green-700",
 			CANCELLED: "bg-gray-100 text-gray-700",
 		};
@@ -136,7 +136,7 @@ export default function TaskDetail() {
 					<button
 						type="button"
 						onClick={() => navigate("/tasks")}
-						className="text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-2"
+						className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
 					>
 						← Volver a Tareas
 					</button>
@@ -159,7 +159,7 @@ export default function TaskDetail() {
 							<button
 								type="button"
 								onClick={() => setShowEditModal(true)}
-								className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium whitespace-nowrap"
+								className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium whitespace-nowrap"
 							>
 								Editar
 							</button>
@@ -248,7 +248,7 @@ export default function TaskDetail() {
 								onChange={(e) =>
 									setEditForm({ ...editForm, title: e.target.value })
 								}
-								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 								required
 							/>
 						</div>
@@ -265,7 +265,7 @@ export default function TaskDetail() {
 								onChange={(e) =>
 									setEditForm({ ...editForm, description: e.target.value })
 								}
-								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 								rows={4}
 							/>
 						</div>
@@ -282,7 +282,7 @@ export default function TaskDetail() {
 								onChange={(e) =>
 									setEditForm({ ...editForm, status: e.target.value })
 								}
-								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							>
 								<option value="PENDING">Pendiente</option>
 								<option value="IN_PROGRESS">En Progreso</option>
@@ -300,7 +300,7 @@ export default function TaskDetail() {
 							</button>
 							<button
 								type="submit"
-								className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+								className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium"
 							>
 								Guardar
 							</button>

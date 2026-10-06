@@ -50,7 +50,7 @@ export default function NavUser(): React.ReactElement {
 				<SidebarMenuItem>
 					<SidebarMenuButton>
 						<div className="flex items-center w-full">
-							<div className="bg-blue-600 text-white flex aspect-square size-6 items-center justify-center rounded-full mr-2">
+							<div className="bg-blue-950 text-white flex aspect-square size-6 items-center justify-center rounded-full mr-2">
 								<span className="text-xs">
 									{session?.name?.charAt(0).toUpperCase()}
 								</span>
@@ -64,7 +64,7 @@ export default function NavUser(): React.ReactElement {
 						<button
 							type="button"
 							onClick={handleLogout}
-							className="flex items-center w-full text-red-500"
+							className="flex items-center w-full text-red-600"
 						>
 							<span>Cerrar Sesión</span>
 						</button>

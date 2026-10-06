@@ -23,7 +23,7 @@ export default function ScrumMasterWelcomeOptions({
 						<span className="text-4xl font-bold text-blue-800">
 							{activeTasks}
 						</span>
-						<span className="text-sm font-medium text-blue-600">
+						<span className="text-sm font-medium text-blue-950">
 							Tareas Activas en Proyectos
 						</span>
 					</div>

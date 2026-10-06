@@ -119,7 +119,7 @@ export default function SprintDetail() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
-					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando sprint...</p>
 				</div>
 			</div>
@@ -135,7 +135,7 @@ export default function SprintDetail() {
 				<button
 					type="button"
 					onClick={() => navigate("/sprints")}
-					className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+					className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					Volver a Sprints
 				</button>
@@ -150,7 +150,7 @@ export default function SprintDetail() {
 				<button
 					type="button"
 					onClick={() => navigate("/sprints")}
-					className="text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-2"
+					className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
 				>
 					← Volver a Sprints
 				</button>
@@ -165,7 +165,7 @@ export default function SprintDetail() {
 								`/projects/${sprint.projectId}/sprints/${sprint.id}/grade`,
 							)
 						}
-						className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-medium hover:bg-blue-100 transition-colors"
+						className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-900 rounded-lg font-medium hover:bg-blue-100 transition-colors"
 					>
 						<svg
 							className="w-5 h-5"
@@ -188,7 +188,7 @@ export default function SprintDetail() {
 				{/* Sprint Stats */}
 				<div className="flex items-center gap-6 mt-6">
 					<div>
-						<span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+						<span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
 							{sprint.status}
 						</span>
 					</div>
@@ -200,7 +200,7 @@ export default function SprintDetail() {
 						<strong>Fin:</strong>{" "}
 						{new Date(sprint.endDate).toLocaleDateString()}
 					</div>
-					<div className="text-sm font-semibold text-blue-600">
+					<div className="text-sm font-semibold text-blue-950">
 						{getDaysRemaining(sprint.endDate)} días restantes
 					</div>
 				</div>
@@ -220,7 +220,7 @@ export default function SprintDetail() {
 				</div>
 				<div className="w-full bg-gray-200 rounded-full h-3">
 					<div
-						className="bg-blue-600 h-3 rounded-full transition-all"
+						className="bg-blue-950 h-3 rounded-full transition-all"
 						style={{
 							width: `${Math.min(
 								100,

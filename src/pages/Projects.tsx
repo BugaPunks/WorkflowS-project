@@ -115,7 +115,7 @@ export default function Projects() {
 					<Button
 						onClick={() => setShowModal(true)}
 						variant="primary"
-						className="gap-2 shadow-lg shadow-blue-500/20"
+						className="gap-2 shadow-lg shadow-blue-700/20"
 					>
 						<Plus size={18} />
 						Nuevo Proyecto
@@ -126,7 +126,7 @@ export default function Projects() {
 			{/* Error Message */}
 			{error && (
 				<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-					<div className="w-2 h-2 rounded-full bg-red-500" />
+					<div className="w-2 h-2 rounded-full bg-red-600" />
 					{error}
 				</div>
 			)}
@@ -134,7 +134,7 @@ export default function Projects() {
 			{/* Loading */}
 			{isLoading && (
 				<div className="text-center py-20">
-					<div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent" />
+					<div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-950 border-t-transparent" />
 					<p className="text-gray-500 mt-4 text-sm font-medium">
 						Cargando proyectos...
 					</p>
@@ -165,7 +165,7 @@ export default function Projects() {
 							</div>
 
 							<div className="mb-4 pr-20">
-								<h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+								<h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-950 transition-colors line-clamp-1">
 									<button
 										type="button"
 										onClick={() => navigate(`/projects/${project.id}`)}
@@ -194,7 +194,7 @@ export default function Projects() {
 								<Button
 									variant="ghost"
 									size="sm"
-									className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 -ml-2 px-2 gap-1"
+									className="text-blue-950 hover:text-blue-900 hover:bg-blue-50 -ml-2 px-2 gap-1"
 									onClick={() => navigate(`/projects/${project.id}`)}
 								>
 									Ver Proyecto
@@ -220,7 +220,7 @@ export default function Projects() {
 			{/* Empty State */}
 			{!isLoading && projects.length === 0 && (
 				<div className="text-center py-24 bg-white rounded-2xl border border-dashed border-gray-200">
-					<div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+					<div className="w-16 h-16 bg-blue-50 text-blue-950 rounded-full flex items-center justify-center mx-auto mb-4">
 						<FolderOpen size={32} />
 					</div>
 					<h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -262,7 +262,7 @@ export default function Projects() {
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
 								}
-								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all text-sm"
 								placeholder="Ej. Sistema de Gestión..."
 								required
 							/>
@@ -281,7 +281,7 @@ export default function Projects() {
 								onChange={(e) =>
 									setFormData({ ...formData, description: e.target.value })
 								}
-								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm resize-none"
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all text-sm resize-none"
 								placeholder="Breve descripción del proyecto..."
 								rows={3}
 							/>
@@ -301,7 +301,7 @@ export default function Projects() {
 									onChange={(e) =>
 										setFormData({ ...formData, startDate: e.target.value })
 									}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm text-gray-600"
+									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all text-sm text-gray-600"
 								/>
 							</div>
 							<div>
@@ -318,7 +318,7 @@ export default function Projects() {
 									onChange={(e) =>
 										setFormData({ ...formData, endDate: e.target.value })
 									}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm text-gray-600"
+									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700/20 focus:border-blue-700 transition-all text-sm text-gray-600"
 								/>
 							</div>
 						</div>

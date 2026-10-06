@@ -71,8 +71,8 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 			>
 				{/* Logo Area */}
 				<div className="flex items-center h-16 px-6 border-b border-gray-100">
-					<div className="flex items-center gap-3 text-indigo-600">
-						<div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+					<div className="flex items-center gap-3 text-blue-950">
+						<div className="w-8 h-8 rounded-lg bg-blue-950 flex items-center justify-center text-white font-bold text-lg shrink-0">
 							W
 						</div>
 						<span
@@ -97,7 +97,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 								className={cn(
 									"flex items-center gap-3 px-3 py-2.5 rounded-md transition-all group",
 									active
-										? "bg-indigo-50 text-indigo-700 font-medium"
+										? "bg-blue-50 text-blue-900 font-medium"
 										: "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
 								)}
 							>
@@ -106,7 +106,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 									className={cn(
 										"shrink-0 transition-colors",
 										active
-											? "text-indigo-600"
+											? "text-blue-950"
 											: "text-gray-400 group-hover:text-gray-600",
 									)}
 								/>
@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 					{isOpen ? (
 						<div className="flex flex-col gap-3">
 							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-semibold text-sm shrink-0">
+								<div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-900 font-semibold text-sm shrink-0">
 									{user?.name?.charAt(0).toUpperCase() || <User size={18} />}
 								</div>
 								<div className="flex-1 min-w-0">
@@ -147,7 +147,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 						</div>
 					) : (
 						<div className="flex flex-col items-center gap-4">
-							<div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+							<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-900 font-bold text-xs">
 								{user?.name?.charAt(0).toUpperCase()}
 							</div>
 							<button
@@ -177,8 +177,8 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 					/>
 					<aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-200">
 						<div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
-							<div className="flex items-center gap-3 text-indigo-600">
-								<div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+							<div className="flex items-center gap-3 text-blue-950">
+								<div className="w-8 h-8 rounded-lg bg-blue-950 flex items-center justify-center text-white font-bold text-lg">
 									W
 								</div>
 								<span className="font-bold text-xl text-gray-900 tracking-tight">
@@ -198,15 +198,13 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 										className={cn(
 											"flex items-center gap-3 px-4 py-3 rounded-lg transition-all",
 											active
-												? "bg-indigo-50 text-indigo-700 font-medium"
+												? "bg-blue-50 text-blue-900 font-medium"
 												: "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
 										)}
 									>
 										<item.icon
 											size={22}
-											className={cn(
-												active ? "text-indigo-600" : "text-gray-400",
-											)}
+											className={cn(active ? "text-blue-950" : "text-gray-400")}
 										/>
 										<span className="font-medium">{item.label}</span>
 									</Link>

@@ -16,7 +16,7 @@ export default function FormActions({
 	submitText,
 	submittingText,
 	cancelText = "Cancelar",
-	submitButtonClass = "bg-blue-600 hover:bg-blue-700",
+	submitButtonClass = "bg-blue-950 hover:bg-blue-900",
 	cancelButtonClass = "bg-gray-200 hover:bg-gray-300 text-gray-800 border border-gray-400",
 }: FormActionsProps) {
 	return (

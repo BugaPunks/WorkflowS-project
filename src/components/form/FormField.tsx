@@ -40,11 +40,11 @@ export default function FormField({
 				htmlFor={id}
 			>
 				{label}
-				{required && <span className="text-red-500 ml-1">*</span>}
+				{required && <span className="text-red-600 ml-1">*</span>}
 			</label>
 			<input
 				className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-					error ? "border-red-500" : ""
+					error ? "border-red-600" : ""
 				}`}
 				id={id}
 				name={name}
@@ -58,7 +58,7 @@ export default function FormField({
 				max={max}
 				disabled={disabled}
 			/>
-			{error && <p className="text-red-500 text-xs italic mt-1">{error}</p>}
+			{error && <p className="text-red-600 text-xs italic mt-1">{error}</p>}
 		</div>
 	);
 }

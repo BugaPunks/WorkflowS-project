@@ -45,7 +45,7 @@ export default function DashboardModuleToggle({
 							data-testid={`module-toggle-${key}`}
 							checked={selected.includes(key)}
 							onChange={() => toggle(key)}
-							className="h-4 w-4 rounded border-gray-300 text-blue-600"
+							className="h-4 w-4 rounded border-gray-300 text-blue-950"
 						/>
 						{label}
 					</label>

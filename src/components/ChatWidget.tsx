@@ -162,13 +162,13 @@ export function ChatWidget() {
 			{isOpen && (
 				<div className="mb-4 w-80 h-96 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
 					{/* Header */}
-					<div className="p-3 bg-blue-600 text-white flex justify-between items-center shadow-md shrink-0">
+					<div className="p-3 bg-blue-950 text-white flex justify-between items-center shadow-md shrink-0">
 						<div className="flex items-center gap-2">
 							{view === "CHAT" && (
 								<button
 									type="button"
 									onClick={() => setView("LIST")}
-									className="hover:bg-blue-700 p-1 rounded-full transition-colors"
+									className="hover:bg-blue-900 p-1 rounded-full transition-colors"
 								>
 									<ChevronLeft size={20} />
 								</button>
@@ -189,7 +189,7 @@ export function ChatWidget() {
 										setView("NEW_CHAT");
 										loadUsers();
 									}}
-									className="hover:bg-blue-700 p-1 rounded-full transition-colors"
+									className="hover:bg-blue-900 p-1 rounded-full transition-colors"
 									title="Nuevo Chat"
 								>
 									<span className="text-xl leading-none font-bold">+</span>
@@ -198,7 +198,7 @@ export function ChatWidget() {
 							<button
 								type="button"
 								onClick={() => setIsOpen(false)}
-								className="hover:bg-blue-700 p-1 rounded-full transition-colors"
+								className="hover:bg-blue-900 p-1 rounded-full transition-colors"
 							>
 								<Minus size={18} />
 							</button>
@@ -219,7 +219,7 @@ export function ChatWidget() {
 												setView("NEW_CHAT");
 												loadUsers();
 											}}
-											className="mt-2 text-blue-600 hover:underline text-sm font-medium"
+											className="mt-2 text-blue-950 hover:underline text-sm font-medium"
 										>
 											Empezar una
 										</button>
@@ -236,7 +236,7 @@ export function ChatWidget() {
 												}}
 												className="w-full p-3 hover:bg-gray-100 transition-colors flex items-center gap-3 text-left bg-white"
 											>
-												<div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
+												<div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-950 font-bold text-sm shrink-0">
 													{getChatAvatar(chat) || <MessageCircle size={20} />}
 												</div>
 												<div className="flex-1 min-w-0">
@@ -293,7 +293,7 @@ export function ChatWidget() {
 													className={cn(
 														"max-w-[85%] rounded-2xl px-3 py-2 shadow-sm text-sm break-words",
 														isMe
-															? "bg-blue-600 text-white rounded-br-none"
+															? "bg-blue-950 text-white rounded-br-none"
 															: "bg-white text-gray-800 rounded-bl-none",
 													)}
 												>
@@ -316,12 +316,12 @@ export function ChatWidget() {
 											value={input}
 											onChange={(e) => setInput(e.target.value)}
 											placeholder="Mensaje..."
-											className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+											className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-700"
 										/>
 										<button
 											type="submit"
 											disabled={!input.trim()}
-											className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors"
+											className="bg-blue-950 text-white p-2 rounded-full hover:bg-blue-900 disabled:opacity-50 transition-colors"
 										>
 											<Send size={16} />
 										</button>
@@ -341,7 +341,7 @@ export function ChatWidget() {
 					"w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105",
 					isOpen
 						? "bg-gray-200 text-gray-600 rotate-90"
-						: "bg-blue-600 text-white hover:bg-blue-700",
+						: "bg-blue-950 text-white hover:bg-blue-900",
 				)}
 			>
 				{isOpen ? <X size={24} /> : <MessageCircle size={28} />}

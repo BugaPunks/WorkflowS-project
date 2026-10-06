@@ -226,7 +226,7 @@ export default function GradingView() {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center h-full min-h-[400px]">
-				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
 			</div>
 		);
 	}
@@ -301,7 +301,7 @@ export default function GradingView() {
 								</p>
 								<button
 									type="button"
-									className="mt-4 text-blue-600 text-sm font-medium hover:underline"
+									className="mt-4 text-blue-950 text-sm font-medium hover:underline"
 								>
 									Descargar Archivo
 								</button>
@@ -334,7 +334,7 @@ export default function GradingView() {
 						{rubrics.length > 0 && (
 							<select
 								id="rubric-select"
-								className="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+								className="text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-700 focus:ring-blue-700"
 								value={selectedRubric?.id || ""}
 								onChange={(e) => handleRubricChange(e.target.value)}
 							>
@@ -386,7 +386,7 @@ export default function GradingView() {
 															parseInt(e.target.value, 10) || 0,
 														)
 													}
-													className="w-16 px-2 py-1 text-right border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 font-mono font-medium"
+													className="w-16 px-2 py-1 text-right border border-gray-300 rounded-md focus:ring-blue-700 focus:border-blue-700 font-mono font-medium"
 												/>
 												<span className="text-gray-400 text-sm">
 													/ {criterion.maxScore}
@@ -408,7 +408,7 @@ export default function GradingView() {
 													handleCommentChange(criterion.id, e.target.value)
 												}
 												placeholder={`Comentarios sobre ${criterion.name}...`}
-												className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+												className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-blue-700 focus:border-blue-700 bg-gray-50"
 												rows={2}
 											/>
 										</div>
@@ -424,7 +424,7 @@ export default function GradingView() {
 									value={overallFeedback}
 									onChange={(e) => setOverallFeedback(e.target.value)}
 									placeholder="Proporcione un feedback general sobre el trabajo..."
-									className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+									className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-700 focus:border-blue-700"
 									rows={4}
 								/>
 							</div>
@@ -438,7 +438,7 @@ export default function GradingView() {
 				<div className="max-w-xl mx-auto flex justify-between items-center">
 					<div className="flex flex-col">
 						<span className="text-sm text-gray-500">Calificación Final</span>
-						<span className="text-3xl font-bold text-blue-600">
+						<span className="text-3xl font-bold text-blue-950">
 							{calculateTotalScore()}{" "}
 							<span className="text-lg text-gray-400 font-normal">/ 100</span>
 						</span>
@@ -455,7 +455,7 @@ export default function GradingView() {
 							type="button"
 							onClick={handleSubmit}
 							disabled={isSaving || !selectedRubric}
-							className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+							className="px-6 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{isSaving ? "Guardando..." : "Guardar Calificación"}
 						</button>

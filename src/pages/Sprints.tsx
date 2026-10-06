@@ -116,7 +116,7 @@ export default function Sprints() {
 	const getStatusColor = (status: string) => {
 		const colors: Record<string, string> = {
 			PLANNED: "bg-gray-100 text-gray-700",
-			ACTIVE: "bg-blue-100 text-blue-700",
+			ACTIVE: "bg-blue-100 text-blue-900",
 			COMPLETED: "bg-green-100 text-green-700",
 		};
 		return colors[status] || "bg-gray-100 text-gray-700";
@@ -144,7 +144,7 @@ export default function Sprints() {
 				<button
 					type="button"
 					onClick={() => setShowModal(true)}
-					className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					+ Nuevo Sprint
 				</button>
@@ -160,7 +160,7 @@ export default function Sprints() {
 			{/* Loading */}
 			{isLoading && (
 				<div className="text-center py-12">
-					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando sprints...</p>
 				</div>
 			)}
@@ -193,13 +193,13 @@ export default function Sprints() {
 							<div className="mb-4">
 								<div className="flex items-center justify-between text-sm mb-2">
 									<span className="text-gray-600">Días restantes:</span>
-									<span className="font-semibold text-blue-600">
+									<span className="font-semibold text-blue-950">
 										{getDaysRemaining(sprint.endDate)}
 									</span>
 								</div>
 								<div className="w-full bg-gray-200 rounded-full h-2">
 									<div
-										className="bg-blue-600 h-2 rounded-full"
+										className="bg-blue-950 h-2 rounded-full"
 										style={{
 											width: `${Math.max(0, Math.min(100, (getDaysRemaining(sprint.endDate) / 14) * 100))}%`,
 										}}
@@ -240,7 +240,7 @@ export default function Sprints() {
 					<button
 						type="button"
 						onClick={() => setShowModal(true)}
-						className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+						className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 					>
 						Crear Sprint
 					</button>
@@ -267,7 +267,7 @@ export default function Sprints() {
 							onChange={(e) =>
 								setFormData({ ...formData, projectId: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 						>
 							<option value="">Seleccione un proyecto</option>
@@ -292,7 +292,7 @@ export default function Sprints() {
 							onChange={(e) =>
 								setFormData({ ...formData, name: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Sprint 1"
 							required
 						/>
@@ -310,7 +310,7 @@ export default function Sprints() {
 							onChange={(e) =>
 								setFormData({ ...formData, description: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Descripción del sprint"
 							rows={3}
 						/>
@@ -329,7 +329,7 @@ export default function Sprints() {
 							onChange={(e) =>
 								setFormData({ ...formData, startDate: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 						/>
 					</div>
@@ -347,7 +347,7 @@ export default function Sprints() {
 							onChange={(e) =>
 								setFormData({ ...formData, endDate: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 						/>
 					</div>
@@ -361,7 +361,7 @@ export default function Sprints() {
 						</button>
 						<button
 							type="submit"
-							className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+							className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium"
 						>
 							Crear
 						</button>

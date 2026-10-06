@@ -206,7 +206,7 @@ export default function Tasks() {
 				<button
 					type="button"
 					onClick={() => setShowModal(true)}
-					className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					+ Nueva Tarea
 				</button>
@@ -222,7 +222,7 @@ export default function Tasks() {
 			{/* Loading */}
 			{isLoading && (
 				<div className="text-center py-12">
-					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando tareas...</p>
 				</div>
 			)}
@@ -279,7 +279,7 @@ export default function Tasks() {
 																{task.description}
 															</p>
 															<div className="flex justify-between items-center text-xs text-gray-500">
-																<span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+																<span className="bg-blue-50 text-blue-900 px-2 py-1 rounded">
 																	{task.project?.name}
 																</span>
 																{task.deadline && (
@@ -325,7 +325,7 @@ export default function Tasks() {
 							onChange={(e) =>
 								setFormData({ ...formData, title: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Título de la tarea"
 							required
 						/>
@@ -348,7 +348,7 @@ export default function Tasks() {
 									userStoryId: "",
 								})
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 						>
 							<option value="">Selecciona un proyecto</option>
@@ -375,7 +375,7 @@ export default function Tasks() {
 									onChange={(e) =>
 										setFormData({ ...formData, sprintId: e.target.value })
 									}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 								>
 									<option value="">Sin Asignar</option>
 									{filteredSprints.map((s) => (
@@ -399,7 +399,7 @@ export default function Tasks() {
 									onChange={(e) =>
 										setFormData({ ...formData, userStoryId: e.target.value })
 									}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+									className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 								>
 									<option value="">Sin Asignar</option>
 									{filteredStories.map((s) => (
@@ -425,7 +425,7 @@ export default function Tasks() {
 							onChange={(e) =>
 								setFormData({ ...formData, description: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Descripción de la tarea"
 							rows={4}
 						/>
@@ -444,7 +444,7 @@ export default function Tasks() {
 							onChange={(e) =>
 								setFormData({ ...formData, deadline: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 						/>
 					</div>
 					<div className="flex gap-3">
@@ -457,7 +457,7 @@ export default function Tasks() {
 						</button>
 						<button
 							type="submit"
-							className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+							className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium"
 						>
 							Crear
 						</button>

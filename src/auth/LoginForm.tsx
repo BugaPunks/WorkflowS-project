@@ -105,7 +105,7 @@ export function LoginForm() {
 	return (
 		<div className="min-h-screen bg-white font-sans flex">
 			{/* Lado izq: marca */}
-			<aside className="hidden lg:flex w-[46%] bg-linear-to-br from-indigo-950 via-indigo-900 to-indigo-700 text-white flex-col justify-between p-12">
+			<aside className="hidden lg:flex w-[46%] bg-linear-to-br from-blue-950 via-blue-950 to-blue-900 text-white flex-col justify-between p-12">
 				<div className="flex items-center gap-3">
 					<div className="bg-white/15 backdrop-blur flex size-10 items-center justify-center rounded-xl">
 						<AppLogoIcon className="size-6 fill-current text-white" />
@@ -121,7 +121,7 @@ export function LoginForm() {
 						<br />
 						en un solo flujo.
 					</h1>
-					<p className="mt-4 max-w-xs text-base font-light text-indigo-200">
+					<p className="mt-4 max-w-xs text-base font-light text-blue-200">
 						De la idea al entregable: sprints, historias y entregas, siempre en
 						movimiento.
 					</p>
@@ -142,7 +142,7 @@ export function LoginForm() {
 										<i className="block size-2.5 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
 										<i className="block size-2.5 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.7)]" />
 									</div>
-									<span className="text-[10px] font-medium tracking-wide text-indigo-200">
+									<span className="text-[10px] font-medium tracking-wide text-blue-200">
 										{stage}
 									</span>
 								</div>
@@ -157,7 +157,7 @@ export function LoginForm() {
 					</div>
 				</div>
 
-				<p className="text-sm font-light text-indigo-300">
+				<p className="text-sm font-light text-blue-300">
 					© {new Date().getFullYear()} WorkflowS
 				</p>
 			</aside>
@@ -166,7 +166,7 @@ export function LoginForm() {
 			<main className="flex flex-1 items-center justify-center p-6">
 				<div className="w-full max-w-sm">
 					<div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
-						<div className="bg-blue-600 text-white flex size-9 items-center justify-center rounded-lg">
+						<div className="bg-blue-950 text-white flex size-9 items-center justify-center rounded-lg">
 							<AppLogoIcon className="size-5 fill-current" />
 						</div>
 						<span className="text-lg font-semibold tracking-tight text-slate-900">
@@ -201,8 +201,8 @@ export function LoginForm() {
 							<input
 								className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
 									errors.email
-										? "border-red-300 focus:ring-red-500"
-										: "border-slate-300 focus:ring-indigo-500"
+										? "border-red-300 focus:ring-red-600"
+										: "border-slate-300 focus:ring-blue-700"
 								}`}
 								id="email"
 								name="email"
@@ -227,8 +227,8 @@ export function LoginForm() {
 							<input
 								className={`w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:outline-none focus:ring-2 ${
 									errors.password
-										? "border-red-300 focus:ring-red-500"
-										: "border-slate-300 focus:ring-indigo-500"
+										? "border-red-300 focus:ring-red-600"
+										: "border-slate-300 focus:ring-blue-700"
 								}`}
 								id="password"
 								name="password"
@@ -246,7 +246,7 @@ export function LoginForm() {
 						<button
 							type="submit"
 							disabled={isSubmitting}
-							className={`flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+							className={`flex w-full items-center justify-center gap-2 rounded-lg bg-blue-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 ${
 								isSubmitting ? "cursor-not-allowed opacity-60" : ""
 							}`}
 						>
@@ -258,7 +258,7 @@ export function LoginForm() {
 						¿No tienes cuenta?{" "}
 						<a
 							href="/register"
-							className="font-semibold text-indigo-600 transition hover:text-indigo-700"
+							className="font-semibold text-blue-950 transition hover:text-blue-900"
 						>
 							Regístrate aquí
 						</a>

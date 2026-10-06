@@ -47,7 +47,7 @@ export default function MyEvaluations() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
-					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando evaluaciones...</p>
 				</div>
 			</div>
@@ -71,7 +71,7 @@ export default function MyEvaluations() {
 					myGrades.map((grade) => (
 						<div
 							key={grade.id}
-							className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-blue-500"
+							className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-blue-700"
 						>
 							<div className="flex justify-between items-start">
 								<div>
@@ -129,7 +129,7 @@ export default function MyEvaluations() {
 									)}
 								</div>
 								<div className="text-right flex flex-col items-center justify-center bg-blue-50 p-3 rounded-lg min-w-[80px]">
-									<span className="block text-3xl font-bold text-blue-600">
+									<span className="block text-3xl font-bold text-blue-950">
 										{grade.score}
 									</span>
 									<span className="text-xs text-blue-400 font-medium">

@@ -232,7 +232,7 @@ export default function Rubrics() {
 						<button
 							type="button"
 							onClick={() => openEditModal(rubric)}
-							className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+							className="text-blue-950 hover:text-blue-950 text-sm font-medium"
 						>
 							Editar
 						</button>
@@ -290,7 +290,7 @@ export default function Rubrics() {
 					<button
 						type="button"
 						onClick={() => openCreateModal(false)}
-						className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm flex items-center gap-2"
+						className="bg-blue-950 text-white px-4 py-2 rounded-lg hover:bg-blue-900 font-medium text-sm flex items-center gap-2"
 					>
 						<span>+</span> Nueva Rúbrica Global
 					</button>
@@ -298,7 +298,7 @@ export default function Rubrics() {
 
 				{isLoading && globalRubrics.length === 0 ? (
 					<div className="text-center py-8">
-						<div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+						<div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-950" />
 					</div>
 				) : globalRubrics.length === 0 ? (
 					<div className="bg-gray-50 rounded-lg p-8 text-center border border-dashed border-gray-300">
@@ -306,7 +306,7 @@ export default function Rubrics() {
 						<button
 							type="button"
 							onClick={() => openCreateModal(false)}
-							className="text-blue-600 hover:underline mt-2 text-sm"
+							className="text-blue-950 hover:underline mt-2 text-sm"
 						>
 							Crear la primera plantilla
 						</button>
@@ -334,7 +334,7 @@ export default function Rubrics() {
 								const project = projects.find((p) => p.id === e.target.value);
 								setSelectedProject(project || null);
 							}}
-							className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[250px]"
+							className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 min-w-[250px]"
 						>
 							<option value="">Selecciona un proyecto...</option>
 							{projects.map((project) => (
@@ -348,7 +348,7 @@ export default function Rubrics() {
 							<button
 								type="button"
 								onClick={() => openCreateModal(true)}
-								className="bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 font-medium text-sm whitespace-nowrap"
+								className="bg-white text-blue-950 border border-blue-950 px-4 py-2 rounded-lg hover:bg-blue-50 font-medium text-sm whitespace-nowrap"
 							>
 								+ Rúbrica para {selectedProject.name}
 							</button>
@@ -359,7 +359,7 @@ export default function Rubrics() {
 				{selectedProject ? (
 					isLoading && rubrics.length === 0 ? (
 						<div className="text-center py-8">
-							<div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+							<div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-950" />
 						</div>
 					) : rubrics.length === 0 ? (
 						<div className="bg-gray-50 rounded-lg p-8 text-center border border-dashed border-gray-300">
@@ -409,7 +409,7 @@ export default function Rubrics() {
 							onChange={(e) =>
 								setFormData({ ...formData, name: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Ej: Rúbrica de Calidad de Código"
 							required
 						/>
@@ -427,7 +427,7 @@ export default function Rubrics() {
 							onChange={(e) =>
 								setFormData({ ...formData, description: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							rows={3}
 							placeholder="Describe el propósito de esta rúbrica..."
 						/>
@@ -441,7 +441,7 @@ export default function Rubrics() {
 							<button
 								type="button"
 								onClick={addCriteria}
-								className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+								className="text-blue-950 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
 							>
 								<span>+</span> Agregar Criterio
 							</button>
@@ -466,7 +466,7 @@ export default function Rubrics() {
 											onChange={(e) =>
 												updateCriteria(criterion.id, "name", e.target.value)
 											}
-											className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+											className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700"
 											placeholder="Ej: Funcionalidad"
 											required
 										/>
@@ -491,7 +491,7 @@ export default function Rubrics() {
 													parseInt(e.target.value, 10) || 10,
 												)
 											}
-											className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+											className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700"
 										/>
 									</div>
 									<div className="w-24">
@@ -513,14 +513,14 @@ export default function Rubrics() {
 													parseInt(e.target.value, 10) || 1,
 												)
 											}
-											className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+											className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-700"
 										/>
 									</div>
 									{formData.criteria.length > 1 && (
 										<button
 											type="button"
 											onClick={() => removeCriteria(criterion.id)}
-											className="text-red-500 hover:text-red-700 mt-6 p-1 hover:bg-red-50 rounded"
+											className="text-red-600 hover:text-red-700 mt-6 p-1 hover:bg-red-50 rounded"
 											title="Eliminar criterio"
 										>
 											✕
@@ -541,7 +541,7 @@ export default function Rubrics() {
 						</button>
 						<button
 							type="submit"
-							className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm"
+							className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium shadow-sm"
 						>
 							{isEditing ? "Guardar Cambios" : "Crear Rúbrica"}
 						</button>

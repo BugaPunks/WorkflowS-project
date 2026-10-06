@@ -109,7 +109,7 @@ export default function NotificationPreferences() {
 		<div className="p-6 max-w-4xl mx-auto">
 			<div className="mb-8">
 				<h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-					<Bell className="text-indigo-600" />
+					<Bell className="text-blue-950" />
 					Preferencias de Notificaciones
 				</h1>
 				<p className="text-gray-600 mt-2">
@@ -119,7 +119,7 @@ export default function NotificationPreferences() {
 
 			{loading ? (
 				<div className="flex justify-center p-12">
-					<div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+					<div className="w-8 h-8 border-4 border-blue-950 border-t-transparent rounded-full animate-spin"></div>
 				</div>
 			) : (
 				<div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
@@ -135,7 +135,7 @@ export default function NotificationPreferences() {
 							>
 								<div className="flex items-start gap-4">
 									<div
-										className={`p-2 rounded-lg ${isEnabled ? "bg-indigo-50 text-indigo-600" : "bg-gray-50 text-gray-400"}`}
+										className={`p-2 rounded-lg ${isEnabled ? "bg-blue-50 text-blue-950" : "bg-gray-50 text-gray-400"}`}
 									>
 										<Icon size={20} />
 									</div>
@@ -154,8 +154,8 @@ export default function NotificationPreferences() {
 									role="switch"
 									aria-checked={isEnabled}
 									onClick={() => togglePreference(type, isEnabled)}
-									className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-										isEnabled ? "bg-indigo-600" : "bg-gray-200"
+									className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-950 focus:ring-offset-2 ${
+										isEnabled ? "bg-blue-950" : "bg-gray-200"
 									}`}
 								>
 									<span

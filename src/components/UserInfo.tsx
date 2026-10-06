@@ -10,7 +10,7 @@ interface UserInfoProps {
 export function UserInfo({ user }: UserInfoProps) {
 	return (
 		<div className="flex items-center">
-			<div className="bg-blue-600 text-white flex aspect-square size-8 items-center justify-center rounded-full">
+			<div className="bg-blue-950 text-white flex aspect-square size-8 items-center justify-center rounded-full">
 				<span className="text-sm font-medium">
 					{user.username.charAt(0).toUpperCase()}
 				</span>

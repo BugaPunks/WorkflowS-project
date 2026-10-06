@@ -145,8 +145,8 @@ export function RegisterForm() {
 						Nombre Completo
 					</label>
 					<input
-						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black ${
-							errors.name ? "border-red-500" : "border-gray-300"
+						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 text-black ${
+							errors.name ? "border-red-600" : "border-gray-300"
 						}`}
 						id="name"
 						name="name"
@@ -156,7 +156,7 @@ export function RegisterForm() {
 						onChange={handleChange}
 					/>
 					{errors.name && (
-						<p className="text-red-500 text-xs mt-1">{errors.name}</p>
+						<p className="text-red-600 text-xs mt-1">{errors.name}</p>
 					)}
 				</div>
 
@@ -168,8 +168,8 @@ export function RegisterForm() {
 						Correo Electrónico
 					</label>
 					<input
-						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black ${
-							errors.email ? "border-red-500" : "border-gray-300"
+						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 text-black ${
+							errors.email ? "border-red-600" : "border-gray-300"
 						}`}
 						id="email"
 						name="email"
@@ -179,7 +179,7 @@ export function RegisterForm() {
 						onChange={handleChange}
 					/>
 					{errors.email && (
-						<p className="text-red-500 text-xs mt-1">{errors.email}</p>
+						<p className="text-red-600 text-xs mt-1">{errors.email}</p>
 					)}
 				</div>
 
@@ -191,8 +191,8 @@ export function RegisterForm() {
 						Contraseña
 					</label>
 					<input
-						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black ${
-							errors.password ? "border-red-500" : "border-gray-300"
+						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 text-black ${
+							errors.password ? "border-red-600" : "border-gray-300"
 						}`}
 						id="password"
 						name="password"
@@ -202,7 +202,7 @@ export function RegisterForm() {
 						onChange={handleChange}
 					/>
 					{errors.password && (
-						<p className="text-red-500 text-xs mt-1">{errors.password}</p>
+						<p className="text-red-600 text-xs mt-1">{errors.password}</p>
 					)}
 				</div>
 
@@ -214,8 +214,8 @@ export function RegisterForm() {
 						Confirmar Contraseña
 					</label>
 					<input
-						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black ${
-							errors.confirmPassword ? "border-red-500" : "border-gray-300"
+						className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700 text-black ${
+							errors.confirmPassword ? "border-red-600" : "border-gray-300"
 						}`}
 						id="confirmPassword"
 						name="confirmPassword"
@@ -225,7 +225,7 @@ export function RegisterForm() {
 						onChange={handleChange}
 					/>
 					{errors.confirmPassword && (
-						<p className="text-red-500 text-xs mt-1">
+						<p className="text-red-600 text-xs mt-1">
 							{errors.confirmPassword}
 						</p>
 					)}
@@ -234,7 +234,7 @@ export function RegisterForm() {
 				<button
 					type="submit"
 					disabled={isSubmitting}
-					className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition ${
+					className={`w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-lg transition ${
 						isSubmitting ? "opacity-50 cursor-not-allowed" : ""
 					}`}
 				>
@@ -246,7 +246,7 @@ export function RegisterForm() {
 				¿Ya tienes cuenta?{" "}
 				<a
 					href="/login"
-					className="text-blue-600 hover:text-blue-700 font-semibold"
+					className="text-blue-950 hover:text-blue-900 font-semibold"
 				>
 					Inicia sesión aquí
 				</a>

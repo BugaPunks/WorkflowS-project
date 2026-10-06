@@ -3,7 +3,7 @@ import HeaderNav from "@/islands/HeaderNav";
 
 export function Header() {
 	return (
-		<header className="bg-blue-600 text-white shadow-md">
+		<header className="bg-blue-950 text-white shadow-md">
 			<div className="container mx-auto px-4 py-4 flex justify-between items-center">
 				<div className="flex items-center">
 					<img

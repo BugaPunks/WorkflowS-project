@@ -26,7 +26,7 @@ export default function TeamDeveloperWelcomeOptions({
 						>
 							{activeTasks}
 						</span>
-						<span className="text-sm font-medium text-blue-600">
+						<span className="text-sm font-medium text-blue-950">
 							Tareas Activas
 						</span>
 					</div>

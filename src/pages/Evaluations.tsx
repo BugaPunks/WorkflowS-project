@@ -58,7 +58,7 @@ export default function Evaluations() {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<div className="text-center">
-					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando evaluaciones...</p>
 				</div>
 			</div>
@@ -115,7 +115,7 @@ export default function Evaluations() {
 												`/projects/${sprint.projectId}/sprints/${sprint.id}/grade`,
 											)
 										}
-										className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+										className="text-sm text-blue-950 hover:text-blue-800 font-medium flex items-center gap-1"
 									>
 										Ir a Calificar →
 									</button>

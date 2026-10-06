@@ -130,7 +130,7 @@ export default function UserStories() {
 				<button
 					type="button"
 					onClick={() => setShowModal(true)}
-					className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					+ Nueva Historia
 				</button>
@@ -146,7 +146,7 @@ export default function UserStories() {
 			{/* Loading */}
 			{isLoading && (
 				<div className="text-center py-12">
-					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+					<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-950" />
 					<p className="text-gray-600 mt-4">Cargando historias...</p>
 				</div>
 			)}
@@ -186,7 +186,7 @@ export default function UserStories() {
 							)}
 
 							<div className="flex items-center justify-between mt-auto">
-								<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+								<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
 									{story.status || "PENDING"}
 								</span>
 								<button
@@ -215,7 +215,7 @@ export default function UserStories() {
 					<button
 						type="button"
 						onClick={() => setShowModal(true)}
-						className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"
+						className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 					>
 						Crear Historia
 					</button>
@@ -242,7 +242,7 @@ export default function UserStories() {
 							onChange={(e) =>
 								setFormData({ ...formData, projectId: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							required
 						>
 							<option value="">Selecciona un proyecto</option>
@@ -267,7 +267,7 @@ export default function UserStories() {
 							onChange={(e) =>
 								setFormData({ ...formData, title: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Como usuario... quiero..."
 							required
 						/>
@@ -285,7 +285,7 @@ export default function UserStories() {
 							onChange={(e) =>
 								setFormData({ ...formData, description: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Criterios de aceptación..."
 							rows={3}
 						/>
@@ -303,7 +303,7 @@ export default function UserStories() {
 							onChange={(e) =>
 								setFormData({ ...formData, acceptance: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 							placeholder="Dado que... cuando... entonces..."
 							rows={3}
 						/>
@@ -321,7 +321,7 @@ export default function UserStories() {
 							onChange={(e) =>
 								setFormData({ ...formData, priority: e.target.value })
 							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
 						>
 							<option value="LOW">Baja</option>
 							<option value="MEDIUM">Media</option>
@@ -339,7 +339,7 @@ export default function UserStories() {
 						</button>
 						<button
 							type="submit"
-							className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+							className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium"
 						>
 							Crear
 						</button>

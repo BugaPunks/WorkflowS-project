@@ -42,7 +42,7 @@ export function LoginSuccess() {
 	};
 
 	return (
-		<div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+		<div className="min-h-screen bg-linear-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
 			<div className="bg-white shadow-2xl rounded-lg p-8 max-w-md w-full">
 				{/* Icono de éxito */}
 				<div className="flex justify-center mb-6">
@@ -84,7 +84,7 @@ export function LoginSuccess() {
 					</div>
 					<div>
 						<p className="text-sm text-gray-600">Rol</p>
-						<p className="text-lg font-semibold text-indigo-600">
+						<p className="text-lg font-semibold text-blue-950">
 							{getRoleDisplay(user.role)}
 						</p>
 					</div>
@@ -95,7 +95,7 @@ export function LoginSuccess() {
 					<button
 						type="button"
 						onClick={() => navigate("/")}
-						className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition"
+						className="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-lg transition"
 					>
 						Ir al Panel de Control
 					</button>

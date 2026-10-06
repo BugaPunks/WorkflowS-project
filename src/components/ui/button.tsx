@@ -17,7 +17,7 @@ export function Button({
 		"inline-flex items-center justify-center rounded-md font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50";
 
 	const variantClasses = {
-		default: "bg-blue-600 text-white hover:bg-blue-700",
+		default: "bg-blue-950 text-white hover:bg-blue-900",
 		ghost:
 			"border border-gray-400 text-black hover:bg-gray-100 hover:text-gray-900",
 		outline:

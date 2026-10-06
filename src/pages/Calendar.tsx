@@ -168,7 +168,7 @@ export default function Calendar() {
 									<div className="flex justify-between items-start">
 										<span
 											className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${
-												isToday ? "bg-blue-600 text-white" : "text-gray-700"
+												isToday ? "bg-blue-950 text-white" : "text-gray-700"
 											}`}
 										>
 											{format(day, "d")}

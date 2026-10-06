@@ -13,7 +13,7 @@ export default function HeaderNav() {
 		<div className="flex items-center space-x-4">
 			{loading ? (
 				// Show loading state
-				<div className="w-24 h-10 bg-blue-500 rounded-md animate-pulse" />
+				<div className="w-24 h-10 bg-blue-700 rounded-md animate-pulse" />
 			) : isAuthenticated ? (
 				// User is logged in
 				<div className="flex items-center space-x-4">
@@ -23,7 +23,7 @@ export default function HeaderNav() {
 					<button
 						type="button"
 						onClick={handleLogout}
-						className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded-md font-medium transition-colors"
+						className="bg-red-600 text-white hover:bg-red-700 px-4 py-2 rounded-md font-medium transition-colors"
 					>
 						Salir
 					</button>
@@ -36,7 +36,7 @@ export default function HeaderNav() {
 					</a>
 					<a
 						href="/register"
-						className="hidden bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-md font-medium transition-colors"
+						className="hidden bg-white text-blue-950 hover:bg-blue-100 px-4 py-2 rounded-md font-medium transition-colors"
 					>
 						Registrarse
 					</a>
