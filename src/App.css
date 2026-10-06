@@ -1,13 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
+@theme {
+  --color-blue-950: #141f34;
+  --color-blue-900: #1c2c4a;
+  --color-red-600: #df0a1d;
+  --color-red-700: #b50817;
+}
 
 :root {
   /* Light Theme - Professional & Clean */
   --color-bg: #f9fafb; /* gray-50 */
   --color-surface: #ffffff;
-  --color-primary: #172554; /* blue-950 */
-  --color-primary-hover: #1e3a8a; /* blue-900 */
+  --color-primary: #141f34; /* blue-950 */
+  --color-primary-hover: #1c2c4a; /* blue-900 */
   --color-text-main: #111827; /* gray-900 */
   --color-text-secondary: #6b7280; /* gray-500 */
   --color-border: #e5e7eb; /* gray-200 */
