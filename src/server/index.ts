@@ -16,6 +16,8 @@ if (!fs.existsSync("uploads")) {
 	fs.mkdirSync("uploads");
 }
 
+import { isPollingRequest } from "./lib/rate-limit";
+
 // Importar rutas
 import authRouter from "./routes/auth";
 import chatRouter from "./routes/chat";
@@ -127,6 +129,29 @@ const csrfProtection = (
 const disableRateLimit =
 	process.env.DISABLE_RATE_LIMIT === "true" || process.env.NODE_ENV === "test";
 
+const positiveIntFromEnv = (
+	value: string | undefined,
+	fallback: number,
+): number => {
+	if (value === undefined || value.trim() === "") {
+		return fallback;
+	}
+	const parsed = Number(value);
+	if (!Number.isInteger(parsed) || parsed <= 0) {
+		return fallback;
+	}
+	return parsed;
+};
+
+const apiRateLimitMax = positiveIntFromEnv(
+	process.env.API_RATE_LIMIT_MAX,
+	1000,
+);
+const apiRateLimitWindowMs = positiveIntFromEnv(
+	process.env.API_RATE_LIMIT_WINDOW_MS,
+	900000,
+);
+
 const authLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
 	max: 5,
@@ -148,9 +173,9 @@ const registerLimiter = rateLimit({
 });
 
 const apiLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
-	max: 100,
-	skip: () => disableRateLimit,
+	windowMs: apiRateLimitWindowMs,
+	max: apiRateLimitMax,
+	skip: (req) => disableRateLimit || isPollingRequest(req),
 	standardHeaders: true,
 	legacyHeaders: false,
 	message: { error: "Demasiadas solicitudes, intenta de nuevo más tarde" },

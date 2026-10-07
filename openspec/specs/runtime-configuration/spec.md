@@ -3,9 +3,7 @@
 ## Purpose
 
 Derives and reports the server's runtime environment at startup, refuses insecure or incomplete configuration before accepting traffic, and documents every environment variable the project reads.
-
 ## Requirements
-
 ### Requirement: Server startup distinguishes development from production
 The server SHALL derive an explicit environment flag from `NODE_ENV` at startup and SHALL identify that environment in the startup log, so that an operator can tell from the logs whether the process is running a development or a production configuration without inspecting the process environment. The environment SHALL NOT be inferred implicitly in scattered places: the flag SHALL be computed once at startup and reused wherever the behaviour depends on it.
 
@@ -48,11 +46,11 @@ The server SHALL refuse to start when `JWT_SECRET` is absent from its configurat
 - **THEN** it exits with an error identifying the missing variable and does not begin listening
 
 ### Requirement: The environment variables of the project are declared in a template
-The repository SHALL ship `.env.example` documenting every environment variable the server reads, including `NODE_ENV`, each with a safe placeholder or its development value and an indication of whether it is required. No secret value SHALL appear in the template other than a clearly marked placeholder.
+The repository SHALL ship `.env.example` documenting every environment variable the server reads, including `NODE_ENV` and the API rate-limit variables `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW_MS`, each with a safe placeholder or its development value and an indication of whether it is required. No secret value SHALL appear in the template other than a clearly marked placeholder.
 
 #### Scenario: Every read variable is documented
 - **WHEN** the variables read by the server are compared with `.env.example`
-- **THEN** each of them appears in the template, including `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS` and `API_PORT`
+- **THEN** each of them appears in the template, including `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`, `API_PORT`, `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW_MS`
 
 #### Scenario: Template carries no real secret
 - **WHEN** `.env.example` is inspected
@@ -61,3 +59,4 @@ The repository SHALL ship `.env.example` documenting every environment variable 
 #### Scenario: A contributor can configure the project from the template
 - **WHEN** a contributor copies `.env.example` to a local environment file and fills in the development values
 - **THEN** the server starts in development without further configuration
+
