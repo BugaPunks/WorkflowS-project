@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSession } from "@/hooks/useSession";
+import { formatDaysRemaining, getDaysDifference } from "@/utils/date";
 
 interface Sprint {
 	id: string;
@@ -68,15 +69,6 @@ export default function SprintDetail() {
 		}
 		loadSprint();
 	}, [navigate, loadSprint, user]);
-
-	const getDaysRemaining = (endDate: string) => {
-		const end = new Date(endDate);
-		const today = new Date();
-		const diff = Math.ceil(
-			(end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-		);
-		return diff;
-	};
 
 	const onDragEnd = async (result: DropResult) => {
 		const { destination, source, draggableId } = result;
@@ -201,7 +193,7 @@ export default function SprintDetail() {
 						{new Date(sprint.endDate).toLocaleDateString()}
 					</div>
 					<div className="text-sm font-semibold text-blue-950">
-						{getDaysRemaining(sprint.endDate)} días restantes
+						Vencimiento: {formatDaysRemaining(sprint.endDate)}
 					</div>
 				</div>
 			</div>
@@ -213,7 +205,10 @@ export default function SprintDetail() {
 					<span className="text-sm text-gray-600">
 						{Math.min(
 							100,
-							Math.max(0, ((14 - getDaysRemaining(sprint.endDate)) / 14) * 100),
+							Math.max(
+								0,
+								((14 - getDaysDifference(sprint.endDate)) / 14) * 100,
+							),
 						).toFixed(0)}
 						%
 					</span>
@@ -226,7 +221,7 @@ export default function SprintDetail() {
 								100,
 								Math.max(
 									0,
-									((14 - getDaysRemaining(sprint.endDate)) / 14) * 100,
+									((14 - getDaysDifference(sprint.endDate)) / 14) * 100,
 								),
 							)}%`,
 						}}

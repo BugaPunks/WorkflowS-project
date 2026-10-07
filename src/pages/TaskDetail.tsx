@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import { Modal } from "@/components/Modal";
+import { formatDaysRemaining } from "@/utils/date";
 
 interface Task {
 	id: string;
@@ -216,11 +217,7 @@ export default function TaskDetail() {
 									Días para vencer
 								</h3>
 								<p className="text-gray-600">
-									{Math.ceil(
-										(new Date(task.deadline).getTime() - Date.now()) /
-											(1000 * 60 * 60 * 24),
-									)}{" "}
-									días
+									{formatDaysRemaining(task.deadline)}
 								</p>
 							</div>
 						</div>

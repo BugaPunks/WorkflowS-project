@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { projectAPI, sprintAPI } from "@/api/client";
 import { Modal } from "@/components/Modal";
 import { useSession } from "@/hooks/useSession";
+import { formatDaysRemaining, getDaysDifference } from "@/utils/date";
 
 interface Sprint {
 	id: string;
@@ -122,15 +123,6 @@ export default function Sprints() {
 		return colors[status] || "bg-gray-100 text-gray-700";
 	};
 
-	const getDaysRemaining = (endDate: string) => {
-		const end = new Date(endDate);
-		const today = new Date();
-		const diff = Math.ceil(
-			(end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-		);
-		return diff;
-	};
-
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
@@ -192,16 +184,16 @@ export default function Sprints() {
 							<p className="text-gray-600 mb-4">{sprint.description}</p>
 							<div className="mb-4">
 								<div className="flex items-center justify-between text-sm mb-2">
-									<span className="text-gray-600">Días restantes:</span>
+									<span className="text-gray-600">Vencimiento:</span>
 									<span className="font-semibold text-blue-950">
-										{getDaysRemaining(sprint.endDate)}
+										{formatDaysRemaining(sprint.endDate)}
 									</span>
 								</div>
 								<div className="w-full bg-gray-200 rounded-full h-2">
 									<div
 										className="bg-blue-950 h-2 rounded-full"
 										style={{
-											width: `${Math.max(0, Math.min(100, (getDaysRemaining(sprint.endDate) / 14) * 100))}%`,
+											width: `${Math.max(0, Math.min(100, ((14 - getDaysDifference(sprint.endDate)) / 14) * 100))}%`,
 										}}
 									/>
 								</div>
