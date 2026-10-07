@@ -5,17 +5,34 @@ import { useSession } from "@/hooks/useSession";
 
 interface UserStory {
 	id: string;
+	projectId: string;
 	title: string;
 	description: string;
 	acceptance?: string;
 	status: string;
 	priority: string;
+	storyPoints?: number | null;
 	createdAt: string;
 }
 
 interface Project {
 	id: string;
 	name: string;
+	members: { userId: string; role: string }[];
+}
+
+function canDeleteStory(
+	story: UserStory,
+	session: { id: string; role: string } | null,
+	projects: Project[],
+): boolean {
+	if (!session) return false;
+	if (session.role === "ADMIN") return true;
+	const project = projects.find((p) => p.id === story.projectId);
+	const membership = project?.members?.find((m) => m.userId === session.id);
+	return (
+		membership?.role === "PRODUCT_OWNER" || membership?.role === "SCRUM_MASTER"
+	);
 }
 
 export default function UserStories() {
@@ -30,6 +47,7 @@ export default function UserStories() {
 		description: "",
 		acceptance: "",
 		priority: "MEDIUM",
+		storyPoints: "",
 		projectId: "",
 	});
 
@@ -69,10 +87,18 @@ export default function UserStories() {
 	const handleCreateStory = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
+			const { storyPoints, ...restFormData } = formData;
+			const points =
+				storyPoints.trim() === ""
+					? undefined
+					: Math.min(99, Math.max(0, Number.parseInt(storyPoints, 10) || 0));
 			const response = await fetch("/api/user-stories", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(formData),
+				body: JSON.stringify({
+					...restFormData,
+					...(points !== undefined && { storyPoints: points }),
+				}),
 			});
 			if (!response.ok) throw new Error("Error al crear historia");
 			setFormData({
@@ -80,6 +106,7 @@ export default function UserStories() {
 				description: "",
 				acceptance: "",
 				priority: "MEDIUM",
+				storyPoints: "",
 				projectId: "",
 			});
 			setShowModal(false);
@@ -97,10 +124,24 @@ export default function UserStories() {
 			const response = await fetch(`/api/user-stories/${id}`, {
 				method: "DELETE",
 			});
-			if (!response.ok) throw new Error("Error al eliminar historia");
+			if (!response.ok) {
+				if (response.status === 403) {
+					throw new Error("No tienes permiso para eliminar esta historia");
+				}
+				let message = "Error al eliminar la historia";
+				try {
+					const body = await response.json();
+					if (body?.error) message = body.error;
+				} catch {
+					// Respuesta sin cuerpo JSON: se mantiene el mensaje genérico
+				}
+				throw new Error(message);
+			}
 			await loadStories();
 		} catch (err) {
-			setError("Error al eliminar la historia");
+			setError(
+				err instanceof Error ? err.message : "Error al eliminar la historia",
+			);
 			console.error(err);
 		}
 	};
@@ -186,16 +227,25 @@ export default function UserStories() {
 							)}
 
 							<div className="flex items-center justify-between mt-auto">
-								<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
-									{story.status || "PENDING"}
-								</span>
-								<button
-									type="button"
-									onClick={() => handleDeleteStory(story.id)}
-									className="text-red-600 hover:text-red-700 font-medium text-sm"
-								>
-									Eliminar
-								</button>
+								<div className="flex items-center gap-2">
+									<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
+										{story.status || "PENDING"}
+									</span>
+									{story.storyPoints != null && (
+										<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
+											{story.storyPoints} pts
+										</span>
+									)}
+								</div>
+								{canDeleteStory(story, user, projects) && (
+									<button
+										type="button"
+										onClick={() => handleDeleteStory(story.id)}
+										className="text-red-600 hover:text-red-700 font-medium text-sm"
+									>
+										Eliminar
+									</button>
+								)}
 							</div>
 						</div>
 					))}
@@ -328,6 +378,27 @@ export default function UserStories() {
 							<option value="HIGH">Alta</option>
 							<option value="CRITICAL">Crítica</option>
 						</select>
+					</div>
+					<div className="mb-6">
+						<label
+							htmlFor="story-points"
+							className="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Puntos (Story Points)
+						</label>
+						<input
+							id="story-points"
+							type="number"
+							min={0}
+							max={99}
+							step={1}
+							value={formData.storyPoints}
+							onChange={(e) =>
+								setFormData({ ...formData, storyPoints: e.target.value })
+							}
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
+							placeholder="Opcional (0-99)"
+						/>
 					</div>
 					<div className="flex gap-3">
 						<button

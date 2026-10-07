@@ -4,7 +4,6 @@ import { prisma } from "../db";
 import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
-import { requireSystemRole } from "../middleware/system-rbac";
 
 const router = Router();
 
@@ -188,11 +187,16 @@ router.put(
 	},
 );
 
-// DELETE user story - ADMIN only
+// DELETE user story - PRODUCT_OWNER, SCRUM_MASTER (ADMIN bypass en el middleware)
 router.delete(
 	"/:id",
 	authenticateToken,
-	requireSystemRole("ADMIN"),
+	requireProjectRole(["PRODUCT_OWNER", "SCRUM_MASTER"], async (req) => {
+		const us = await prisma.userStory.findUnique({
+			where: { id: req.params.id },
+		});
+		return us?.projectId ?? null;
+	}),
 	async (req, res) => {
 		try {
 			await prisma.userStory.delete({

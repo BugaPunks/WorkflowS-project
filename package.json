@@ -78,5 +78,8 @@
 	},
 	"prisma": {
 		"seed": "npx tsx prisma/seed.ts"
+	},
+	"allowScripts": {
+		"better-sqlite3@12.5.0": true
 	}
 }

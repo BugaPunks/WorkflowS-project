@@ -578,70 +578,69 @@ function MembersSection({
 				</div>
 			)}
 
-			{showAddModal && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white rounded-lg p-6 w-full max-w-md">
-						<h3 className="text-lg font-bold mb-4">Añadir Miembro</h3>
-						<form onSubmit={handleAddMember}>
-							<div className="mb-4">
-								<label
-									htmlFor="user-select"
-									className="block text-sm font-medium mb-1 text-gray-700"
-								>
-									Usuario
-								</label>
-								<select
-									id="user-select"
-									className="w-full border rounded px-3 py-2"
-									value={selectedUser}
-									onChange={(e) => setSelectedUser(e.target.value)}
-									required
-								>
-									<option value="">Seleccionar usuario...</option>
-									{users.map((u) => (
-										<option key={u.id} value={u.id}>
-											{u.name} ({u.email})
-										</option>
-									))}
-								</select>
-							</div>
-							<div className="mb-6">
-								<label
-									htmlFor="role-select"
-									className="block text-sm font-medium mb-1 text-gray-700"
-								>
-									Rol Scrum
-								</label>
-								<select
-									id="role-select"
-									className="w-full border rounded px-3 py-2"
-									value={selectedRole}
-									onChange={(e) => setSelectedRole(e.target.value)}
-								>
-									<option value="TEAM_DEVELOPER">Team Developer</option>
-									<option value="SCRUM_MASTER">Scrum Master</option>
-									<option value="PRODUCT_OWNER">Product Owner</option>
-								</select>
-							</div>
-							<div className="flex gap-2 justify-end">
-								<button
-									type="button"
-									onClick={() => setShowAddModal(false)}
-									className="px-4 py-2 bg-gray-100 rounded text-gray-700"
-								>
-									Cancelar
-								</button>
-								<button
-									type="submit"
-									className="px-4 py-2 bg-blue-950 text-white rounded"
-								>
-									Añadir
-								</button>
-							</div>
-						</form>
+			<Modal
+				isOpen={showAddModal}
+				onClose={() => setShowAddModal(false)}
+				title="Añadir Miembro"
+			>
+				<form onSubmit={handleAddMember}>
+					<div className="mb-4">
+						<label
+							htmlFor="user-select"
+							className="block text-sm font-medium mb-1 text-gray-700"
+						>
+							Usuario
+						</label>
+						<select
+							id="user-select"
+							className="w-full border rounded px-3 py-2"
+							value={selectedUser}
+							onChange={(e) => setSelectedUser(e.target.value)}
+							required
+						>
+							<option value="">Seleccionar usuario...</option>
+							{users.map((u) => (
+								<option key={u.id} value={u.id}>
+									{u.name} ({u.email})
+								</option>
+							))}
+						</select>
 					</div>
-				</div>
-			)}
+					<div className="mb-6">
+						<label
+							htmlFor="role-select"
+							className="block text-sm font-medium mb-1 text-gray-700"
+						>
+							Rol Scrum
+						</label>
+						<select
+							id="role-select"
+							className="w-full border rounded px-3 py-2"
+							value={selectedRole}
+							onChange={(e) => setSelectedRole(e.target.value)}
+						>
+							<option value="TEAM_DEVELOPER">Team Developer</option>
+							<option value="SCRUM_MASTER">Scrum Master</option>
+							<option value="PRODUCT_OWNER">Product Owner</option>
+						</select>
+					</div>
+					<div className="flex gap-2 justify-end">
+						<button
+							type="button"
+							onClick={() => setShowAddModal(false)}
+							className="px-4 py-2 bg-gray-100 rounded text-gray-700"
+						>
+							Cancelar
+						</button>
+						<button
+							type="submit"
+							className="px-4 py-2 bg-blue-950 text-white rounded"
+						>
+							Añadir
+						</button>
+					</div>
+				</form>
+			</Modal>
 		</div>
 	);
 }
@@ -1197,114 +1196,111 @@ export default function ProjectDetail() {
 			)}
 
 			{/* Sprint Modal */}
-			{showSprintModal && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-white rounded-lg p-8 w-full max-w-md">
-						<h3 className="text-2xl font-bold text-gray-900 mb-6">
-							Nuevo Sprint
-						</h3>
-						<form onSubmit={handleCreateSprint}>
-							{/* Form fields same as before */}
-							<div className="mb-4">
-								<label
-									htmlFor="sprint-name"
-									className="block text-sm font-medium text-gray-700 mb-2"
-								>
-									Nombre
-								</label>
-								<input
-									id="sprint-name"
-									type="text"
-									value={sprintForm.name}
-									onChange={(e) =>
-										setSprintForm({ ...sprintForm, name: e.target.value })
-									}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-									required
-								/>
-							</div>
-							<div className="mb-4">
-								<label
-									htmlFor="sprint-desc"
-									className="block text-sm font-medium text-gray-700 mb-2"
-								>
-									Descripción
-								</label>
-								<textarea
-									id="sprint-desc"
-									value={sprintForm.description}
-									onChange={(e) =>
-										setSprintForm({
-											...sprintForm,
-											description: e.target.value,
-										})
-									}
-									className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-								/>
-							</div>
-							<div className="grid grid-cols-2 gap-4 mb-6">
-								<div>
-									<label
-										htmlFor="sprint-start"
-										className="block text-sm font-medium text-gray-700 mb-2"
-									>
-										Inicio
-									</label>
-									<input
-										id="sprint-start"
-										type="date"
-										value={sprintForm.startDate}
-										onChange={(e) =>
-											setSprintForm({
-												...sprintForm,
-												startDate: e.target.value,
-											})
-										}
-										className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-										required
-									/>
-								</div>
-								<div>
-									<label
-										htmlFor="sprint-end"
-										className="block text-sm font-medium text-gray-700 mb-2"
-									>
-										Fin
-									</label>
-									<input
-										id="sprint-end"
-										type="date"
-										value={sprintForm.endDate}
-										onChange={(e) =>
-											setSprintForm({
-												...sprintForm,
-												endDate: e.target.value,
-											})
-										}
-										className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-										required
-									/>
-								</div>
-							</div>
-							<div className="flex gap-3">
-								<button
-									type="button"
-									onClick={() => setShowSprintModal(false)}
-									className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-								>
-									Cancelar
-								</button>
-								<button
-									type="submit"
-									className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900"
-								>
-									Crear
-								</button>
-							</div>
-						</form>
+			<Modal
+				isOpen={showSprintModal}
+				onClose={() => setShowSprintModal(false)}
+				title="Nuevo Sprint"
+			>
+				<form onSubmit={handleCreateSprint}>
+					{/* Form fields same as before */}
+					<div className="mb-4">
+						<label
+							htmlFor="sprint-name"
+							className="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Nombre
+						</label>
+						<input
+							id="sprint-name"
+							type="text"
+							value={sprintForm.name}
+							onChange={(e) =>
+								setSprintForm({ ...sprintForm, name: e.target.value })
+							}
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+							required
+						/>
 					</div>
-				</div>
-			)}
+					<div className="mb-4">
+						<label
+							htmlFor="sprint-desc"
+							className="block text-sm font-medium text-gray-700 mb-2"
+						>
+							Descripción
+						</label>
+						<textarea
+							id="sprint-desc"
+							value={sprintForm.description}
+							onChange={(e) =>
+								setSprintForm({
+									...sprintForm,
+									description: e.target.value,
+								})
+							}
+							className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+						/>
+					</div>
+					<div className="grid grid-cols-2 gap-4 mb-6">
+						<div>
+							<label
+								htmlFor="sprint-start"
+								className="block text-sm font-medium text-gray-700 mb-2"
+							>
+								Inicio
+							</label>
+							<input
+								id="sprint-start"
+								type="date"
+								value={sprintForm.startDate}
+								onChange={(e) =>
+									setSprintForm({
+										...sprintForm,
+										startDate: e.target.value,
+									})
+								}
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+								required
+							/>
+						</div>
+						<div>
+							<label
+								htmlFor="sprint-end"
+								className="block text-sm font-medium text-gray-700 mb-2"
+							>
+								Fin
+							</label>
+							<input
+								id="sprint-end"
+								type="date"
+								value={sprintForm.endDate}
+								onChange={(e) =>
+									setSprintForm({
+										...sprintForm,
+										endDate: e.target.value,
+									})
+								}
+								className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+								required
+							/>
+						</div>
+					</div>
+					<div className="flex gap-3">
+						<button
+							type="button"
+							onClick={() => setShowSprintModal(false)}
+							className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+						>
+							Cancelar
+						</button>
+						<button
+							type="submit"
+							className="flex-1 px-4 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900"
+						>
+							Crear
+						</button>
+					</div>
+				</form>
+			</Modal>
 		</div>
 	);
 }
