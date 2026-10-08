@@ -25,6 +25,7 @@ interface Task {
 interface Project {
 	id: string;
 	name: string;
+	members: { userId: string; role: string }[];
 }
 
 interface Sprint {
@@ -44,6 +45,20 @@ const COLUMNS = {
 	IN_PROGRESS: "En Progreso",
 	COMPLETED: "Completado",
 };
+
+function canDeleteTask(
+	task: Task,
+	session: { id: string; role: string } | null,
+	projects: Project[],
+): boolean {
+	if (!session) return false;
+	if (session.role === "ADMIN") return true;
+	const project = projects.find((p) => p.id === task.project?.id);
+	const membership = project?.members?.find((m) => m.userId === session.id);
+	return (
+		membership?.role === "PRODUCT_OWNER" || membership?.role === "SCRUM_MASTER"
+	);
+}
 
 export default function Tasks() {
 	const { session: user } = useSession();
@@ -144,10 +159,22 @@ export default function Tasks() {
 		if (!confirm("¿Estás seguro de que quieres eliminar esta tarea?")) return;
 		try {
 			const response = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-			if (!response.ok) throw new Error("Error al eliminar tarea");
+			if (!response.ok) {
+				if (response.status === 403) {
+					throw new Error("No tienes permiso para eliminar esta tarea");
+				}
+				let message = "Error al eliminar la tarea";
+				try {
+					const body = (await response.json()) as { error?: string };
+					if (body?.error) message = body.error;
+				} catch {
+					// Respuesta sin cuerpo JSON: se mantiene el mensaje genérico
+				}
+				throw new Error(message);
+			}
 			if (user) await loadTasks(user.id);
 		} catch (err) {
-			setError("Error al eliminar la tarea");
+			setError(err instanceof Error ? err.message : "Error al eliminar la tarea");
 			console.error(err);
 		}
 	};
@@ -266,14 +293,16 @@ export default function Tasks() {
 																<h4 className="font-semibold text-gray-800">
 																	{task.title}
 																</h4>
-																<button
-																	type="button"
-																	onClick={() => handleDeleteTask(task.id)}
-																	className="text-red-400 hover:text-red-600"
-																	title="Eliminar"
-																>
-																	×
-																</button>
+																{canDeleteTask(task, user, projects) && (
+																	<button
+																		type="button"
+																		onClick={() => handleDeleteTask(task.id)}
+																		className="text-red-400 hover:text-red-600"
+																		title="Eliminar"
+																	>
+																		×
+																	</button>
+																)}
 															</div>
 															<p className="text-sm text-gray-600 mb-3 line-clamp-2">
 																{task.description}

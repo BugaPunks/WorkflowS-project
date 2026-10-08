@@ -857,6 +857,64 @@ export default function ProjectDetail() {
 				loadProject();
 			}
 		}
+
+		// Moving from Sprint back to Backlog
+		if (
+			source.droppableId.startsWith("sprint-") &&
+			destination.droppableId === "backlog"
+		) {
+			const sprintId = source.droppableId.replace("sprint-", "");
+
+			try {
+				// Optimistic update: leer primero del estado actual (el updater
+				// de setSprints es diferido y no hay que depender de él para datos)
+				const sourceSprint = sprints.find((s) => s.id === sprintId);
+				const storyToMove = sourceSprint?.userStories?.find(
+					(story) => story.id === draggableId,
+				);
+				if (!storyToMove) return;
+
+				// Remove from sprint (visually)
+				setSprints((prev) =>
+					prev.map((s) => {
+						if (s.id === sprintId) {
+							return {
+								...s,
+								userStories: (s.userStories || []).filter(
+									(story) => story.id !== draggableId,
+								),
+							};
+						}
+						return s;
+					}),
+				);
+
+				// Add to backlog (visually)
+				setBacklogStories((prev) => [
+					...prev,
+					{ ...storyToMove, sprintId: null },
+				]);
+
+				// API Call
+				const response = await fetch(
+					`/api/sprints/${sprintId}/stories/${draggableId}`,
+					{ method: "DELETE" },
+				);
+
+				if (!response.ok) {
+					const data = await response.json();
+					// Revert if fail (simplest is reload)
+					alert(data.error || "Error al quitar historia del sprint");
+					loadProject();
+				} else {
+					// Refresh to get real IDs
+					loadProject();
+				}
+			} catch (error) {
+				console.error(error);
+				loadProject();
+			}
+		}
 	};
 
 	if (isLoading) {
@@ -1161,25 +1219,35 @@ export default function ProjectDetail() {
 														</div>
 													) : (
 														<div className="space-y-2">
-															{sprint.userStories.map((story) => (
-																<div
+															{sprint.userStories.map((story, index) => (
+																<Draggable
 																	key={story.id}
-																	className="flex items-center justify-between p-3 bg-blue-50 rounded border border-blue-100"
+																	draggableId={story.id}
+																	index={index}
 																>
-																	<div>
-																		<p className="font-medium text-sm text-blue-900">
-																			{story.title}
-																		</p>
-																		<p className="text-xs text-blue-950 mt-0.5 line-clamp-1">
-																			{story.description}
-																		</p>
-																	</div>
-																	{story.storyPoints != null && (
-																		<span className="text-xs font-bold bg-white text-blue-950 px-2 py-1 rounded border border-blue-100">
-																			{story.storyPoints}
-																		</span>
+																	{(provided) => (
+																		<div
+																			ref={provided.innerRef}
+																			{...provided.draggableProps}
+																			{...provided.dragHandleProps}
+																			className="flex items-center justify-between p-3 bg-blue-50 rounded border border-blue-100 cursor-grab"
+																		>
+																			<div>
+																				<p className="font-medium text-sm text-blue-900">
+																					{story.title}
+																				</p>
+																				<p className="text-xs text-blue-950 mt-0.5 line-clamp-1">
+																					{story.description}
+																				</p>
+																			</div>
+																			{story.storyPoints != null && (
+																				<span className="text-xs font-bold bg-white text-blue-950 px-2 py-1 rounded border border-blue-100">
+																					{story.storyPoints}
+																				</span>
+																			)}
+																		</div>
 																	)}
-																</div>
+																</Draggable>
 															))}
 														</div>
 													)}

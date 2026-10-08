@@ -209,6 +209,48 @@ router.post(
 	},
 );
 
+// DELETE quitar historia de un sprint - SCRUM_MASTER, PRODUCT_OWNER
+router.delete(
+	"/:id/stories/:storyId",
+	authenticateToken,
+	requireProjectRole(["SCRUM_MASTER", "PRODUCT_OWNER"], async (req) => {
+		const sprint = await prisma.sprint.findUnique({
+			where: { id: req.params.id },
+		});
+		return sprint?.projectId ?? null;
+	}),
+	async (req, res) => {
+		try {
+			const { storyId } = req.params;
+			const sprintId = req.params.id;
+
+			const userStory = await prisma.userStory.findUnique({
+				where: { id: storyId },
+			});
+
+			if (!userStory) {
+				return res.status(404).json({ error: "Historia no encontrada" });
+			}
+
+			if (userStory.sprintId !== sprintId) {
+				return res
+					.status(404)
+					.json({ error: "La historia no pertenece a este sprint" });
+			}
+
+			const updatedStory = await prisma.userStory.update({
+				where: { id: storyId },
+				data: { sprintId: null },
+			});
+
+			res.json({ data: updatedStory });
+		} catch (error) {
+			console.error("Error al quitar historia del sprint:", error);
+			res.status(500).json({ error: "Error al quitar historia del sprint" });
+		}
+	},
+);
+
 // DELETE sprint - ADMIN only
 router.delete(
 	"/:id",

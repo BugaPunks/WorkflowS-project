@@ -13,6 +13,6 @@
 
 - [x] 3.1 `npx biome check` sobre los 2 archivos modificados + `npx tsc --noEmit` sin errores nuevos
 - [x] 3.2 `npm run test` — todos los tests pasan
-- [ ] 3.3 Prueba manual: como PO eliminar una HU → funciona (antes 403); como SM también
-- [ ] 3.4 Prueba manual: como developer (dev1/dev2) la tarjeta NO muestra "Eliminar"; como admin sí aparece y funciona
-- [ ] 3.5 Verificar en la DB que la HU borrada desapareció de `user_stories`
+- [x] 3.3 Prueba manual: como PO eliminar una HU → funciona (antes 403); como SM también (confirmado por el usuario: probó todo y funcionó)
+- [x] 3.4 Prueba manual: como developer (dev1/dev2) la tarjeta NO muestra "Eliminar"; como admin sí aparece y funciona
+- [x] 3.5 Verificar en la DB que la HU borrada desapareció de `user_stories`

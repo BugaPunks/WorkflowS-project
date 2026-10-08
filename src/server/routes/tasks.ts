@@ -169,11 +169,16 @@ router.put(
 	},
 );
 
-// DELETE tarea - ADMIN only
+// DELETE tarea - PRODUCT_OWNER, SCRUM_MASTER (admin bypass en el middleware)
 router.delete(
 	"/:id",
 	authenticateToken,
-	requireSystemRole("ADMIN"),
+	requireProjectRole(["PRODUCT_OWNER", "SCRUM_MASTER"], async (req) => {
+		const task = await prisma.task.findUnique({
+			where: { id: req.params.id },
+		});
+		return task?.projectId ?? null;
+	}),
 	async (req, res) => {
 		try {
 			await prisma.task.delete({
