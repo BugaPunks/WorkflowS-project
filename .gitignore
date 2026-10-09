@@ -26,7 +26,7 @@ uploads/
 .env
 
 # Openspec
-.openspec/
+# .openspec/
 # openspec/
 .agent/
 .agents/
