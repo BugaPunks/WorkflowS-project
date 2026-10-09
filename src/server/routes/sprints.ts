@@ -4,7 +4,6 @@ import { prisma } from "../db";
 import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
-import { requireSystemRole } from "../middleware/system-rbac";
 
 const router = Router();
 
@@ -251,11 +250,16 @@ router.delete(
 	},
 );
 
-// DELETE sprint - ADMIN only
+// DELETE sprint - SCRUM_MASTER, PRODUCT_OWNER
 router.delete(
 	"/:id",
 	authenticateToken,
-	requireSystemRole("ADMIN"),
+	requireProjectRole(["SCRUM_MASTER", "PRODUCT_OWNER"], async (req) => {
+		const sprint = await prisma.sprint.findUnique({
+			where: { id: req.params.id },
+		});
+		return sprint?.projectId ?? null;
+	}),
 	async (req, res) => {
 		try {
 			await prisma.sprint.delete({
