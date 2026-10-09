@@ -678,6 +678,15 @@ interface Sprint {
 	endDate: string;
 	status: string;
 	userStories: UserStory[];
+	tasks?: { status: string }[];
+}
+
+function canStartSprint(status: string): boolean {
+	return status === "PLANNING" || status === "PLANNED";
+}
+
+function canCompleteSprint(status: string): boolean {
+	return status === "ACTIVE";
 }
 
 export default function ProjectDetail() {
@@ -789,6 +798,41 @@ export default function ProjectDetail() {
 		} catch (err) {
 			setError("Error al crear el sprint");
 			console.error(err);
+		}
+	};
+
+	const handleSprintStatus = async (sprintId: string, status: string) => {
+		if (status === "COMPLETED") {
+			const sprint = sprints.find((s) => s.id === sprintId);
+			const pendingTasks =
+				sprint?.tasks?.filter((t) => t.status !== "COMPLETED").length ?? 0;
+			const message =
+				pendingTasks > 0
+					? `Hay ${pendingTasks} tarea(s) sin completar en "${sprint?.name ?? "el sprint"}". ¿Completar el sprint igualmente? Se notificará a todos los miembros.`
+					: "¿Completar el sprint? Se notificará a todos los miembros.";
+			if (!confirm(message)) return;
+		}
+		try {
+			const response = await fetch(`/api/sprints/${sprintId}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status }),
+			});
+			if (!response.ok) {
+				let message = "No se pudo actualizar el sprint";
+				try {
+					const body = (await response.json()) as { error?: string };
+					if (body?.error) message = body.error;
+				} catch {
+					// Respuesta sin cuerpo JSON: se mantiene el mensaje genérico
+				}
+				throw new Error(message);
+			}
+			await loadProject();
+		} catch (err) {
+			alert(
+				err instanceof Error ? err.message : "No se pudo actualizar el sprint",
+			);
 		}
 	};
 
@@ -1191,6 +1235,28 @@ export default function ProjectDetail() {
 														className="text-xs text-blue-950 hover:text-blue-800 font-medium underline"
 													>
 														Calificar Sprint
+													</button>
+												)}
+												{isProjectAdmin && canStartSprint(sprint.status) && (
+													<button
+														type="button"
+														onClick={() =>
+															handleSprintStatus(sprint.id, "ACTIVE")
+														}
+														className="text-xs text-green-700 hover:text-green-800 font-medium underline"
+													>
+														Iniciar Sprint
+													</button>
+												)}
+												{isProjectAdmin && canCompleteSprint(sprint.status) && (
+													<button
+														type="button"
+														onClick={() =>
+															handleSprintStatus(sprint.id, "COMPLETED")
+														}
+														className="text-xs text-blue-950 hover:text-blue-800 font-medium underline"
+													>
+														Completar Sprint
 													</button>
 												)}
 												<span

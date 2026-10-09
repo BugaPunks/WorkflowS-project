@@ -21,7 +21,7 @@ interface Project {
 	members: { userId: string; role: string }[];
 }
 
-function canDeleteStory(
+function canManageStory(
 	story: UserStory,
 	session: { id: string; role: string } | null,
 	projects: Project[],
@@ -33,6 +33,21 @@ function canDeleteStory(
 	return (
 		membership?.role === "PRODUCT_OWNER" || membership?.role === "SCRUM_MASTER"
 	);
+}
+
+function canDeleteStory(
+	story: UserStory,
+	session: { id: string; role: string } | null,
+	projects: Project[],
+): boolean {
+	return canManageStory(story, session, projects);
+}
+
+function statusSelectClassName(status: string): string {
+	const base = "text-xs border rounded px-2 py-1";
+	return status === "COMPLETED"
+		? `${base} bg-green-100 text-green-800 border-green-300`
+		: `${base} bg-gray-100 text-gray-700 border-gray-300`;
 }
 
 export default function UserStories() {
@@ -146,6 +161,37 @@ export default function UserStories() {
 		}
 	};
 
+	const handleToggleStatus = async (story: UserStory, status: string) => {
+		try {
+			const response = await fetch(`/api/user-stories/${story.id}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status }),
+			});
+			if (!response.ok) {
+				if (response.status === 403) {
+					throw new Error(
+						"No tienes permiso para cambiar el estado de esta historia",
+					);
+				}
+				let message = "Error al cambiar el estado de la historia";
+				try {
+					const body = await response.json();
+					if (body?.error) message = body.error;
+				} catch {
+					// Respuesta sin cuerpo JSON: se mantiene el mensaje genérico
+				}
+				throw new Error(message);
+			}
+			await loadStories();
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Error al cambiar el estado",
+			);
+			console.error(err);
+		}
+	};
+
 	const getPriorityColor = (priority: string) => {
 		const colors: Record<string, string> = {
 			LOW: "bg-green-100 text-green-700",
@@ -228,24 +274,43 @@ export default function UserStories() {
 
 							<div className="flex items-center justify-between mt-auto">
 								<div className="flex items-center gap-2">
-									<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
-										{story.status || "PENDING"}
-									</span>
+									{!canManageStory(story, user, projects) && (
+										<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
+											{story.status || "PENDING"}
+										</span>
+									)}
 									{story.storyPoints != null && (
 										<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
 											{story.storyPoints} pts
 										</span>
 									)}
 								</div>
-								{canDeleteStory(story, user, projects) && (
-									<button
-										type="button"
-										onClick={() => handleDeleteStory(story.id)}
-										className="text-red-600 hover:text-red-700 font-medium text-sm"
-									>
-										Eliminar
-									</button>
-								)}
+								<div className="flex items-center gap-2">
+									{canManageStory(story, user, projects) && (
+										<select
+											value={
+												story.status === "COMPLETED" ? "COMPLETED" : "BACKLOG"
+											}
+											onChange={(e) =>
+												handleToggleStatus(story, e.target.value)
+											}
+											className={statusSelectClassName(story.status)}
+											aria-label="Estado de la historia"
+										>
+											<option value="BACKLOG">Backlog</option>
+											<option value="COMPLETED">Completada</option>
+										</select>
+									)}
+									{canDeleteStory(story, user, projects) && (
+										<button
+											type="button"
+											onClick={() => handleDeleteStory(story.id)}
+											className="text-red-600 hover:text-red-700 font-medium text-sm"
+										>
+											Eliminar
+										</button>
+									)}
+								</div>
 							</div>
 						</div>
 					))}
