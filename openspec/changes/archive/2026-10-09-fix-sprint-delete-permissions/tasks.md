@@ -13,15 +13,20 @@
 
 ## 3. Verificación de integración
 
-- [ ] 3.1 Ejecutar la suite completa `npm run test` y el lint/formato `npm run check`, ambos en verde.
+- [x] 3.1 Ejecutar la suite completa `npm run test` y el lint/formato `npm run check`, ambos en verde.
 - [x] 3.2 Validar el cambio con `openspec validate fix-sprint-delete-permissions --strict` sin errores.
 
-> Nota (decisión de revisión): `npm run test` pasa (83/83). `npm run check` sigue en rojo por causas
+> Nota (decisión de revisión): `npm run test` pasa (83/83). `npm run check` seguía en rojo por causas
 > preexistentes y ajenas a este cambio — el checkout en Windows usa CRLF (`core.autocrlf=true` y sin
 > `.gitattributes` que fuerce LF en `.ts/.tsx/.json`) y Biome exige LF, además de diagnósticos de lint
-> previos en `e2e/*.spec.ts` (`noExplicitAny`, variables sin uso). Los archivos tocados por este cambio
-> pasan `biome lint` y el test nuevo pasa `biome check` completo. Se deja 3.1 sin marcar conforme a la
+> previos en `e2e/*.spec.ts` (`noExplicitAny`, variables sin uso). Se dejó 3.1 sin marcar conforme a la
 > revisión; normalizar finales de línea de todo el repo es un cambio ajeno a este cambio.
+>
+> Actualización: 3.1 se subsanó tras normalizar finales de línea con `.gitattributes`
+> (`* text=auto eol=lf`), ignorar `e2e` en `biome.json` y corregir los dos hallazgos de lint
+> preexistentes que quedaban en el alcance del lint global (SVG sin `<title>` en
+> `src/auth/RegisterForm.tsx` y `noExplicitAny` en `src/pages/NotificationPreferences.tsx`).
+> Ahora `npm run test` (83/83) y `npm run check` (123 archivos, 0 errores) pasan en verde.
 
 ## Workflow follow-up
 
