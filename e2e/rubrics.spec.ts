@@ -12,7 +12,7 @@ test.describe("Rubrics Management", () => {
 		);
 
 		// Ensure there is at least one project
-		const response = await page.request.post("/api/projects", {
+		const _response = await page.request.post("/api/projects", {
 			headers: { Authorization: `Bearer ${token}` },
 			data: {
 				name: "E2E Test Project Rubrics",

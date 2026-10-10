@@ -75,7 +75,7 @@ router.get(
 // GET /api/users/:id/dashboard-summary - Self or ADMIN
 router.get("/:id/dashboard-summary", authenticateToken, async (req, res) => {
 	try {
-		if (req.user!.userId !== req.params.id && req.user!.role !== "ADMIN") {
+		if (req.user?.userId !== req.params.id && req.user?.role !== "ADMIN") {
 			return res.sendStatus(403);
 		}
 
@@ -130,7 +130,7 @@ router.get("/:id/dashboard-summary", authenticateToken, async (req, res) => {
 // PUT /api/users/:id/dashboard - Self or ADMIN
 router.put("/:id/dashboard", authenticateToken, async (req, res) => {
 	try {
-		if (req.user!.userId !== req.params.id && req.user!.role !== "ADMIN") {
+		if (req.user?.userId !== req.params.id && req.user?.role !== "ADMIN") {
 			return res.sendStatus(403);
 		}
 

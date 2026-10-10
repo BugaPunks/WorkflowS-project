@@ -1,3 +1,9 @@
+# Normalizar el resto de archivos de texto a LF (finales de linea unix).
+# Con esto el working tree queda en LF en cualquier plataforma (aun con
+# core.autocrlf=true en Windows), y biome check con lineEnding "lf" es
+# deterministico y pasa en todas partes. Los blobs ya se guardan en LF.
+* text=auto eol=lf
+
 # Los scripts de shell deben quedar en LF: con CRLF, bash falla con
 # "syntax error near unexpected token $'{\r'" y el script no arranca.
 *.sh text eol=lf

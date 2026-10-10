@@ -116,7 +116,7 @@ router.get("/student/:studentId", authenticateToken, async (req, res) => {
 	try {
 		const { studentId } = req.params;
 
-		if (req.user!.userId !== studentId && req.user!.role !== "ADMIN") {
+		if (req.user?.userId !== studentId && req.user?.role !== "ADMIN") {
 			return res.sendStatus(403);
 		}
 

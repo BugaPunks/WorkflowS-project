@@ -3,6 +3,7 @@ import {
 	Calendar,
 	CheckCircle,
 	FileText,
+	type LucideIcon,
 	MessageCircle,
 	Shield,
 	ShieldAlert,
@@ -18,7 +19,7 @@ interface Preference {
 
 const TYPE_CONFIG: Record<
 	string,
-	{ label: string; icon: React.FC<any>; description: string }
+	{ label: string; icon: LucideIcon; description: string }
 > = {
 	TASK_ASSIGNED: {
 		label: "Tareas Asignadas",

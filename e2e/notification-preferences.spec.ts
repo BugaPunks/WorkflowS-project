@@ -1,11 +1,10 @@
-import { randomUUID } from "node:crypto";
 import { expect, request as playwrightRequest, test } from "@playwright/test";
 import { BASE_ORIGIN, loginViaApi, TEST_PASSWORD } from "./utils/api-auth";
 
 test.describe("Notification Preferences", () => {
 	let userId: string;
 	let token: string;
-	let otherUserId: string;
+	let _otherUserId: string;
 
 	test.beforeEach(async ({ page }) => {
 		const { id, token: sessionToken } = await loginViaApi(

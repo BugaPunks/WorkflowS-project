@@ -174,7 +174,9 @@ export default function Tasks() {
 			}
 			if (user) await loadTasks(user.id);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Error al eliminar la tarea");
+			setError(
+				err instanceof Error ? err.message : "Error al eliminar la tarea",
+			);
 			console.error(err);
 		}
 	};

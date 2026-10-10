@@ -7,12 +7,33 @@ import { formatDaysRemaining, getDaysDifference } from "@/utils/date";
 
 interface Sprint {
 	id: string;
+	projectId: string;
 	name: string;
 	description: string;
 	startDate: string;
 	endDate: string;
 	status: string;
 	createdAt: string;
+}
+
+interface Project {
+	id: string;
+	name: string;
+	members: { userId: string; role: string }[];
+}
+
+function canManageSprints(
+	session: { id: string; role: string } | null,
+	projects: Project[],
+	sprint: Sprint,
+): boolean {
+	if (!session) return false;
+	if (session.role === "ADMIN") return true;
+	const project = projects.find((p) => p.id === sprint.projectId);
+	const membership = project?.members?.find((m) => m.userId === session.id);
+	return (
+		membership?.role === "PRODUCT_OWNER" || membership?.role === "SCRUM_MASTER"
+	);
 }
 
 export default function Sprints() {
@@ -22,7 +43,7 @@ export default function Sprints() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [showModal, setShowModal] = useState(false);
-	const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+	const [projects, setProjects] = useState<Project[]>([]);
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
@@ -50,10 +71,7 @@ export default function Sprints() {
 		const fetchData = async () => {
 			// Cargar proyectos
 			try {
-				const projectsData = (await projectAPI.getAll()) as {
-					id: string;
-					name: string;
-				}[];
+				const projectsData = (await projectAPI.getAll()) as Project[];
 				setProjects(projectsData || []);
 			} catch (error) {
 				console.error("Error al cargar proyectos:", error);
@@ -104,7 +122,20 @@ export default function Sprints() {
 	const handleDeleteSprint = async (id: string) => {
 		if (!confirm("¿Estás seguro de que quieres eliminar este sprint?")) return;
 		try {
-			await sprintAPI.delete(id);
+			const response = await fetch(`/api/sprints/${id}`, { method: "DELETE" });
+			if (!response.ok) {
+				if (response.status === 403) {
+					throw new Error("No tienes permiso para eliminar este sprint");
+				}
+				let message = "Error al eliminar el sprint";
+				try {
+					const body = (await response.json()) as { error?: string };
+					if (body?.error) message = body.error;
+				} catch {
+					// Respuesta sin cuerpo JSON: se mantiene el mensaje genérico
+				}
+				throw new Error(message);
+			}
 			await loadSprints();
 		} catch (err) {
 			setError(
@@ -206,13 +237,15 @@ export default function Sprints() {
 								>
 									Ver Detalles
 								</button>
-								<button
-									type="button"
-									onClick={() => handleDeleteSprint(sprint.id)}
-									className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 font-medium text-sm"
-								>
-									Eliminar
-								</button>
+								{canManageSprints(user, projects, sprint) && (
+									<button
+										type="button"
+										onClick={() => handleDeleteSprint(sprint.id)}
+										className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 font-medium text-sm"
+									>
+										Eliminar
+									</button>
+								)}
 							</div>
 						</div>
 					))}

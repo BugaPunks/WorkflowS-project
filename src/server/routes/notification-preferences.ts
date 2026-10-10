@@ -8,7 +8,7 @@ const router = Router();
 router.get("/", authenticateToken, async (req, res) => {
 	try {
 		const preferences = await prisma.notificationPreference.findMany({
-			where: { userId: req.user!.userId },
+			where: { userId: req.user?.userId },
 		});
 
 		res.json({ data: preferences });
@@ -43,7 +43,7 @@ router.put("/:type", authenticateToken, async (req, res) => {
 		const preference = await prisma.notificationPreference.upsert({
 			where: {
 				userId_type: {
-					userId: req.user!.userId,
+					userId: req.user?.userId,
 					type: type as NotificationType,
 				},
 			},
@@ -51,7 +51,7 @@ router.put("/:type", authenticateToken, async (req, res) => {
 				enabled,
 			},
 			create: {
-				userId: req.user!.userId,
+				userId: req.user?.userId,
 				type: type as NotificationType,
 				enabled,
 			},

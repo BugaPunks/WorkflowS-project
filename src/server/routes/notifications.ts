@@ -29,10 +29,10 @@ router.get("/", authenticateToken, async (req, res) => {
 router.get("/unread-count", authenticateToken, async (req, res) => {
 	try {
 		const count = await prisma.notification.count({
-			where: { userId: req.user!.userId, read: false },
+			where: { userId: req.user?.userId, read: false },
 		});
 		res.json({ data: count });
-	} catch (error) {
+	} catch (_error) {
 		res.status(500).json({ error: "Error counting unread notifications" });
 	}
 });
@@ -41,11 +41,11 @@ router.get("/unread-count", authenticateToken, async (req, res) => {
 router.put("/read-all", authenticateToken, async (req, res) => {
 	try {
 		await prisma.notification.updateMany({
-			where: { userId: req.user!.userId, read: false },
+			where: { userId: req.user?.userId, read: false },
 			data: { read: true },
 		});
 		res.json({ message: "Todas marcadas como leídas" });
-	} catch (error) {
+	} catch (_error) {
 		res.status(500).json({ error: "Error updating notifications" });
 	}
 });

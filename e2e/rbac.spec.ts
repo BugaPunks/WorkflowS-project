@@ -1,5 +1,5 @@
 import { expect, request as playwrightRequest, test } from "@playwright/test";
-import { BASE_ORIGIN, loginViaApi } from "./utils/api-auth";
+import { BASE_ORIGIN } from "./utils/api-auth";
 
 test.describe("Role-based access control (RNF3.2)", () => {
 	let adminToken: string;

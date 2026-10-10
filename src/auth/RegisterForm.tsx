@@ -121,13 +121,30 @@ export function RegisterForm() {
 				<div className="w-full max-w-sm text-center">
 					<div className="bg-green-50 border border-green-200 text-green-700 px-6 py-8 rounded-2xl shadow-sm">
 						<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
-							<svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-								<path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+							<svg
+								className="h-6 w-6 text-green-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								strokeWidth="1.5"
+								stroke="currentColor"
+							>
+								<title>Registro exitoso</title>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M4.5 12.75l6 6 9-13.5"
+								/>
 							</svg>
 						</div>
-						<h2 className="text-2xl font-bold tracking-tight mb-2">¡Registro Exitoso!</h2>
-						<p className="text-green-800 mb-4">Tu cuenta ha sido creada correctamente.</p>
-						<p className="text-sm font-medium text-green-600 animate-pulse">Redirigiendo a login...</p>
+						<h2 className="text-2xl font-bold tracking-tight mb-2">
+							¡Registro Exitoso!
+						</h2>
+						<p className="text-green-800 mb-4">
+							Tu cuenta ha sido creada correctamente.
+						</p>
+						<p className="text-sm font-medium text-green-600 animate-pulse">
+							Redirigiendo a login...
+						</p>
 					</div>
 				</div>
 			</div>
@@ -150,11 +167,11 @@ export function RegisterForm() {
 				<div>
 					<h1 className="text-4xl font-bold leading-tight tracking-tight">
 						Únete a tu equipo
-						<br />
-						y empieza a crear.
+						<br />y empieza a crear.
 					</h1>
 					<p className="mt-4 max-w-xs text-base font-light text-blue-200">
-						Agilidad real para proyectos reales. Regístrate y toma el control de tu flujo de trabajo.
+						Agilidad real para proyectos reales. Regístrate y toma el control de
+						tu flujo de trabajo.
 					</p>
 
 					{/* Pipeline */}

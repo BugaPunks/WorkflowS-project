@@ -4,7 +4,6 @@ import { prisma } from "../db";
 import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireProjectRole } from "../middleware/project-rbac";
-import { requireSystemRole } from "../middleware/system-rbac";
 
 const router = Router();
 
@@ -251,11 +250,17 @@ router.delete(
 	},
 );
 
-// DELETE sprint - ADMIN only
+// DELETE sprint - SCRUM_MASTER, PRODUCT_OWNER
 router.delete(
 	"/:id",
 	authenticateToken,
-	requireSystemRole("ADMIN"),
+	requireProjectRole(["SCRUM_MASTER", "PRODUCT_OWNER"], async (req) => {
+		const sprint = await prisma.sprint.findUnique({
+			where: { id: req.params.id },
+			select: { projectId: true },
+		});
+		return sprint?.projectId ?? null;
+	}),
 	async (req, res) => {
 		try {
 			await prisma.sprint.delete({
@@ -263,6 +268,15 @@ router.delete(
 			});
 			res.json({ data: { message: "Sprint eliminado" } });
 		} catch (error) {
+			// P2025: el registro a eliminar no existe.
+			if (
+				typeof error === "object" &&
+				error !== null &&
+				"code" in error &&
+				(error as { code?: unknown }).code === "P2025"
+			) {
+				return res.status(404).json({ error: "Sprint no encontrado" });
+			}
 			console.error("Error al eliminar sprint:", error);
 			res.status(500).json({ error: "Error al eliminar sprint" });
 		}

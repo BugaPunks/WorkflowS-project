@@ -9,8 +9,8 @@ test.describe("Grading System", () => {
 	let project: any;
 	let teacher: any;
 	let student: any;
-	let sprint: any;
-	let rubric: any;
+	let _sprint: any;
+	let _rubric: any;
 	let ts: number;
 	let sprintName: string;
 
@@ -57,7 +57,7 @@ test.describe("Grading System", () => {
 			},
 		});
 		const rData = await rRes.json();
-		rubric = rData.data;
+		_rubric = rData.data;
 
 		// Assign Student
 		await request.post(
@@ -83,7 +83,7 @@ test.describe("Grading System", () => {
 			},
 		});
 		const sData = await sRes.json();
-		sprint = sData.data;
+		_sprint = sData.data;
 	});
 
 	test("Teacher can grade a sprint and update it", async ({ page }) => {

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createSessionViaApi } from "./utils/api-auth";
+import { createSessionViaApi, switchBrowserSession } from "./utils/api-auth";
 
 test.describe("Sprint Kanban Board", () => {
 	const uniqueId = Date.now().toString();
@@ -120,5 +120,110 @@ test.describe("Sprint Kanban Board", () => {
 		// Testing actual DND logic in Playwright usually requires more complex steps or mouse simulation.
 		// Let's try a simpler verification that the task is visible.
 		await expect(taskCard).toBeVisible();
+	});
+});
+
+// Caso 2.3 del cambio fix-sprint-delete-permissions: la página de Sprints solo
+// muestra el botón "Eliminar" a quien puede eliminar el sprint (PO/SM del
+// proyecto, o ADMIN), ocultándolo a Devs y no-miembros (fail-closed).
+test.describe("Sprints list delete button visibility by role", () => {
+	const uniqueId = Date.now().toString();
+	const projectName = `Delete Visibility Project ${uniqueId}`;
+	const sprintName = `Delete Visibility Sprint ${uniqueId}`;
+
+	let projectId = "";
+	let po: Awaited<ReturnType<typeof createSessionViaApi>>;
+	let dev: Awaited<ReturnType<typeof createSessionViaApi>>;
+	let adminToken = "";
+
+	test.beforeEach(async ({ page, request }) => {
+		page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
+		page.on("pageerror", (exception) =>
+			console.log(`PAGE ERROR: "${exception}"`),
+		);
+
+		await page.goto("/");
+		const admin = await createSessionViaApi(request, page, {
+			name: "Delete Vis Admin",
+			email: `delvis-admin-${uniqueId}@test.com`,
+			role: "ADMIN",
+		});
+		adminToken = admin.token ?? "";
+
+		const projectRes = await request.post("/api/projects", {
+			headers: { Authorization: `Bearer ${adminToken}` },
+			data: {
+				name: projectName,
+				ownerId: admin.id,
+			},
+		});
+		const projectData = await projectRes.json();
+		projectId = projectData.id || projectData.data?.id;
+
+		const sprintRes = await request.post("/api/sprints", {
+			headers: { Authorization: `Bearer ${adminToken}` },
+			data: {
+				name: sprintName,
+				projectId,
+				startDate: new Date().toISOString(),
+				endDate: new Date(Date.now() + 86400000).toISOString(),
+				status: "PLANNING",
+			},
+		});
+		const sprintData = await sprintRes.json();
+		if (!sprintData.data) {
+			throw new Error(
+				`No se pudo crear el sprint: ${sprintRes.status()} ${JSON.stringify(sprintData)}`,
+			);
+		}
+
+		// PO (miembro PRODUCT_OWNER) y Dev (miembro TEAM_DEVELOPER)
+		po = await createSessionViaApi(request, page, {
+			name: "Delete Vis PO",
+			email: `delvis-po-${uniqueId}@test.com`,
+			role: "PRODUCT_OWNER",
+		});
+		await request.post(`/api/projects/${projectId}/members`, {
+			headers: { Authorization: `Bearer ${adminToken}` },
+			data: { userId: po.id, role: "PRODUCT_OWNER" },
+		});
+
+		dev = await createSessionViaApi(request, page, {
+			name: "Delete Vis Dev",
+			email: `delvis-dev-${uniqueId}@test.com`,
+			role: "TEAM_DEVELOPER",
+		});
+		await request.post(`/api/projects/${projectId}/members`, {
+			headers: { Authorization: `Bearer ${adminToken}` },
+			data: { userId: dev.id, role: "TEAM_DEVELOPER" },
+		});
+	});
+
+	test("PO ve el botón Eliminar del sprint de su proyecto y un Dev no", async ({
+		page,
+	}) => {
+		// Como PO: el botón debe verse en la tarjeta del sprint
+		await switchBrowserSession(page, po, po.token ?? "");
+		await page.goto("/sprints");
+		const poCard = page
+			.locator(".bg-white")
+			.filter({ hasText: sprintName })
+			.first();
+		await expect(poCard).toBeVisible();
+		await expect(
+			poCard.getByRole("button", { name: "Eliminar" }),
+		).toBeVisible();
+
+		// Como Dev: el botón no debe renderizarse
+		await switchBrowserSession(page, dev, dev.token ?? "");
+		await page.goto("/sprints");
+		const devCard = page
+			.locator(".bg-white")
+			.filter({ hasText: sprintName })
+			.first();
+		await expect(devCard).toBeVisible();
+		await expect(devCard.getByRole("button", { name: "Eliminar" })).toHaveCount(
+			0,
+		);
 	});
 });
