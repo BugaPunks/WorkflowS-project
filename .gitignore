@@ -28,7 +28,7 @@ uploads/
 # Openspec
 # .openspec/
 # openspec/
-.agent/
+# .agent/
 .agents/
-# .opencode/
+.opencode/
 .augment/
