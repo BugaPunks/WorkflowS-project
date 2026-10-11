@@ -72,21 +72,13 @@ export default function StudentDashboard({
 							<h3 className="text-lg font-semibold text-gray-800 mb-4">
 								Acciones Rápidas
 							</h3>
-							<div className="grid grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 gap-4">
 								<a
-									href="/tasks?filter=pending"
+									href="/projects"
 									className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors flex flex-col items-center justify-center"
 								>
 									<span className="text-sm font-medium text-gray-700">
-										Tareas Pendientes
-									</span>
-								</a>
-								<a
-									href="/tasks"
-									className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors flex flex-col items-center justify-center"
-								>
-									<span className="text-sm font-medium text-gray-700">
-										Todas mis tareas
+										Ir a Proyectos
 									</span>
 								</a>
 							</div>

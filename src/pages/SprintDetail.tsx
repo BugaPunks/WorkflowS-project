@@ -34,7 +34,13 @@ const COLUMNS = {
 
 export default function SprintDetail() {
 	const navigate = useNavigate();
-	const { id } = useParams<{ id: string }>();
+	const { projectId, sprintId } = useParams<{
+		projectId: string;
+		sprintId: string;
+	}>();
+	const backToSprints = projectId
+		? `/projects/${projectId}/sprints`
+		: "/projects";
 	const { session: user } = useSession();
 	const [sprint, setSprint] = useState<Sprint | null>(null);
 	const [tasks, setTasks] = useState<Task[]>([]);
@@ -42,10 +48,10 @@ export default function SprintDetail() {
 	const [error, setError] = useState<string | null>(null);
 
 	const loadSprint = useCallback(async () => {
-		if (!id) return;
+		if (!sprintId) return;
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/sprints/${id}`);
+			const response = await fetch(`/api/sprints/${sprintId}`);
 			if (!response.ok) throw new Error("Sprint no encontrado");
 			const data = await response.json();
 			setSprint(data.data);
@@ -56,7 +62,7 @@ export default function SprintDetail() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [id]);
+	}, [sprintId]);
 
 	useEffect(() => {
 		if (user === null) {
@@ -126,7 +132,7 @@ export default function SprintDetail() {
 				</div>
 				<button
 					type="button"
-					onClick={() => navigate("/sprints")}
+					onClick={() => navigate(backToSprints)}
 					className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 				>
 					Volver a Sprints
@@ -141,7 +147,7 @@ export default function SprintDetail() {
 			<div className="mb-8">
 				<button
 					type="button"
-					onClick={() => navigate("/sprints")}
+					onClick={() => navigate(backToSprints)}
 					className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
 				>
 					← Volver a Sprints

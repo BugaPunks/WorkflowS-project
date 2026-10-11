@@ -73,8 +73,8 @@ test.describe("Task Creation with Assignment", () => {
 	test("should create a task assigned to a Sprint and User Story", async ({
 		page,
 	}) => {
-		// Navigate to Tasks page
-		await page.goto("/tasks");
+		// Navigate to the project Tasks page (project is implicit from the route)
+		await page.goto(`/projects/${project.id}/tasks`);
 
 		// Open Modal
 		await page.getByRole("button", { name: "+ Nueva Tarea" }).click();
@@ -84,9 +84,6 @@ test.describe("Task Creation with Assignment", () => {
 			'input[placeholder="Título de la tarea"]',
 			"Integrated Task",
 		);
-
-		// Select Project
-		await page.selectOption("#task-project", project.id);
 
 		// Wait for dynamic fields (Sprint and Story) to appear
 		await expect(page.locator("#task-sprint")).toBeVisible();
@@ -108,7 +105,7 @@ test.describe("Task Creation with Assignment", () => {
 		await expect(page.getByText("Integrated Task")).toBeVisible();
 
 		// Verify it appears in the Sprint Board
-		await page.goto(`/sprints/${sprint.id}`);
+		await page.goto(`/projects/${project.id}/sprints/${sprint.id}`);
 
 		// Check if task is visible in Sprint Board
 		await expect(page.getByText("Integrated Task")).toBeVisible();

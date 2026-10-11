@@ -1,5 +1,10 @@
 import "./App.css";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import {
+	Navigate,
+	Route,
+	BrowserRouter as Router,
+	Routes,
+} from "react-router-dom";
 import { LoginForm } from "@/auth/LoginForm";
 import { LoginSuccess } from "@/auth/LoginSuccess";
 import { RegisterForm } from "@/auth/RegisterForm";
@@ -38,9 +43,15 @@ const App = () => {
 						<Route path="/" element={<Dashboard />} />
 						<Route path="/projects" element={<Projects />} />
 						<Route path="/projects/:id" element={<ProjectDetail />} />
-						<Route path="/sprints" element={<Sprints />} />
-						<Route path="/sprints/:id" element={<SprintDetail />} />
-						<Route path="/tasks" element={<Tasks />} />
+
+						{/* Vistas de proyecto: sprints, tareas e historias viven
+						    dentro del proyecto al que pertenecen. */}
+						<Route path="/projects/:projectId/sprints" element={<Sprints />} />
+						<Route
+							path="/projects/:projectId/sprints/:sprintId"
+							element={<SprintDetail />}
+						/>
+						<Route path="/projects/:projectId/tasks" element={<Tasks />} />
 						<Route
 							path="/projects/:projectId/tasks/:taskId"
 							element={<TaskDetail />}
@@ -57,7 +68,28 @@ const App = () => {
 							path="/projects/:projectId/grade"
 							element={<GradingView />}
 						/>
-						<Route path="/user-stories" element={<UserStories />} />
+						<Route
+							path="/projects/:projectId/user-stories"
+							element={<UserStories />}
+						/>
+
+						{/* Rutas globales eliminadas: redirigen a la lista de proyectos. */}
+						<Route
+							path="/sprints"
+							element={<Navigate to="/projects" replace />}
+						/>
+						<Route
+							path="/sprints/:id"
+							element={<Navigate to="/projects" replace />}
+						/>
+						<Route
+							path="/tasks"
+							element={<Navigate to="/projects" replace />}
+						/>
+						<Route
+							path="/user-stories"
+							element={<Navigate to="/projects" replace />}
+						/>
 						<Route path="/rubrics" element={<Rubrics />} />
 						<Route path="/user-management" element={<UserManagement />} />
 						<Route

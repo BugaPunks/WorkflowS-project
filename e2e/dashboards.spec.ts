@@ -49,8 +49,8 @@ test.describe("HU-10 — Dashboard por rol", () => {
 			page.getByRole("heading", { name: "Panel de Docente" }),
 		).toHaveCount(0);
 
-		// Enlaces propios del rol desarrollador
-		await expect(page.locator("a[href='/tasks']").first()).toBeVisible();
+		// Ya no hay enlace global a /tasks; el acceso a tareas es desde el proyecto.
+		await expect(page.locator("a[href='/tasks']")).toHaveCount(0);
 		await expect(page.locator("a[href='/projects']").first()).toBeVisible();
 	});
 

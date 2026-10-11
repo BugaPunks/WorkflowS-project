@@ -25,9 +25,15 @@ const sprintUpdateSchema = z.object({
 });
 
 // GET todos los sprints - any authenticated
-router.get("/", authenticateToken, async (_req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
 	try {
+		const { projectId } = req.query;
+		const where: Record<string, string> = {};
+
+		if (projectId) where.projectId = String(projectId);
+
 		const sprints = await prisma.sprint.findMany({
+			where,
 			include: {
 				project: true,
 				tasks: true,

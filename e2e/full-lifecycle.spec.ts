@@ -130,10 +130,9 @@ test.describe("Full Project Lifecycle: Teacher and Student", () => {
 		await page.reload();
 		await page.goto("/");
 
-		// 2.1 Create User Story
-		await page.goto("/user-stories");
+		// 2.1 Create User Story (project-scoped: el proyecto es implícito)
+		await page.goto(`/projects/${projectId}/user-stories`);
 		await page.getByRole("button", { name: "+ Nueva Historia" }).click();
-		await page.selectOption("#story-project", { label: projectName });
 		await page.fill("#story-title", "Historia de Usuario E2E");
 		await page.fill("#story-desc", "Como usuario quiero hacer X");
 		await page.fill("#story-acceptance", "Debe funcionar bien");

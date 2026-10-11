@@ -5,6 +5,7 @@ import {
 	type DropResult,
 } from "@hello-pangea/dnd";
 import { useCallback, useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { projectAPI, sprintAPI, taskAPI, userStoryAPI } from "@/api/client";
 import { Modal } from "@/components/Modal";
 import { useSession } from "@/hooks/useSession";
@@ -16,6 +17,7 @@ interface Task {
 	status: string;
 	deadline: string;
 	createdAt: string;
+	projectId: string;
 	project: {
 		id: string;
 		name: string;
@@ -61,9 +63,11 @@ function canDeleteTask(
 }
 
 export default function Tasks() {
+	const { projectId } = useParams<{ projectId: string }>();
 	const { session: user } = useSession();
 	const [tasks, setTasks] = useState<Task[]>([]);
-	const [projects, setProjects] = useState<Project[]>([]);
+	const [project, setProject] = useState<Project | null>(null);
+	const [projectNotFound, setProjectNotFound] = useState(false);
 	const [sprints, setSprints] = useState<Sprint[]>([]);
 	const [userStories, setUserStories] = useState<UserStory[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -73,69 +77,88 @@ export default function Tasks() {
 		title: "",
 		description: "",
 		deadline: "",
-		projectId: "",
 		sprintId: "",
 		userStoryId: "",
 	});
 
-	const loadTasks = useCallback(async (userId?: string) => {
+	const loadTasks = useCallback(async () => {
+		if (!projectId) {
+			setTasks([]);
+			setIsLoading(false);
+			return;
+		}
 		try {
 			setIsLoading(true);
-			const response = await taskAPI.getAll({ assigneeId: userId });
-			setTasks((response as Task[]) || []);
+			setError(null);
+			const response = await taskAPI.getAll({ projectId });
+			// Respaldo en cliente: nunca mostrar tareas de otro proyecto.
+			setTasks(
+				((response as Task[]) || []).filter((t) => t.projectId === projectId),
+			);
 		} catch (err) {
 			setError("Error al cargar las tareas");
 			console.error(err);
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
-
-	const loadProjects = useCallback(async (userId?: string) => {
-		try {
-			const projectsData = await projectAPI.getAll({ memberId: userId });
-			setProjects(Array.isArray(projectsData) ? projectsData : []);
-		} catch (err) {
-			console.error("Error al cargar proyectos para el selector:", err);
-		}
-	}, []);
+	}, [projectId]);
 
 	const loadRelatedData = useCallback(async () => {
+		if (!projectId) return;
 		try {
 			const [sprintsData, storiesData] = await Promise.all([
-				sprintAPI.getAll(),
-				userStoryAPI.getAll(),
+				sprintAPI.getAll({ projectId }),
+				userStoryAPI.getAll({ projectId }),
 			]);
-			// eslint-disable-next-line
-			const sprintsList = Array.isArray(sprintsData)
-				? sprintsData
-				: (sprintsData as { data: Sprint[] }).data || [];
-			setSprints(sprintsList);
+			const sprintsList = (
+				Array.isArray(sprintsData)
+					? sprintsData
+					: (sprintsData as { data: Sprint[] }).data || []
+			) as Sprint[];
+			setSprints(sprintsList.filter((s) => s.projectId === projectId));
 
-			// eslint-disable-next-line
-			const storiesList = Array.isArray(storiesData)
-				? storiesData
-				: (storiesData as { data: UserStory[] }).data || [];
-			setUserStories(storiesList);
+			const storiesList = (
+				Array.isArray(storiesData)
+					? storiesData
+					: (storiesData as { data: UserStory[] }).data || []
+			) as UserStory[];
+			setUserStories(storiesList.filter((s) => s.projectId === projectId));
 		} catch (err) {
 			console.error("Error al cargar sprints y HUs:", err);
 		}
-	}, []);
+	}, [projectId]);
 
 	useEffect(() => {
-		if (user) {
-			loadTasks(user.id);
-			loadProjects(user.id);
-			loadRelatedData();
-		}
-	}, [user, loadTasks, loadProjects, loadRelatedData]);
+		if (!user) return;
+
+		const fetchData = async () => {
+			if (!projectId) {
+				setProjectNotFound(true);
+				return;
+			}
+			// Cargar el proyecto para mostrar su nombre y detectar un id inexistente.
+			try {
+				const projectData = (await projectAPI.getById(projectId)) as Project;
+				setProject(projectData);
+			} catch (err) {
+				console.error("Error al cargar el proyecto:", err);
+				setProjectNotFound(true);
+			}
+
+			await Promise.all([loadTasks(), loadRelatedData()]);
+		};
+
+		fetchData();
+	}, [user, projectId, loadTasks, loadRelatedData]);
 
 	const handleCreateTask = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
 			if (!user) throw new Error("Usuario no autenticado");
+			if (!projectId) throw new Error("Proyecto no encontrado");
 			await taskAPI.create({
 				...formData,
+				projectId,
 				assigneeId: user.id,
 				status: "TODO",
 			});
@@ -143,12 +166,11 @@ export default function Tasks() {
 				title: "",
 				description: "",
 				deadline: "",
-				projectId: "",
 				sprintId: "",
 				userStoryId: "",
 			});
 			setShowModal(false);
-			await loadTasks(user.id);
+			await loadTasks();
 		} catch (err) {
 			setError("Error al crear la tarea");
 			console.error(err);
@@ -172,7 +194,7 @@ export default function Tasks() {
 				}
 				throw new Error(message);
 			}
-			if (user) await loadTasks(user.id);
+			await loadTasks();
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : "Error al eliminar la tarea",
@@ -207,7 +229,7 @@ export default function Tasks() {
 			console.error("Error updating task status:", err);
 			setError("Error al actualizar el estado de la tarea");
 			// Revert on error
-			if (user) loadTasks(user.id);
+			loadTasks();
 		}
 	};
 
@@ -215,21 +237,51 @@ export default function Tasks() {
 		return tasks.filter((task) => (task.status || "TODO") === status);
 	};
 
-	const filteredSprints = sprints.filter(
-		(s) => s.projectId === formData.projectId,
-	);
-	const filteredStories = userStories.filter(
-		(s) => s.projectId === formData.projectId,
-	);
+	const filteredSprints = sprints.filter((s) => s.projectId === projectId);
+	const filteredStories = userStories.filter((s) => s.projectId === projectId);
+
+	if (projectNotFound) {
+		return (
+			<div className="p-8 max-w-7xl mx-auto text-center py-16">
+				<div className="text-5xl mb-4">🔍</div>
+				<h3 className="text-xl font-semibold text-gray-900 mb-2">
+					Proyecto no encontrado
+				</h3>
+				<p className="text-gray-600 mb-6">
+					El proyecto que buscas no existe o fue eliminado.
+				</p>
+				<Link
+					to="/projects"
+					className="inline-block bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
+				>
+					Ir a proyectos
+				</Link>
+			</div>
+		);
+	}
 
 	return (
 		<div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between mb-8">
 				<div>
-					<h2 className="text-3xl font-bold text-gray-900">Mis Tareas</h2>
+					<h2 className="text-3xl font-bold text-gray-900">Tareas</h2>
 					<p className="text-gray-600 mt-2">
-						Tablero Kanban de tus tareas asignadas
+						Proyecto:{" "}
+						<span className="font-medium text-gray-900">
+							{project?.name ?? "…"}
+						</span>
+						{projectId && (
+							<>
+								{" · "}
+								<Link
+									to={`/projects/${projectId}`}
+									className="text-blue-900 hover:underline"
+								>
+									Ir al proyecto
+								</Link>
+							</>
+						)}
 					</p>
 				</div>
 				<button
@@ -295,7 +347,11 @@ export default function Tasks() {
 																<h4 className="font-semibold text-gray-800">
 																	{task.title}
 																</h4>
-																{canDeleteTask(task, user, projects) && (
+																{canDeleteTask(
+																	task,
+																	user,
+																	project ? [project] : [],
+																) && (
 																	<button
 																		type="button"
 																		onClick={() => handleDeleteTask(task.id)}
@@ -362,36 +418,15 @@ export default function Tasks() {
 						/>
 					</div>
 					<div className="mb-4">
-						<label
-							htmlFor="task-project"
-							className="block text-sm font-medium text-gray-700 mb-2"
-						>
+						<span className="block text-sm font-medium text-gray-700 mb-2">
 							Proyecto
-						</label>
-						<select
-							id="task-project"
-							value={formData.projectId}
-							onChange={(e) =>
-								setFormData({
-									...formData,
-									projectId: e.target.value,
-									sprintId: "",
-									userStoryId: "",
-								})
-							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
-							required
-						>
-							<option value="">Selecciona un proyecto</option>
-							{projects.map((p) => (
-								<option key={p.id} value={p.id}>
-									{p.name}
-								</option>
-							))}
-						</select>
+						</span>
+						<p className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+							{project?.name ?? "…"}
+						</p>
 					</div>
 
-					{formData.projectId && (
+					{projectId && (
 						<>
 							<div className="mb-4">
 								<label

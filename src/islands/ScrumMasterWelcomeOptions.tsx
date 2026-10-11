@@ -44,11 +44,11 @@ export default function ScrumMasterWelcomeOptions({
 				</h2>
 				<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 					<a
-						href="/sprints"
+						href="/projects"
 						className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors flex flex-col items-center justify-center"
 					>
 						<span className="text-sm font-medium text-gray-700">
-							Gestionar Sprints
+							Ir a Proyectos
 						</span>
 					</a>
 				</div>

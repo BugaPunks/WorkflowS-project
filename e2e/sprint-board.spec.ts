@@ -65,8 +65,8 @@ test.describe("Sprint Kanban Board", () => {
 			},
 		});
 
-		// Go to Sprint Detail
-		await page.goto(`/sprints/${sprintId}`);
+		// Go to Sprint Detail (project-scoped route)
+		await page.goto(`/projects/${projectId}/sprints/${sprintId}`);
 	});
 
 	test("should display Kanban board and allow moving tasks", async ({
@@ -204,7 +204,7 @@ test.describe("Sprints list delete button visibility by role", () => {
 	}) => {
 		// Como PO: el botón debe verse en la tarjeta del sprint
 		await switchBrowserSession(page, po, po.token ?? "");
-		await page.goto("/sprints");
+		await page.goto(`/projects/${projectId}/sprints`);
 		const poCard = page
 			.locator(".bg-white")
 			.filter({ hasText: sprintName })
@@ -216,7 +216,7 @@ test.describe("Sprints list delete button visibility by role", () => {
 
 		// Como Dev: el botón no debe renderizarse
 		await switchBrowserSession(page, dev, dev.token ?? "");
-		await page.goto("/sprints");
+		await page.goto(`/projects/${projectId}/sprints`);
 		const devCard = page
 			.locator(".bg-white")
 			.filter({ hasText: sprintName })

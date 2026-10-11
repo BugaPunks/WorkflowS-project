@@ -86,7 +86,10 @@ export const projectAPI = {
 // ============ SPRINTS ============
 
 export const sprintAPI = {
-	getAll: () => apiRequest("/sprints"),
+	getAll: (queryParams?: { projectId?: string }) => {
+		const params = new URLSearchParams(queryParams as Record<string, string>);
+		return apiRequest(`/sprints?${params.toString()}`);
+	},
 	getById: (id: string) => apiRequest(`/sprints/${id}`),
 	create: (data: {
 		name: string;
@@ -128,7 +131,10 @@ export const taskAPI = {
 // ============ USER STORIES ============
 
 export const userStoryAPI = {
-	getAll: () => apiRequest("/user-stories"),
+	getAll: (queryParams?: { projectId?: string }) => {
+		const params = new URLSearchParams(queryParams as Record<string, string>);
+		return apiRequest(`/user-stories?${params.toString()}`);
+	},
 	getById: (id: string) => apiRequest(`/user-stories/${id}`),
 	create: (data: {
 		title: string;

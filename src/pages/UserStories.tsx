@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { projectAPI } from "@/api/client";
+import { Link, useParams } from "react-router-dom";
+import { projectAPI, userStoryAPI } from "@/api/client";
 import { Modal } from "@/components/Modal";
 import { useSession } from "@/hooks/useSession";
 
@@ -51,9 +52,11 @@ function statusSelectClassName(status: string): string {
 }
 
 export default function UserStories() {
+	const { projectId } = useParams<{ projectId: string }>();
 	const { session: user } = useSession();
 	const [stories, setStories] = useState<UserStory[]>([]);
-	const [projects, setProjects] = useState<Project[]>([]);
+	const [project, setProject] = useState<Project | null>(null);
+	const [projectNotFound, setProjectNotFound] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [showModal, setShowModal] = useState(false);
@@ -63,41 +66,52 @@ export default function UserStories() {
 		acceptance: "",
 		priority: "MEDIUM",
 		storyPoints: "",
-		projectId: "",
 	});
 
 	const loadStories = useCallback(async () => {
+		if (!projectId) {
+			setStories([]);
+			setIsLoading(false);
+			return;
+		}
 		try {
 			setIsLoading(true);
-			const response = await fetch("/api/user-stories");
-			if (!response.ok) throw new Error("Error al cargar historias");
-			const data = await response.json();
-			setStories(data.data || []);
+			setError(null);
+			const response = (await userStoryAPI.getAll({
+				projectId,
+			})) as UserStory[];
+			// Respaldo en cliente: nunca mostrar historias de otro proyecto.
+			setStories((response || []).filter((s) => s.projectId === projectId));
 		} catch (err) {
 			setError("Error al cargar las historias");
 			console.error(err);
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
-
-	const loadProjects = useCallback(async (userId?: string) => {
-		try {
-			const projectsData = (await projectAPI.getAll({
-				memberId: userId,
-			})) as Project[];
-			setProjects(projectsData || []);
-		} catch (err) {
-			console.error("Error al cargar proyectos:", err);
-		}
-	}, []);
+	}, [projectId]);
 
 	useEffect(() => {
-		if (user) {
-			loadStories();
-			loadProjects(user.id);
-		}
-	}, [user, loadStories, loadProjects]);
+		if (!user) return;
+
+		const fetchData = async () => {
+			if (!projectId) {
+				setProjectNotFound(true);
+				return;
+			}
+			// Cargar el proyecto para mostrar su nombre y detectar un id inexistente.
+			try {
+				const projectData = (await projectAPI.getById(projectId)) as Project;
+				setProject(projectData);
+			} catch (err) {
+				console.error("Error al cargar el proyecto:", err);
+				setProjectNotFound(true);
+			}
+
+			await loadStories();
+		};
+
+		fetchData();
+	}, [user, projectId, loadStories]);
 
 	const handleCreateStory = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -107,11 +121,13 @@ export default function UserStories() {
 				storyPoints.trim() === ""
 					? undefined
 					: Math.min(99, Math.max(0, Number.parseInt(storyPoints, 10) || 0));
+			if (!projectId) throw new Error("Proyecto no encontrado");
 			const response = await fetch("/api/user-stories", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					...restFormData,
+					projectId,
 					...(points !== undefined && { storyPoints: points }),
 				}),
 			});
@@ -122,7 +138,6 @@ export default function UserStories() {
 				acceptance: "",
 				priority: "MEDIUM",
 				storyPoints: "",
-				projectId: "",
 			});
 			setShowModal(false);
 			await loadStories();
@@ -202,6 +217,26 @@ export default function UserStories() {
 		return colors[priority] || "bg-gray-100 text-gray-700";
 	};
 
+	if (projectNotFound) {
+		return (
+			<div className="p-8 max-w-7xl mx-auto text-center py-16">
+				<div className="text-5xl mb-4">🔍</div>
+				<h3 className="text-xl font-semibold text-gray-900 mb-2">
+					Proyecto no encontrado
+				</h3>
+				<p className="text-gray-600 mb-6">
+					El proyecto que buscas no existe o fue eliminado.
+				</p>
+				<Link
+					to="/projects"
+					className="inline-block bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
+				>
+					Ir a proyectos
+				</Link>
+			</div>
+		);
+	}
+
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
@@ -211,7 +246,21 @@ export default function UserStories() {
 						Historias de Usuario
 					</h2>
 					<p className="text-gray-600 mt-2">
-						Define los requisitos de tu proyecto
+						Proyecto:{" "}
+						<span className="font-medium text-gray-900">
+							{project?.name ?? "…"}
+						</span>
+						{projectId && (
+							<>
+								{" · "}
+								<Link
+									to={`/projects/${projectId}`}
+									className="text-blue-900 hover:underline"
+								>
+									Ir al proyecto
+								</Link>
+							</>
+						)}
 					</p>
 				</div>
 				<button
@@ -274,7 +323,7 @@ export default function UserStories() {
 
 							<div className="flex items-center justify-between mt-auto">
 								<div className="flex items-center gap-2">
-									{!canManageStory(story, user, projects) && (
+									{!canManageStory(story, user, project ? [project] : []) && (
 										<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-900">
 											{story.status || "PENDING"}
 										</span>
@@ -286,7 +335,7 @@ export default function UserStories() {
 									)}
 								</div>
 								<div className="flex items-center gap-2">
-									{canManageStory(story, user, projects) && (
+									{canManageStory(story, user, project ? [project] : []) && (
 										<select
 											value={
 												story.status === "COMPLETED" ? "COMPLETED" : "BACKLOG"
@@ -301,7 +350,7 @@ export default function UserStories() {
 											<option value="COMPLETED">Completada</option>
 										</select>
 									)}
-									{canDeleteStory(story, user, projects) && (
+									{canDeleteStory(story, user, project ? [project] : []) && (
 										<button
 											type="button"
 											onClick={() => handleDeleteStory(story.id)}
@@ -345,28 +394,12 @@ export default function UserStories() {
 			>
 				<form onSubmit={handleCreateStory}>
 					<div className="mb-4">
-						<label
-							htmlFor="story-project"
-							className="block text-sm font-medium text-gray-700 mb-2"
-						>
+						<span className="block text-sm font-medium text-gray-700 mb-2">
 							Proyecto
-						</label>
-						<select
-							id="story-project"
-							value={formData.projectId}
-							onChange={(e) =>
-								setFormData({ ...formData, projectId: e.target.value })
-							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
-							required
-						>
-							<option value="">Selecciona un proyecto</option>
-							{projects.map((p) => (
-								<option key={p.id} value={p.id}>
-									{p.name}
-								</option>
-							))}
-						</select>
+						</span>
+						<p className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+							{project?.name ?? "…"}
+						</p>
 					</div>
 					<div className="mb-4">
 						<label

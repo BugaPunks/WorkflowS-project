@@ -17,52 +17,38 @@ test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 	test("Debe permitir crear una historia de usuario con criterios de aceptación", async ({
 		page,
 	}) => {
-		// 1. Navigate to User Stories (Already logged in via beforeEach)
-		await page.goto("/user-stories");
-		await expect(page).toHaveURL(/\/user-stories/);
-
-		// 2. Open Create Modal
-		await page.getByRole("button", { name: "+ Nueva Historia" }).click();
-		await expect(
-			page.getByRole("heading", { name: "Crear Nueva Historia" }),
-		).toBeVisible();
-
-		// 3. Fill Form
 		const timestamp = Date.now();
 		const storyTitle = `Historia Test ${timestamp}`;
+		const projectName = `Project For Backlog ${timestamp}`;
 
-		// Select Project (assuming at least one exists, or we create one)
-		// We might need to ensure a project exists first.
-		// If the dropdown is empty, this will fail.
-		// Let's create a project via API or UI if needed.
-		// For robustness, let's assume we need to create one if none exist?
-		// But for now, let's try to select option 1.
-		const projectSelect = page.locator("#story-project");
-		// Wait for options to be populated
-		// await page.waitForTimeout(1000); // Basic wait, better to wait for selector
-
-		// Check if there are options. If not, we might need to create a project.
-		// Since we use a fresh user, they might not have projects!
-		// ADMINs see all projects? Or only theirs?
-		// If new user, we must create a project first.
-
+		// 1. Create a project to host the user story, then open its backlog
 		await page.goto("/projects");
 		await page.getByRole("button", { name: "Nuevo Proyecto" }).click();
-		await page.fill('input[name="name"]', `Project For Backlog ${timestamp}`);
+		await page.fill('input[name="name"]', projectName);
 		await page.fill('textarea[name="description"]', "Desc");
 		await page
 			.getByRole("button", { name: "Crear Proyecto", exact: true })
 			.click();
 
-		// Now go back to stories
-		await page.goto("/user-stories");
+		await page
+			.locator(".bg-white")
+			.filter({ hasText: projectName })
+			.first()
+			.getByRole("button", { name: "Ver Proyecto" })
+			.click();
+		const projectId = page.url().split("/projects/")[1];
+		await page.goto(`/projects/${projectId}/user-stories`);
+		await expect(page).toHaveURL(
+			new RegExp(`/projects/${projectId}/user-stories`),
+		);
+
+		// Open Create Modal (project is implicit from the route)
 		await page.getByRole("button", { name: "+ Nueva Historia" }).click();
+		await expect(
+			page.getByRole("heading", { name: "Crear Nueva Historia" }),
+		).toBeVisible();
 
-		await projectSelect.waitFor({ state: "visible" });
-		// Ensure options are loaded
-		await expect(projectSelect.locator("option")).not.toHaveCount(1); // Should have at least default + 1 project
-		await projectSelect.selectOption({ index: 1 }); // Select first actual project
-
+		// Fill Form
 		await page.fill("#story-title", storyTitle);
 		await page.fill(
 			"#story-desc",

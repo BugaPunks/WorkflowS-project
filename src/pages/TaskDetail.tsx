@@ -23,7 +23,11 @@ interface User {
 
 export default function TaskDetail() {
 	const navigate = useNavigate();
-	const { id } = useParams<{ id: string }>();
+	const { projectId, taskId } = useParams<{
+		projectId: string;
+		taskId: string;
+	}>();
+	const backToTasks = projectId ? `/projects/${projectId}/tasks` : "/projects";
 	const [user, setUser] = useState<User | null>(null);
 	const [task, setTask] = useState<Task | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -36,10 +40,10 @@ export default function TaskDetail() {
 	});
 
 	const loadTask = useCallback(async () => {
-		if (!id) return;
+		if (!taskId) return;
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/tasks/${id}`);
+			const response = await fetch(`/api/tasks/${taskId}`);
 			if (!response.ok) throw new Error("Tarea no encontrada");
 			const data = await response.json();
 			setTask(data.data);
@@ -54,7 +58,7 @@ export default function TaskDetail() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [id]);
+	}, [taskId]);
 
 	useEffect(() => {
 		const storedUser = localStorage.getItem("user");
@@ -68,9 +72,9 @@ export default function TaskDetail() {
 
 	const handleUpdate = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!id) return;
+		if (!taskId) return;
 		try {
-			const response = await fetch(`/api/tasks/${id}`, {
+			const response = await fetch(`/api/tasks/${taskId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(editForm),
@@ -106,7 +110,7 @@ export default function TaskDetail() {
 					</div>
 					<button
 						type="button"
-						onClick={() => navigate("/tasks")}
+						onClick={() => navigate(backToTasks)}
 						className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
 					>
 						Volver a Tareas
@@ -136,7 +140,7 @@ export default function TaskDetail() {
 				<div className="mb-8">
 					<button
 						type="button"
-						onClick={() => navigate("/tasks")}
+						onClick={() => navigate(backToTasks)}
 						className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
 					>
 						← Volver a Tareas

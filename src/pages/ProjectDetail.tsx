@@ -5,7 +5,7 @@ import {
 	type DropResult,
 } from "@hello-pangea/dnd";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Modal } from "@/components/Modal";
 import RetrospectiveBoard from "@/components/RetrospectiveBoard";
 import { useSession } from "@/hooks/useSession";
@@ -372,6 +372,26 @@ export default function ProjectDetail() {
 					<div>
 						<h1 className="text-4xl font-bold text-gray-900">{project.name}</h1>
 						<p className="text-gray-600 mt-2">{project.description}</p>
+						<div className="mt-3 flex flex-wrap gap-4">
+							<Link
+								to={`/projects/${project.id}/sprints`}
+								className="text-sm text-blue-950 hover:text-blue-800 font-medium"
+							>
+								Ver Sprints
+							</Link>
+							<Link
+								to={`/projects/${project.id}/tasks`}
+								className="text-sm text-blue-950 hover:text-blue-800 font-medium"
+							>
+								Ver Tareas
+							</Link>
+							<Link
+								to={`/projects/${project.id}/user-stories`}
+								className="text-sm text-blue-950 hover:text-blue-800 font-medium"
+							>
+								Ver Historias
+							</Link>
+						</div>
 						{isProjectAdmin && (
 							<button
 								type="button"

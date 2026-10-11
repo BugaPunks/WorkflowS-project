@@ -28,9 +28,15 @@ const userStoryUpdateSchema = z.object({
 });
 
 // GET todos los User Stories - any authenticated
-router.get("/", authenticateToken, async (_req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
 	try {
+		const { projectId } = req.query;
+		const where: Record<string, string> = {};
+
+		if (projectId) where.projectId = String(projectId);
+
 		const userStories = await prisma.userStory.findMany({
+			where,
 			include: {
 				project: {
 					select: { id: true, name: true },

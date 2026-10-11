@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { projectAPI, sprintAPI } from "@/api/client";
 import { Modal } from "@/components/Modal";
 import { useSession } from "@/hooks/useSession";
@@ -38,51 +38,63 @@ function canManageSprints(
 
 export default function Sprints() {
 	const navigate = useNavigate();
+	const { projectId } = useParams<{ projectId: string }>();
 	const { session: user } = useSession();
 	const [sprints, setSprints] = useState<Sprint[]>([]);
+	const [project, setProject] = useState<Project | null>(null);
+	const [projectNotFound, setProjectNotFound] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [showModal, setShowModal] = useState(false);
-	const [projects, setProjects] = useState<Project[]>([]);
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
 		startDate: "",
 		endDate: "",
-		projectId: "",
 	});
 
 	const loadSprints = useCallback(async () => {
+		if (!projectId) {
+			setSprints([]);
+			setIsLoading(false);
+			return;
+		}
 		try {
 			setIsLoading(true);
 			setError(null);
-			const sprintsData = (await sprintAPI.getAll()) as Sprint[];
-			setSprints(sprintsData || []);
+			const sprintsData = (await sprintAPI.getAll({
+				projectId,
+			})) as Sprint[];
+			// Respaldo en cliente: nunca mostrar sprints de otro proyecto.
+			setSprints((sprintsData || []).filter((s) => s.projectId === projectId));
 		} catch (err) {
 			setError("Error al cargar los sprints");
 			console.error(err);
 		} finally {
 			setIsLoading(false);
 		}
-	}, []);
+	}, [projectId]);
 
 	useEffect(() => {
-		// Cargar proyectos y sprints
 		const fetchData = async () => {
-			// Cargar proyectos
+			if (!projectId) {
+				setProjectNotFound(true);
+				return;
+			}
+			// Cargar el proyecto para mostrar su nombre y detectar un id inexistente.
 			try {
-				const projectsData = (await projectAPI.getAll()) as Project[];
-				setProjects(projectsData || []);
-			} catch (error) {
-				console.error("Error al cargar proyectos:", error);
+				const projectData = (await projectAPI.getById(projectId)) as Project;
+				setProject(projectData);
+			} catch (err) {
+				console.error("Error al cargar el proyecto:", err);
+				setProjectNotFound(true);
 			}
 
-			// Cargar sprints
 			await loadSprints();
 		};
 
 		fetchData();
-	}, [loadSprints]);
+	}, [projectId, loadSprints]);
 
 	const handleCreateSprint = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -91,8 +103,8 @@ export default function Sprints() {
 				throw new Error("Usuario no autenticado");
 			}
 
-			if (!formData.projectId) {
-				throw new Error("Debe seleccionar un proyecto");
+			if (!projectId) {
+				throw new Error("Proyecto no encontrado");
 			}
 
 			const sprintData = {
@@ -100,7 +112,7 @@ export default function Sprints() {
 				description: formData.description,
 				startDate: formData.startDate,
 				endDate: formData.endDate,
-				projectId: formData.projectId, // Usar el proyecto seleccionado
+				projectId,
 			};
 
 			await sprintAPI.create(sprintData);
@@ -109,7 +121,6 @@ export default function Sprints() {
 				description: "",
 				startDate: "",
 				endDate: "",
-				projectId: "",
 			});
 			setShowModal(false);
 			await loadSprints();
@@ -154,6 +165,27 @@ export default function Sprints() {
 		return colors[status] || "bg-gray-100 text-gray-700";
 	};
 
+	if (projectNotFound) {
+		return (
+			<div className="p-8 max-w-7xl mx-auto text-center py-16">
+				<div className="text-5xl mb-4">🔍</div>
+				<h3 className="text-xl font-semibold text-gray-900 mb-2">
+					Proyecto no encontrado
+				</h3>
+				<p className="text-gray-600 mb-6">
+					El proyecto que buscas no existe o fue eliminado.
+				</p>
+				<button
+					type="button"
+					onClick={() => navigate("/projects")}
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
+				>
+					Ir a proyectos
+				</button>
+			</div>
+		);
+	}
+
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
@@ -161,7 +193,21 @@ export default function Sprints() {
 				<div>
 					<h2 className="text-3xl font-bold text-gray-900">Sprints</h2>
 					<p className="text-gray-600 mt-2">
-						Gestiona los sprints de tus proyectos
+						Proyecto:{" "}
+						<span className="font-medium text-gray-900">
+							{project?.name ?? "…"}
+						</span>
+						{projectId && (
+							<>
+								{" · "}
+								<Link
+									to={`/projects/${projectId}`}
+									className="text-blue-900 hover:underline"
+								>
+									Ir al proyecto
+								</Link>
+							</>
+						)}
 					</p>
 				</div>
 				<button
@@ -232,12 +278,16 @@ export default function Sprints() {
 							<div className="flex gap-2">
 								<button
 									type="button"
-									onClick={() => navigate(`/sprints/${sprint.id}`)}
+									onClick={() =>
+										navigate(
+											`/projects/${sprint.projectId}/sprints/${sprint.id}`,
+										)
+									}
 									className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 font-medium text-sm"
 								>
 									Ver Detalles
 								</button>
-								{canManageSprints(user, projects, sprint) && (
+								{canManageSprints(user, project ? [project] : [], sprint) && (
 									<button
 										type="button"
 										onClick={() => handleDeleteSprint(sprint.id)}
@@ -280,28 +330,12 @@ export default function Sprints() {
 			>
 				<form onSubmit={handleCreateSprint}>
 					<div className="mb-4">
-						<label
-							htmlFor="sprint-project"
-							className="block text-sm font-medium text-gray-700 mb-2"
-						>
+						<span className="block text-sm font-medium text-gray-700 mb-2">
 							Proyecto
-						</label>
-						<select
-							id="sprint-project"
-							value={formData.projectId}
-							onChange={(e) =>
-								setFormData({ ...formData, projectId: e.target.value })
-							}
-							className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
-							required
-						>
-							<option value="">Seleccione un proyecto</option>
-							{projects.map((project) => (
-								<option key={project.id} value={project.id}>
-									{project.name}
-								</option>
-							))}
-						</select>
+						</span>
+						<p className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900">
+							{project?.name ?? "…"}
+						</p>
 					</div>
 					<div className="mb-4">
 						<label
