@@ -35,7 +35,7 @@ El sistema SHALL ofrecer las vistas de listado de Sprints (`/projects/:projectId
 
 #### Scenario: El detalle de sprint reside bajo el proyecto
 - **WHEN** un usuario autenticado navega a `/projects/:projectId/sprints/:sprintId`
-- **THEN** se muestra el detalle del sprint con su botón "volver" apuntando a la lista de sprints de ese proyecto
+- **THEN** se muestra el detalle del sprint con un breadcrumb cuyo enlace "Sprints" apunta a la lista de sprints de ese proyecto
 
 ### Requirement: Cada vista de proyecto lista solo sus propios registros
 Las páginas de Sprints, Tareas e Historias de ámbito de proyecto SHALL leer el `projectId` de la ruta y SHALL renderizar únicamente los sprints, tareas o historias cuyo `projectId` coincida. Mientras el `projectId` no esté resuelto o los datos de ese proyecto no estén cargados, la página SHALL mostrarse vacía o en carga, sin mostrar registros de otros proyectos (fail-closed).
@@ -79,15 +79,15 @@ La navegación lateral y los panels de bienvenida para todos los roles (incluido
 - **WHEN** un `TEAM_DEVELOPER` visualiza su panel de bienvenida
 - **THEN** ningún acceso rápido enlaza a `/tasks` (ruta global eliminada)
 
-### Requirement: Los botones "volver" de los detalles regresan al proyecto
-Los detalles de sprint y de tarea SHALL ofrecer un botón "volver" que regrese al contexto del proyecto: la lista de sprints del proyecto (`/projects/:projectId/sprints`) o la lista de tareas del proyecto (`/projects/:projectId/tasks`) según corresponda, no a un listado global.
+### Requirement: Los breadcrumbs de los detalles regresan al proyecto
+Los detalles de sprint y de tarea SHALL ofrecer un breadcrumb de navegación (que reemplaza el botón "volver") para regresar al contexto del proyecto: la lista de sprints del proyecto (`/projects/:projectId/sprints`) o la lista de tareas del proyecto (`/projects/:projectId/tasks`) según corresponda, no a un listado global.
 
-#### Scenario: Volver desde el detalle de sprint
-- **WHEN** un usuario visualiza `/projects/:projectId/sprints/:sprintId` y pulsa "volver"
+#### Scenario: Volver desde el detalle de sprint vía breadcrumb
+- **WHEN** un usuario visualiza `/projects/:projectId/sprints/:sprintId` y pulsa el enlace al listado de sprints en el breadcrumb
 - **THEN** el sistema navega a `/projects/:projectId/sprints`
 
-#### Scenario: Volver desde el detalle de tarea
-- **WHEN** un usuario visualiza `/projects/:projectId/tasks/:taskId` y pulsa "volver"
+#### Scenario: Volver desde el detalle de tarea vía breadcrumb
+- **WHEN** un usuario visualiza `/projects/:projectId/tasks/:taskId` y pulsa el enlace al listado de tareas en el breadcrumb
 - **THEN** el sistema navega a `/projects/:projectId/tasks`
 
 ### Requirement: Los listados de la API se pueden filtrar por proyecto

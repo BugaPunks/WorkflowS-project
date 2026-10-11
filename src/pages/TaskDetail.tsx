@@ -17,13 +17,6 @@ interface Task {
 	};
 }
 
-interface User {
-	id: string;
-	name: string;
-	email: string;
-	role: string;
-}
-
 export default function TaskDetail() {
 	const navigate = useNavigate();
 	const { projectId, taskId } = useParams<{
@@ -31,7 +24,6 @@ export default function TaskDetail() {
 		taskId: string;
 	}>();
 	const backToTasks = projectId ? `/projects/${projectId}/tasks` : "/projects";
-	const [_user, setUser] = useState<User | null>(null);
 	const [task, setTask] = useState<Task | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -64,14 +56,8 @@ export default function TaskDetail() {
 	}, [taskId]);
 
 	useEffect(() => {
-		const storedUser = localStorage.getItem("user");
-		if (!storedUser) {
-			navigate("/login");
-			return;
-		}
-		setUser(JSON.parse(storedUser));
 		loadTask();
-	}, [navigate, loadTask]);
+	}, [loadTask]);
 
 	const handleUpdate = async (e: React.FormEvent) => {
 		e.preventDefault();

@@ -17,7 +17,7 @@ export function PageHeader({
 	return (
 		<div className="mb-8">
 			<Breadcrumbs items={breadcrumbs} />
-			<div className="flex justify-between items-start">
+			<div className="flex flex-wrap justify-between items-start gap-4">
 				<div>
 					<h1 className="text-2xl font-bold text-gray-900">{title}</h1>
 					{subtitle && <div className="text-gray-500 mt-1">{subtitle}</div>}

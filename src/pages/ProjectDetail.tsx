@@ -418,7 +418,7 @@ export default function ProjectDetail() {
 			/>
 
 			{/* Navigation Tabs */}
-			<div className="flex gap-2 mb-6 border-b pb-4">
+			<div className="flex flex-wrap gap-2 mb-6 border-b pb-4">
 				<button
 					type="button"
 					onClick={() => setActiveTab("board")}

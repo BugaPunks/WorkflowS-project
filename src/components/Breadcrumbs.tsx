@@ -13,7 +13,7 @@ export interface BreadcrumbsProps {
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
 	return (
 		<nav aria-label="Breadcrumb" className="mb-4">
-			<ol className="flex items-center space-x-2 text-sm text-gray-500">
+			<ol className="flex items-center text-sm text-gray-500">
 				{items.map((item, index) => {
 					const isLast = index === items.length - 1;
 					// Use label + index for a more stable key, assuming labels might be non-unique

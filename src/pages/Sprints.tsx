@@ -187,6 +187,8 @@ export default function Sprints() {
 		);
 	}
 
+	const activeSprints = sprints.filter((s) => s.status === "ACTIVE").length;
+
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
@@ -200,7 +202,7 @@ export default function Sprints() {
 					{ label: "Sprints" },
 				]}
 				title="Sprints"
-				subtitle={`${sprints.length} sprints · ${sprints.filter((s) => s.status === "ACTIVE").length} activos`}
+				subtitle={`${sprints.length} ${sprints.length === 1 ? "sprint" : "sprints"} · ${activeSprints} ${activeSprints === 1 ? "activo" : "activos"}`}
 				actions={
 					<button
 						type="button"

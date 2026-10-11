@@ -31,7 +31,7 @@ El sistema SHALL ofrecer las vistas de listado de Sprints (`/projects/:projectId
 
 #### Scenario: El detalle de sprint reside bajo el proyecto
 - **WHEN** un usuario autenticado navega a `/projects/:projectId/sprints/:sprintId`
-- **THEN** se muestra el detalle del sprint con su botón "volver" apuntando a la lista de sprints de ese proyecto
+- **THEN** se muestra el detalle del sprint con un breadcrumb cuyo enlace "Sprints" apunta a la lista de sprints de ese proyecto
 
 ### Requirement: Cada vista de proyecto lista solo sus propios registros
 Las páginas de Sprints, Tareas e Historias de ámbito de proyecto SHALL leer el `projectId` de la ruta y SHALL renderizar únicamente los sprints, tareas o historias cuyo `projectId` coincida. Mientras el `projectId` no esté resuelto o los datos de ese proyecto no estén cargados, la página SHALL mostrarse vacía o en carga, sin mostrar registros de otros proyectos (fail-closed).
