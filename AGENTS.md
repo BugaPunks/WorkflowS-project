@@ -7,6 +7,72 @@ las skills disponibles y cómo debe comportarse el agente con cada comando.
 
 > Si vas a implementar o proponer un cambio funcional, **el flujo obligatorio es OpenSpec**.
 > No empieces a escribir código sin un change propuesto y aprobado.
+>
+> ⚡ **Si corres desatendido (Jules, CI, background), lee primero la sección 0**:
+> "propuesto y aprobado" no significa esperar a un humano, significa crear tú el change
+> y continuar sin bloquear la sesión.
+
+---
+
+## 0. Modo de ejecución: interactivo vs autónomo
+
+**Lee esto antes que nada.** Identifica en qué modo estás corriendo:
+
+- **Interactivo** (opencode, Claude Code, o cualquier chat con el usuario delante):
+  puedes parar y preguntar, porque hay alguien que responde en el momento.
+- **Autónomo / desatendido** (p. ej. **Google Jules**, CI, ejecuciones en background):
+  **no hay nadie mirando la pantalla**. Si paras a preguntar y nadie responde, la sesión
+  se queda colgada, el plan caduca y el trabajo puede acabar descartándose.
+
+Si no sabes en qué modo estás y no hay un humano respondiendo en el momento,
+**asume modo autónomo**.
+
+> 🔴 **Regla de precedencia (importante)**
+>
+> En **modo autónomo**, esta sección **anula** cualquier "pregunta", "pausa",
+> "pide confirmación", "espera", "wait for guidance" o "What would you like to do?" del
+> resto de este archivo — **incluidos los `SKILL.md` y los `workflows` de `.agent/`**
+> (§4). Es decir: aunque en la sección 4 o en `.agent/workflows/opsx-apply.md` se lea
+> *"Pausa y pregunta"* o *"report and wait for guidance"*, **en modo autónomo NO pares y
+> NO preguntes**.
+
+### Cómo actuar en modo autónomo
+
+1. **Nunca esperes input del usuario.** Prohibido cerrar un turno con una pregunta abierta
+   ("¿Continúo?", "What would you like to do?", "Pausa y pregunta").
+2. **Ante ambigüedad, decide y documenta.** Elige la opción más conservadora, impleméntala
+   y registra el supuesto en `openspec/changes/<change>/decisions.md` (créalo si no existe)
+   con este formato:
+
+   ```md
+   ## DECISIÓN: <título corto>
+   - **Contexto**: qué era ambiguo o qué falló.
+   - **Decisión**: qué hiciste.
+   - **Motivo**: por qué es la opción más segura.
+   - **Impacto**: qué revisar si el usuario prefiere lo contrario.
+   ```
+
+3. **Ante errores, bloqueos o tests en rojo**: intenta arreglarlos. Si no puedes,
+   **no abortes ni pares la sesión**: salta esa tarea, déjala sin marcar en `tasks.md`,
+   sigue con las demás y lista los fallos al final.
+4. **Avanza tú el flujo.** Si un artefacto OpenSpec queda desactualizado, actualízalo
+   (o anótalo en `decisions.md`) y continúa. No esperes aprobación para pasar de
+   `/opsx-propose` a `/opsx-apply`.
+5. **Detente SOLO ante acciones irreversibles o fuera de alcance**:
+   - borrado masivo de datos o de archivos,
+   - migraciones destructivas (`migrate reset`, `DROP`, borrar migraciones),
+   - tocar secretos o `.env`,
+   - `git push`, `git reset --hard` o reescribir historial,
+   - publicar en `main`/`master`.
+
+   En ese caso: **no lo hagas**, déjalo anotado en `decisions.md` y termina el resto del
+   trabajo.
+6. **Entrega siempre al cerrar el turno**: diff aplicado, estado real de `tasks.md`
+   (`N/M`), `decisions.md` (si hubo decisiones) y el resultado de `npm run check`,
+   `npx tsc --noEmit` y `npm run test`.
+
+> En **modo interactivo** se mantiene el comportamiento de la sección 4 (preguntar cuando
+> de verdad aporte). Esta sección 0 solo cambia las reglas cuando no hay un humano delante.
 
 ---
 
@@ -213,7 +279,8 @@ y los workflows en `.agent/workflows/`. **Lee el archivo correspondiente antes d
 | `/opsx-archive` | `.agent/skills/openspec-archive-change/SKILL.md` + `.agent/workflows/opsx-archive.md` |
 
 **Paso 0 en todos los casos**: identifica el change con `openspec list --json`
-(o infiere del contexto y confirma). Nunca adivines ni auto-selecciones si hay ambigüedad.
+(o infiere del contexto y confirma). Nunca adivines ni auto-selecciones si hay ambigüedad;
+en **modo autónomo** (sección 0) elige tú el change más probable y continúa sin preguntar.
 
 ### `/opsx-explore` — Modo exploración (pensar, NO implementar)
 
@@ -241,6 +308,8 @@ listo para implementar.
 
 **Qué hacer**:
 1. Si no hay input, **pregunta** qué quiere construir (no avances sin entenderlo).
+   En **modo autónomo** (sección 0): si falta contexto, infiere lo más razonable,
+   documenta el supuesto en `decisions.md` y sigue sin preguntar.
    Deriva un nombre en kebab-case (ej. "add user auth" → `add-user-auth`).
 2. Crea el change: `openspec new change "<name>"`.
 3. Descubre el orden de artefactos: `openspec status --change "<name>" --json`
@@ -256,34 +325,41 @@ listo para implementar.
    "Todo listo. Ejecuta `/opsx-apply` para implementar."
 
 **Guardrails**: crea **todos** los artefactos requeridos; si el contexto es crítico y
-ambiguo, pregunta; si el change ya existe, pregunta si continuar o crear otro; verifica
-que cada archivo exista tras escribirlo.
+ambiguo, pregunta **solo en modo interactivo**; si el change ya existe, pregunta si
+continuar o crear otro **solo en modo interactivo**; en **modo autónomo** (sección 0)
+decide, documéntalo en `decisions.md` y continúa. Verifica que cada archivo exista tras
+escribirlo.
 
 ### `/opsx-apply` — Implementar las tareas
 
 **Cuándo**: empezar, continuar o terminar tareas de un change.
 
 **Qué hacer**:
-1. Selecciona el change (nombre, contexto, o único activo; si hay duda, pregunta).
+1. Selecciona el change (nombre, contexto, o único activo; si hay duda, pregunta
+   **solo en modo interactivo**; en **modo autónomo** elige el más probable y sigue).
    Anuncia: "Using change: <name>" y cómo cambiarlo.
 2. Lee el estado: `openspec status --change "<name>" --json`.
 3. Pide instrucciones: `openspec instructions apply --change "<name>" --json`
    (devuelve `contextFiles`, progreso y lista de tareas).
-   - `state: "blocked"` → faltan artefactos, avisa y sugiere continuar la propuesta.
+   - `state: "blocked"` → faltan artefactos; en modo autónomo créalos y continúa;
+     en interactivo avisa y sugiere continuar la propuesta.
    - `state: "all_done"` → felicita y sugiere archivar.
 4. **Lee todos los `contextFiles`** (proposal, specs, design, tasks) antes de tocar código.
 5. Muestra progreso "N/M tasks complete" y el resumen pendiente.
 6. Implementa tarea por tarea:
    - Anuncia cuál trabajas, aplica cambios **mínimos y enfocados**, y marca
      inmediatamente en `tasks.md`: `- [ ]` → `- [x]`.
-   - **Pausa y pregunta** si: la tarea es ambigua, aparece un problema de diseño
-     (sugiere actualizar artefactos), hay un error/bloqueo, o el usuario interrumpe.
+   - Si la tarea es ambigua, aparece un problema de diseño (sugiere actualizar artefactos),
+     hay un error/bloqueo, o el usuario interrumpe: **en modo interactivo** pausa y
+     pregunta; **en modo autónomo** (sección 0) decide la opción más conservadora,
+     documéntala en `decisions.md` y **continúa sin detenerte**.
    - No adivines ni inventes requisitos.
 7. Al terminar o pausar, muestra el estado (completadas en la sesión, N/M, siguiente paso).
 
 **Guardrails**: no asumas nombres de archivo, usa los `contextFiles` del CLI; mantén el
 alcance por tarea; actualiza el checkbox al terminar cada tarea; deja los checks de calidad
-(`npm run check`, `npx tsc --noEmit`, `npm run test`) en verde.
+(`npm run check`, `npx tsc --noEmit`, `npm run test`) en verde. En **modo autónomo**
+(sección 0) no te detengas por errores ni ambigüedades: decide, documenta y sigue.
 
 ### `/opsx-archive` — Archivar un change completado
 
@@ -291,6 +367,8 @@ alcance por tarea; actualiza el checkbox al terminar cada tarea; deja los checks
 
 **Qué hacer**:
 1. Si no hay nombre, **pregunta** cuál archivar (solo changes activos). **No adivines.**
+   En **modo autónomo** (sección 0): si hay un único change con todas las tareas hechas,
+   archívalo sin preguntar.
 2. Estado: `openspec status --change "<name>" --json`.
    - Si hay artefactos no `done` → advierte y pide confirmación para continuar.
 3. Revisa `tasks.md`: cuenta `- [ ]` vs `- [x]`. Si hay tareas abiertas → advierte y
@@ -308,7 +386,9 @@ alcance por tarea; actualiza el checkbox al terminar cada tarea; deja los checks
 
 **Guardrails**: preserva los archivos del change (incl. metadatos) al mover; los avisos
 no deben bloquear; si hay deltas, **siempre** corre la evaluación de sync y muestra el
-resumen combinado antes de preguntar.
+resumen combinado antes de preguntar. En **modo autónomo** (sección 0): archiva solo si
+`tasks.md` está completo; si quedan tareas abiertas, **no** archives, deja el aviso en
+`decisions.md` y termina sin preguntar.
 
 ---
 
@@ -330,6 +410,9 @@ Idea / problema
 /opsx-archive   ──► sincroniza deltas a openspec/specs/ y mueve a changes/archive/
 ```
 
+> En **modo autónomo** (sección 0) recorres tú toda la cadena sin parar:
+> `propose` → `apply` y, si todo queda en verde, `archive`. Sin esperar aprobación humana.
+
 ### Reglas transversales
 
 1. **OpenSpec manda**: descubre siempre rutas y estados con el CLI (`--json`),
@@ -347,4 +430,7 @@ Idea / problema
 9. **`<button>` con `type` explícito**: nunca omitas `type` en un botón (`type="button"`
    para acciones, `type="submit"` solo para enviar formularios). Omitirlo lo convierte en
    `submit` y puede recargar la página; Biome lo exige.
+10. **Modo autónomo**: si no hay un humano respondiendo en el momento (Jules, CI,
+    background), aplica la **sección 0**: no preguntes, decide y documenta en
+    `decisions.md`, y solo deténte ante acciones irreversibles.
 x
