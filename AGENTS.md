@@ -415,12 +415,10 @@
   
   ### Reglas transversales
   
-  1. **OpenSpec manda**: descubre siempre rutas y estados con el CLI (`--json`),
-     no asumas estructura ni contenido.
+  1. **OpenSpec manda**: descubre siempre rutas y estados con el CLI (`--json`), no asumas estructura ni contenido.
   2. **No implementes sin change**: explorar ≠ implementar. La implementación vive en `/opsx-apply`.
   3. **Specs vivas**: no edites `openspec/specs/**` durante el trabajo; se actualizan al archivar.
-  4. **Deltas bien formados**: usa `## ADDED|MODIFIED|REMOVED Requirements` con
-     `### Requirement:` y escenarios `#### Scenario:` (con **WHEN**/**THEN**).
+  4. **Deltas bien formados**: usa `## ADDED|MODIFIED|REMOVED Requirements` con `### Requirement:` y escenarios `#### Scenario:` (con **WHEN**/**THEN**).
   5. **Trazabilidad**: `proposal` (qué/por qué) → `design` (cómo) → `tasks` (pasos) → specs (contrato).
   6. **Calidad**: antes de cerrar cualquier tarea, `npm run check`, `npx tsc --noEmit` y
      `npm run test` deben pasar. Para cambios de UI, considerar `npm run e2e`.
