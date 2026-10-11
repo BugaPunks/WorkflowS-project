@@ -50,4 +50,3 @@
 
 - [ ] 8.1 Ejecutar `npm run check` y corregir errores de lint/biome.
 - [ ] 8.2 Ejecutar `npx tsc --noEmit` y corregir errores de tipos.
-- [ ] 8.3 Verificación manual por rol (ADMIN, PO, SM, Dev): navegar a `/projects/:id/{sprints,tasks,user-stories}` y confirmar que cada vista lista solo registros del proyecto, que las redirecciones de rutas globales funcionan, y que el detalle "volver" regresa al proyecto.
