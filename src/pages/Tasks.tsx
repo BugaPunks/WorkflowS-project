@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { projectAPI, sprintAPI, taskAPI, userStoryAPI } from "@/api/client";
 import { Modal } from "@/components/Modal";
+import { PageHeader } from "@/components/PageHeader";
 import { useSession } from "@/hooks/useSession";
 
 interface Task {
@@ -263,35 +264,27 @@ export default function Tasks() {
 	return (
 		<div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
 			{/* Header */}
-			<div className="flex items-center justify-between mb-8">
-				<div>
-					<h2 className="text-3xl font-bold text-gray-900">Tareas</h2>
-					<p className="text-gray-600 mt-2">
-						Proyecto:{" "}
-						<span className="font-medium text-gray-900">
-							{project?.name ?? "…"}
-						</span>
-						{projectId && (
-							<>
-								{" · "}
-								<Link
-									to={`/projects/${projectId}`}
-									className="text-blue-900 hover:underline"
-								>
-									Ir al proyecto
-								</Link>
-							</>
-						)}
-					</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => setShowModal(true)}
-					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
-				>
-					+ Nueva Tarea
-				</button>
-			</div>
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Proyectos", to: "/projects" },
+					{
+						label: project?.name ?? "...",
+						to: projectId ? `/projects/${projectId}` : undefined,
+					},
+					{ label: "Tareas" },
+				]}
+				title="Tareas"
+				subtitle={`${tasks.length} tareas`}
+				actions={
+					<button
+						type="button"
+						onClick={() => setShowModal(true)}
+						className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
+					>
+						+ Nueva Tarea
+					</button>
+				}
+			/>
 
 			{/* Error Message */}
 			{error && (
@@ -365,10 +358,7 @@ export default function Tasks() {
 															<p className="text-sm text-gray-600 mb-3 line-clamp-2">
 																{task.description}
 															</p>
-															<div className="flex justify-between items-center text-xs text-gray-500">
-																<span className="bg-blue-50 text-blue-900 px-2 py-1 rounded">
-																	{task.project?.name}
-																</span>
+															<div className="flex justify-end items-center text-xs text-gray-500">
 																{task.deadline && (
 																	<span>
 																		{new Date(

@@ -75,15 +75,17 @@ La navegación lateral y los panels de bienvenida para todos los roles (incluido
 - **WHEN** un `TEAM_DEVELOPER` visualiza su panel de bienvenida
 - **THEN** ningún acceso rápido enlaza a `/tasks` (ruta global eliminada)
 
-### Requirement: Los botones "volver" de los detalles regresan al proyecto
-Los detalles de sprint y de tarea SHALL ofrecer un botón "volver" que regrese al contexto del proyecto: la lista de sprints del proyecto (`/projects/:projectId/sprints`) o la lista de tareas del proyecto (`/projects/:projectId/tasks`) según corresponda, no a un listado global.
+## MODIFIED Requirements
 
-#### Scenario: Volver desde el detalle de sprint
-- **WHEN** un usuario visualiza `/projects/:projectId/sprints/:sprintId` y pulsa "volver"
+### Requirement: Los breadcrumbs de los detalles regresan al proyecto
+Los detalles de sprint y de tarea SHALL ofrecer un breadcrumb de navegación (que reemplaza el botón "volver") para regresar al contexto del proyecto: la lista de sprints del proyecto (`/projects/:projectId/sprints`) o la lista de tareas del proyecto (`/projects/:projectId/tasks`) según corresponda, no a un listado global.
+
+#### Scenario: Volver desde el detalle de sprint vía breadcrumb
+- **WHEN** un usuario visualiza `/projects/:projectId/sprints/:sprintId` y pulsa el enlace al listado de sprints en el breadcrumb
 - **THEN** el sistema navega a `/projects/:projectId/sprints`
 
-#### Scenario: Volver desde el detalle de tarea
-- **WHEN** un usuario visualiza `/projects/:projectId/tasks/:taskId` y pulsa "volver"
+#### Scenario: Volver desde el detalle de tarea vía breadcrumb
+- **WHEN** un usuario visualiza `/projects/:projectId/tasks/:taskId` y pulsa el enlace al listado de tareas en el breadcrumb
 - **THEN** el sistema navega a `/projects/:projectId/tasks`
 
 ### Requirement: Los listados de la API se pueden filtrar por proyecto

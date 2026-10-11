@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import AppShell from "@/components/AppShell";
 import { Modal } from "@/components/Modal";
+import { PageHeader } from "@/components/PageHeader";
 import { formatDaysRemaining } from "@/utils/date";
 
 interface Task {
@@ -12,6 +12,9 @@ interface Task {
 	deadline: string;
 	createdAt: string;
 	projectId: string;
+	project?: {
+		name: string;
+	};
 }
 
 interface User {
@@ -28,7 +31,7 @@ export default function TaskDetail() {
 		taskId: string;
 	}>();
 	const backToTasks = projectId ? `/projects/${projectId}/tasks` : "/projects";
-	const [user, setUser] = useState<User | null>(null);
+	const [_user, setUser] = useState<User | null>(null);
 	const [task, setTask] = useState<Task | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -90,33 +93,29 @@ export default function TaskDetail() {
 
 	if (isLoading) {
 		return (
-			<AppShell user={user || undefined}>
-				<div className="flex items-center justify-center min-h-screen">
-					<div className="text-center">
-						<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
-						<p className="text-gray-600 mt-4">Cargando tarea...</p>
-					</div>
+			<div className="flex items-center justify-center min-h-screen">
+				<div className="text-center">
+					<div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-950" />
+					<p className="text-gray-600 mt-4">Cargando tarea...</p>
 				</div>
-			</AppShell>
+			</div>
 		);
 	}
 
 	if (error || !task) {
 		return (
-			<AppShell user={user || undefined}>
-				<div className="p-8">
-					<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-						{error || "Tarea no encontrada"}
-					</div>
-					<button
-						type="button"
-						onClick={() => navigate(backToTasks)}
-						className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
-					>
-						Volver a Tareas
-					</button>
+			<div className="p-8">
+				<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+					{error || "Tarea no encontrada"}
 				</div>
-			</AppShell>
+				<button
+					type="button"
+					onClick={() => navigate(backToTasks)}
+					className="mt-4 bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
+				>
+					Volver a Tareas
+				</button>
+			</div>
 		);
 	}
 
@@ -134,44 +133,43 @@ export default function TaskDetail() {
 		new Date(task.deadline) < new Date() && task.status !== "COMPLETED";
 
 	return (
-		<AppShell user={user || undefined}>
-			<div className="p-8 max-w-4xl mx-auto">
-				{/* Header */}
-				<div className="mb-8">
-					<button
-						type="button"
-						onClick={() => navigate(backToTasks)}
-						className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
-					>
-						← Volver a Tareas
-					</button>
-					<div className="flex items-start justify-between">
-						<div className="flex-1">
-							<h1 className="text-4xl font-bold text-gray-900">{task.title}</h1>
-							<p className="text-gray-600 mt-2">{task.description}</p>
-						</div>
-						<div className="flex gap-3 ml-4">
-							{/* Show Grade button if user has permission (simplistic check) */}
-							<button
-								type="button"
-								onClick={() =>
-									navigate(`/projects/${task.projectId}/tasks/${task.id}/grade`)
-								}
-								className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium whitespace-nowrap"
-							>
-								Calificar
-							</button>
-							<button
-								type="button"
-								onClick={() => setShowEditModal(true)}
-								className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium whitespace-nowrap"
-							>
-								Editar
-							</button>
-						</div>
-					</div>
-				</div>
+		<div className="p-8 max-w-4xl mx-auto">
+			{/* Header */}
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Proyectos", to: "/projects" },
+					{
+						label: task.project?.name ?? "...",
+						to: projectId ? `/projects/${projectId}` : undefined,
+					},
+					{ label: "Tareas", to: backToTasks },
+					{ label: task.title },
+				]}
+				title={task.title}
+				subtitle={task.description}
+				actions={
+					<>
+						<button
+							type="button"
+							onClick={() =>
+								navigate(`/projects/${task.projectId}/tasks/${task.id}/grade`)
+							}
+							className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium whitespace-nowrap"
+						>
+							Calificar
+						</button>
+						<button
+							type="button"
+							onClick={() => setShowEditModal(true)}
+							className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium whitespace-nowrap"
+						>
+							Editar
+						</button>
+					</>
+				}
+			/>
 
+			<div className="mb-8">
 				{/* Task Details */}
 				<div className="bg-white rounded-lg shadow-md p-8 mb-8">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -309,6 +307,6 @@ export default function TaskDetail() {
 					</form>
 				</Modal>
 			</div>
-		</AppShell>
+		</div>
 	);
 }

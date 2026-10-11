@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { projectAPI, userStoryAPI } from "@/api/client";
 import { Modal } from "@/components/Modal";
+import { PageHeader } from "@/components/PageHeader";
 import { useSession } from "@/hooks/useSession";
 
 interface UserStory {
@@ -240,37 +241,27 @@ export default function UserStories() {
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
-			<div className="flex items-center justify-between mb-8">
-				<div>
-					<h2 className="text-3xl font-bold text-gray-900">
-						Historias de Usuario
-					</h2>
-					<p className="text-gray-600 mt-2">
-						Proyecto:{" "}
-						<span className="font-medium text-gray-900">
-							{project?.name ?? "…"}
-						</span>
-						{projectId && (
-							<>
-								{" · "}
-								<Link
-									to={`/projects/${projectId}`}
-									className="text-blue-900 hover:underline"
-								>
-									Ir al proyecto
-								</Link>
-							</>
-						)}
-					</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => setShowModal(true)}
-					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
-				>
-					+ Nueva Historia
-				</button>
-			</div>
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Proyectos", to: "/projects" },
+					{
+						label: project?.name ?? "...",
+						to: projectId ? `/projects/${projectId}` : undefined,
+					},
+					{ label: "Historias" },
+				]}
+				title="Historias de Usuario"
+				subtitle={`${stories.length} total / ${stories.filter((s) => s.status !== "COMPLETED").length} pendientes`}
+				actions={
+					<button
+						type="button"
+						onClick={() => setShowModal(true)}
+						className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium"
+					>
+						+ Nueva Historia
+					</button>
+				}
+			/>
 
 			{/* Error Message */}
 			{error && (

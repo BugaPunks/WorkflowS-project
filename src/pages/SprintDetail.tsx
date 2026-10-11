@@ -6,6 +6,7 @@ import {
 } from "@hello-pangea/dnd";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { PageHeader } from "@/components/PageHeader";
 import { useSession } from "@/hooks/useSession";
 import { formatDaysRemaining, getDaysDifference } from "@/utils/date";
 
@@ -17,6 +18,9 @@ interface Sprint {
 	endDate: string;
 	status: string;
 	projectId: string;
+	project?: {
+		name: string;
+	};
 }
 
 interface Task {
@@ -144,45 +148,50 @@ export default function SprintDetail() {
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
-			<div className="mb-8">
-				<button
-					type="button"
-					onClick={() => navigate(backToSprints)}
-					className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
-				>
-					← Volver a Sprints
-				</button>
-				<h1 className="text-4xl font-bold text-gray-900">{sprint.name}</h1>
-				<p className="text-gray-600 mt-2">{sprint.description}</p>
-
-				{user?.role === "ADMIN" && (
-					<button
-						type="button"
-						onClick={() =>
-							navigate(
-								`/projects/${sprint.projectId}/sprints/${sprint.id}/grade`,
-							)
-						}
-						className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-900 rounded-lg font-medium hover:bg-blue-100 transition-colors"
-					>
-						<svg
-							className="w-5 h-5"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Proyectos", to: "/projects" },
+					{
+						label: sprint.project?.name ?? "...",
+						to: projectId ? `/projects/${projectId}` : undefined,
+					},
+					{ label: "Sprints", to: backToSprints },
+					{ label: sprint.name },
+				]}
+				title={sprint.name}
+				subtitle={sprint.description}
+				actions={
+					user?.role === "ADMIN" && (
+						<button
+							type="button"
+							onClick={() =>
+								navigate(
+									`/projects/${sprint.projectId}/sprints/${sprint.id}/grade`,
+								)
+							}
+							className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-900 rounded-lg font-medium hover:bg-blue-100 transition-colors"
 						>
-							<title>Icono Calificar</title>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						Calificar Sprint
-					</button>
-				)}
+							<svg
+								className="w-5 h-5"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<title>Icono Calificar</title>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							Calificar Sprint
+						</button>
+					)
+				}
+			/>
 
+			<div className="mb-8">
 				{/* Sprint Stats */}
 				<div className="flex items-center gap-6 mt-6">
 					<div>

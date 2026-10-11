@@ -7,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Modal } from "@/components/Modal";
+import { PageHeader } from "@/components/PageHeader";
 import RetrospectiveBoard from "@/components/RetrospectiveBoard";
 import { useSession } from "@/hooks/useSession";
 import { ChatSection } from "./ProjectDetailSections/ChatSection";
@@ -360,19 +361,16 @@ export default function ProjectDetail() {
 	return (
 		<div className="p-8 max-w-7xl mx-auto">
 			{/* Header */}
-			<div className="mb-6">
-				<button
-					type="button"
-					onClick={() => navigate("/projects")}
-					className="text-blue-950 hover:text-blue-900 font-medium mb-4 flex items-center gap-2"
-				>
-					← Volver a Proyectos
-				</button>
-				<div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-					<div>
-						<h1 className="text-4xl font-bold text-gray-900">{project.name}</h1>
-						<p className="text-gray-600 mt-2">{project.description}</p>
-						<div className="mt-3 flex flex-wrap gap-4">
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Proyectos", to: "/projects" },
+					{ label: project.name },
+				]}
+				title={project.name}
+				subtitle={
+					<div className="flex flex-col gap-1">
+						<span>{project.description}</span>
+						<div className="mt-2 flex flex-wrap gap-4">
 							<Link
 								to={`/projects/${project.id}/sprints`}
 								className="text-sm text-blue-950 hover:text-blue-800 font-medium"
@@ -396,7 +394,7 @@ export default function ProjectDetail() {
 							<button
 								type="button"
 								onClick={() => navigate(`/projects/${project.id}/grade`)}
-								className="mt-3 text-sm text-blue-950 hover:text-blue-800 font-medium flex items-center gap-1"
+								className="mt-3 text-sm text-blue-950 hover:text-blue-800 font-medium flex items-center gap-1 w-fit"
 							>
 								<svg
 									className="w-4 h-4"
@@ -416,44 +414,46 @@ export default function ProjectDetail() {
 							</button>
 						)}
 					</div>
-					<div className="flex gap-2">
-						<button
-							type="button"
-							onClick={() => setActiveTab("board")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "board" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-						>
-							Tablero & Sprints
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("members")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "members" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-						>
-							Miembros
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("chat")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "chat" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-						>
-							Chat
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("docs")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "docs" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-						>
-							Documentos
-						</button>
-						<button
-							type="button"
-							onClick={() => setActiveTab("retro")}
-							className={`px-4 py-2 rounded-lg font-medium ${activeTab === "retro" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
-						>
-							Retrospectiva
-						</button>
-					</div>
-				</div>
+				}
+			/>
+
+			{/* Navigation Tabs */}
+			<div className="flex gap-2 mb-6 border-b pb-4">
+				<button
+					type="button"
+					onClick={() => setActiveTab("board")}
+					className={`px-4 py-2 rounded-lg font-medium ${activeTab === "board" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+				>
+					Tablero & Sprints
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("members")}
+					className={`px-4 py-2 rounded-lg font-medium ${activeTab === "members" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+				>
+					Miembros
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("chat")}
+					className={`px-4 py-2 rounded-lg font-medium ${activeTab === "chat" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+				>
+					Chat
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("docs")}
+					className={`px-4 py-2 rounded-lg font-medium ${activeTab === "docs" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+				>
+					Documentos
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("retro")}
+					className={`px-4 py-2 rounded-lg font-medium ${activeTab === "retro" ? "bg-blue-100 text-blue-900" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+				>
+					Retrospectiva
+				</button>
 			</div>
 
 			{activeTab === "chat" && <ChatSection projectId={project.id} />}
