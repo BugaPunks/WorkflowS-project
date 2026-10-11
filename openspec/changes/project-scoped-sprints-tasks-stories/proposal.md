@@ -10,11 +10,13 @@ Las páginas globales de Sprints (`/sprints`), Tareas (`/tasks`) e Historias (`/
 - **UI**: las páginas de Sprints, Tareas e Historias pasan a ser **de ámbito de proyecto**: leen el `projectId` de la URL, muestran solo los registros de ese proyecto y lo indican en el encabezado (fail-closed: sin `projectId` válido no se muestran registros de otros proyectos).
 - **Navegación**: el menú lateral (todos los roles, incluido ADMIN) deja de ofrecer accesos globales a Sprints/Tareas/Historias; el acceso a esas vistas es desde el proyecto. Los panels de bienvenida (PO/SM/Dev) actualizan sus enlaces de "acceso rápido" para no apuntar a rutas eliminadas.
 - **Volver**: los botones "volver" de `SprintDetail` y `TaskDetail` regresan al proyecto correspondiente (lista de sprints/tareas del proyecto), no a una vista global.
-- **Fuente de datos**: las tres páginas mantienen su filtrado por `projectId` en el cliente (ya existe el patrón en `ProjectDetail`), de modo que dentro del proyecto solo se rendericen sus propios sprints, tareas e historias. No se cambia el contrato de la API GET (devolver todo a autenticados queda como decisión de un cambio futuro de visibilidad).
+- **API (GET de listados)**: `GET /api/sprints` y `GET /api/user-stories` ganan soporte de `?projectId=` para devolver solo los registros de ese proyecto (mismo patrón que ya tiene `GET /api/tasks`). Sin `projectId`, mantienen el comportamiento actual de devolver todo.
+- **Fuente de datos**: las tres páginas consultan la API con `?projectId=` (respaldo con filtro en el cliente si un dato no lo trae), de modo que dentro del proyecto solo se rendericen sus propios sprints, tareas e historias.
 
 ### Non-goals
 
-- No se cambia la API: `GET /api/sprints`, `GET /api/tasks` y `GET /api/user-stories` siguen devolviendo todos los registros a cualquier autenticado; restringir la visibilidad a nivel de API es un cambio futuro separable.
+- No se añade filtrado por membresía ni por rol en la API: cualquier autenticado puede pedir listados por `projectId` (igual que hoy puede pedirlos completos). Restringir la visibilidad por membresía a nivel de API es un cambio futuro separable.
+- No se cambian los endpoints de escritura (`POST`/`PUT`/`DELETE`) ni su autorización.
 - No se cambia el modelo de datos ni el esquema de Prisma.
 - No se tocan las rutas ya anidadas bajo `/projects/:projectId` (`tasks/:taskId`, calificaciones) más allá de reutilizar su patrón.
 - No se reorganizan las secciones internas de `ProjectDetail` (board/tabs) excepto lo necesario para enlazar a las vistas anidadas.
@@ -32,10 +34,13 @@ Ninguna. Las capacidades existentes (`sprint-lifecycle`, `task-management`, `use
 ## Impact
 
 - `src/App.tsx` — definición de rutas: eliminar globales, añadir anidadas, redirecciones.
-- `src/pages/Sprints.tsx`, `src/pages/Tasks.tsx`, `src/pages/UserStories.tsx` — ámbito de proyecto (leer `projectId` de la URL, filtrar, encabezado).
+- `src/pages/Sprints.tsx`, `src/pages/Tasks.tsx`, `src/pages/UserStories.tsx` — ámbito de proyecto (leer `projectId` de la URL, consultar/filtrar, encabezado).
 - `src/pages/SprintDetail.tsx`, `src/pages/TaskDetail.tsx` — ruta y navegación "volver" al proyecto.
+- `src/server/routes/sprints.ts`, `src/server/routes/user-stories.ts` — soporte de `?projectId=` en el GET de listado.
+- `src/api/client.ts` — `sprintAPI.getAll({ projectId })` y `userStoryAPI.getAll({ projectId })`.
 - `src/components/NavigationSidebar.tsx` — quitar accesos globales a Sprints/Tareas/Historias de los menús ADMIN y estudiante.
 - `src/islands/ProductOwnerWelcomeOptions.tsx`, `ScrumMasterWelcomeOptions.tsx`, `TeamDeveloperWelcomeOptions.tsx`, `src/components/dashboards/StudentDashboard.tsx` — actualizar enlaces de acceso rápido.
 - `src/pages/ProjectDetail.tsx` — enlaces a las vistas anidadas (sprints/tareas/historias del proyecto) si aplica.
+- Tests de API: nuevos archivos de integración para el filtrado por `projectId` de sprints y user-stories (patrón de `sprints-delete.test.ts`).
+- Tests E2E: adaptar `e2e/backlog.spec.ts`, `e2e/sprint-board.spec.ts`, `e2e/task-assignment.spec.ts`, `e2e/dashboards.spec.ts`, `e2e/full-lifecycle.spec.ts` a las rutas anidadas (hoy navegan a `/sprints`, `/tasks`, `/user-stories` o esperan el enlace `a[href='/tasks']`).
 - Sin cambios de dependencias ni de base de datos.
-- Tests: ajustar/ampliar pruebas de unidad si referencian rutas eliminadas; verificación manual de navegación por rol.

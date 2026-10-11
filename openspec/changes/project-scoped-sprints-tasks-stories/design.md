@@ -1,6 +1,6 @@
 ## Context
 
-Hoy las páginas `Sprints`, `Tasks` y `UserStories` son rutas globales (`/sprints`, `/tasks`, `/user-stories`) montadas en `src/App.tsx` dentro de `DashboardLayout`. Los GET de la API (`/api/sprints`, `/api/tasks`, `/api/user-stories`) devuelven todos los registros a cualquier usuario autenticado. Las páginas globales renderizan todo tal cual; en cambio `ProjectDetail` ya filtra por su `projectId` en el cliente y ya existe el patrón de rutas anidadas bajo `/projects/:projectId/...` (`tasks/:taskId`, `sprints/:sprintId/grade`).
+Hoy las páginas `Sprints`, `Tasks` y `UserStories` son rutas globales (`/sprints`, `/tasks`, `/user-stories`) montadas en `src/App.tsx` dentro de `DashboardLayout`. En la API, `GET /api/tasks` **ya filtra** por `?projectId=`; `GET /api/sprints` y `GET /api/user-stories` devuelven todos los registros sin soportar ese parámetro. Las páginas globales renderizan todo tal cual; en cambio `ProjectDetail` ya filtra por su `projectId` en el cliente y ya existe el patrón de rutas anidadas bajo `/projects/:projectId/...` (`tasks/:taskId`, `sprints/:sprintId/grade`).
 
 Los puntos de acceso globales actuales:
 - `NavigationSidebar`: menús `ADMIN_MENU` (Sprints, Historias) y `STUDENT_MENU` (Sprints, Tareas, Historias) para todos los roles.
@@ -19,15 +19,18 @@ Las rutas usan `react-router-dom` v7; el servidor es Express y NO sirve el front
 - Que "volver" desde los detalles regrese al contexto del proyecto.
 
 **Non-Goals:**
-- Cambiar el contrato de la API GET (devuelve todo a autenticados) ni añadir filtrado por membresía en el servidor.
+- No añadir filtrado por membresía ni por rol en los GET de listados (la visibilidad por membresía a nivel de API queda para un cambio futuro). El parámetro `projectId` solo limita el alcance, no la autorización.
+- No cambiar los endpoints de escritura (`POST`/`PUT`/`DELETE`) ni su autorización.
 - Cambiar el modelo de datos / esquema Prisma.
 - Rediseñar el contenido interno de `ProjectDetail` (tabs board/miembros/chat/docs/retro) salvo enlazar a las vistas anidadas.
 - Mover `Reports`, `Rubrics`, `Calendar` ni `Evaluations` (consumen `fetch("/api/sprints")` como datos, no las rutas de página).
 
 ## Decisions
 
-### D1. Vistas anidadas reutilizan las páginas existentes con `projectId` de la URL
-`Sprints.tsx`, `Tasks.tsx` y `UserStories.tsx` reciben `projectId` desde `useParams()`, filtran su fuente de datos por ese `projectId` (mismo patrón que `ProjectDetail`, que ya filtra `fetch("/api/sprints")` y `fetch("/api/user-stories")` por proyecto) y muestran el nombre del proyecto en el encabezado.
+### D1. Vistas anidadas reutilizan las páginas existentes con `projectId` de la URL y la API filtra por proyecto
+`Sprints.tsx`, `Tasks.tsx` y `UserStories.tsx` reciben `projectId` desde `useParams()` y consultan la API con `?projectId=` (respaldado por un filtro en el cliente `filter((r) => r.projectId === projectId)` antes de `setState` por si algún registro llegara sin el parámetro). En el encabezado se muestra el nombre del proyecto.
+- **API**: `GET /api/sprints` y `GET /api/user-stories` pasan a aceptar `?projectId=` (mismo patrón que `GET /api/tasks` en `tasks.ts`: `const { projectId } = req.query;` + `where` condicional). Se actualizan `sprintAPI.getAll()` y `userStoryAPI.getAll()` en `src/api/client.ts` para pasar el parámetro.
+- **Alternativa considerada**: solo filtrar en el cliente (sin tocar la API) — descartado: obligaría a transferir todos los registros a cada vista (crece con el número de proyectos), es inconsistente con `tasks` que ya filtra en el servidor, y no permite tests de integración del filtrado.
 - **Alternativa considerada**: reescribir páginas nuevas por proyecto — descartado, duplicaría ~450 líneas por página y perdería los permisos/controles ya implementados (botón eliminar, drag & drop, selector de estado).
 
 ### D2. Rutas y redirecciones en el router del cliente
@@ -50,19 +53,23 @@ Cada vista anidada muestra el nombre del proyecto (obtenido de `projectAPI.getAl
 ## Risks / Trade-offs
 
 - **Enlaces viejos a rutas globales** (marcadores, accesos directos) → las redirecciones `<Navigate to="/projects">` en el router cubren el acceso directo; los enlaces internos se actualizan en el mismo cambio.
-- **`projectId` inválido o inexistente** en la URL → la vista carga vacía o muestra estado de error; no se filtran datos de otros proyectos (fail-closed). Se recomienda pantalla "proyecto no encontrado" si el fetch de detalle falla con 404.
-- **Regresión de permisos**: si el filtrado por proyecto se hace mal, un usuario vería registros ajenos ya renderizados del fetch global. Mitigación: el filtrado `filter((r) => r.projectId === projectId)` se aplica antes de `setState`, y el encabezado deja claro el proyecto; tests de unidad cubren el filtro.
+- **Tests E2E existentes rotos**: `backlog`, `sprint-board`, `task-assignment`, `dashboards` y `full-lifecycle` navegan a rutas globales o esperan `a[href='/tasks']` → se adaptan en el mismo cambio (tareas de migración) antes de dar por cerrada la implementación; `npm run e2e` debe quedar verde.
+- **`projectId` inválido o inexistente** en la URL → la vista muestra estado "proyecto no encontrado" (el fetch de detalle devuelve 404); no se filtran datos de otros proyectos (fail-closed).
+- **Regresión de permisos**: si el filtrado por proyecto se hace mal, un usuario vería registros ajenos ya renderizados del fetch global. Mitigación: el filtrado `filter((r) => r.projectId === projectId)` se aplica antes de `setState` incluso con el filtro de la API, y el encabezado deja claro el proyecto; tests de integración de la API y E2E con dos proyectos cubren el filtrado.
 - **`SprintDetail` requiere `projectId`** que antes no tenía → se propaga por la URL (requisito D3) y, si no llega, "volver" apunta a `/projects`.
 - **Dev server vs build**: en dev, rsbuild sirve las rutas SPA; en producción no hay server-side routing de estas páginas (el servidor Express expone solo la API), por lo que la redirección cliente es suficiente. No hay cambio de infraestructura.
 
 ## Migration Plan
 
-1. Rutas en `App.tsx`: añadir anidadas y redirecciones; eliminar globales (todo en el mismo commit).
-2. Adaptar páginas (`Sprints`, `Tasks`, `UserStories`) al ámbito de proyecto.
-3. Cambiar enlaces de `Sprints.tsx` → detalle, y botones "volver" de `SprintDetail`/`TaskDetail`.
-4. Actualizar `NavigationSidebar` y welcome islands / `StudentDashboard`.
-5. Verificación manual por rol (ADMIN, PO, SM, Dev) y unit tests del filtrado.
-6. Rollback: revertir el commit; las rutas globales eliminadas reaparecen y las redirecciones desaparecen (las páginas vuelven a su estado previo).
+1. API: añadir soporte de `?projectId=` a `GET /api/sprints` y `GET /api/user-stories`, y a `sprintAPI.getAll()` / `userStoryAPI.getAll()` en `client.ts`.
+2. Tests de integración: `sprints-project-filter.test.ts` y `user-stories-project-filter.test.ts` (patrón de `sprints-delete.test.ts`).
+3. Rutas en `App.tsx`: añadir anidadas y redirecciones; eliminar globales (todo en el mismo commit).
+4. Adaptar páginas (`Sprints`, `Tasks`, `UserStories`) al ámbito de proyecto (leer `projectId`, consultar con filtro, encabezado, estado "proyecto no encontrado").
+5. Cambiar enlaces de `Sprints.tsx` → detalle, y botones "volver" de `SprintDetail`/`TaskDetail`.
+6. Actualizar `NavigationSidebar` y welcome islands / `StudentDashboard`.
+7. Adaptar los 5 specs E2E afectados a las rutas anidadas; `npm run e2e` en verde.
+8. Verificación manual por rol (ADMIN, PO, SM, Dev).
+9. Rollback: revertir el commit; las rutas globales eliminadas reaparecen, las redirecciones y el filtro de la API desaparecen (las páginas vuelven a su estado previo).
 
 ## Open Questions
 

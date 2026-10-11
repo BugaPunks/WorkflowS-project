@@ -52,6 +52,10 @@ Las páginas de Sprints, Tareas e Historias de ámbito de proyecto SHALL leer el
 - **WHEN** un usuario abre una vista de proyecto y los datos de ese proyecto aún no terminan de cargar
 - **THEN** la vista no muestra registros de otros proyectos mientras carga
 
+#### Scenario: El proyecto de la URL no existe
+- **WHEN** un usuario navega a `/projects/:projectId/sprints` (o `tasks`, `user-stories`) con un `projectId` que no existe
+- **THEN** la vista muestra un estado de "proyecto no encontrado" sin listar ningún registro
+
 ### Requirement: La navegación no ofrece accesos globales a sprints, tareas e historias
 La navegación lateral y los panels de bienvenida para todos los roles (incluido `ADMIN`) SHALL dejar de ofrecer entradas globales a Sprints, Tareas e Historias. El camino a esas vistas SHALL ser desde un proyecto. Los accesos rápidos de los panels de bienvenida que apuntaban a rutas globales eliminadas SHALL enlazar al contexto de proyectos en lugar de a rutas inexistentes.
 
@@ -81,3 +85,30 @@ Los detalles de sprint y de tarea SHALL ofrecer un botón "volver" que regrese a
 #### Scenario: Volver desde el detalle de tarea
 - **WHEN** un usuario visualiza `/projects/:projectId/tasks/:taskId` y pulsa "volver"
 - **THEN** el sistema navega a `/projects/:projectId/tasks`
+
+### Requirement: Los listados de la API se pueden filtrar por proyecto
+`GET /api/sprints` y `GET /api/user-stories` SHALL aceptar el parámetro de consulta `projectId` y, cuando esté presente, devolver únicamente los registros de ese proyecto (el mismo comportamiento que ya tiene `GET /api/tasks`). Sin el parámetro, SHALL seguir devolviendo todos los registros como hoy.
+
+#### Scenario: Filtrar sprints por proyecto
+- **WHEN** un usuario autenticado solicita `GET /api/sprints?projectId=<A>` y existen sprints en los proyectos A y B
+- **THEN** la respuesta contiene solo los sprints del proyecto A
+
+#### Scenario: Filtrar historias por proyecto
+- **WHEN** un usuario autenticado solicita `GET /api/user-stories?projectId=<A>` y existen historias en los proyectos A y B
+- **THEN** la respuesta contiene solo las historias del proyecto A
+
+#### Scenario: Filtrar tareas por proyecto
+- **WHEN** un usuario autenticado solicita `GET /api/tasks?projectId=<A>` y existen tareas en los proyectos A y B
+- **THEN** la respuesta contiene solo las tareas del proyecto A
+
+#### Scenario: Filtro con proyecto inexistente devuelve lista vacía
+- **WHEN** un usuario autenticado solicita `GET /api/sprints?projectId=<no-existe>` (o `user-stories`, `tasks`)
+- **THEN** la respuesta contiene una lista vacía, sin error de servidor
+
+#### Scenario: Sin filtro se devuelve todo
+- **WHEN** un usuario autenticado solicita `GET /api/sprints` (o `user-stories`, `tasks`) sin `projectId`
+- **THEN** la respuesta contiene todos los registros, como antes del cambio
+
+#### Scenario: El filtro no depende de la membresía
+- **WHEN** un usuario autenticado que no es miembro del proyecto A solicita `GET /api/sprints?projectId=<A>`
+- **THEN** la respuesta contiene los sprints del proyecto A (la visibilidad por membresía queda para un cambio futuro) y ningún registro se filtra por rol
