@@ -347,3 +347,4 @@ Idea / problema
 9. **`<button>` con `type` explícito**: nunca omitas `type` en un botón (`type="button"`
    para acciones, `type="submit"` solo para enviar formularios). Omitirlo lo convierte en
    `submit` y puede recargar la página; Biome lo exige.
+x
