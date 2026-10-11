@@ -49,6 +49,29 @@ evaluación, notificaciones, exportación).
   sin dejar `npm run test` en verde.
 - **No rompas la cadena de calidad**: `npm run check`, `npx tsc --noEmit` y los tests
   deben pasar antes de dar por completada una tarea.
+- **Botones siempre con `type` explícito** (ver recuadro abajo): Biome lo exige y evita
+  envíos de formulario accidentales.
+
+> ⚠️ **`<button>` siempre con `type` explícito — no lo olvides**
+>
+> En React, un `<button onClick={...}>` **sin** `type` asume por defecto `type="submit"`.
+> Si el botón está dentro o cerca de un `<form>`, al pulsarlo se **envía el formulario por
+> accidente y la página se recarga**, perdiendo el estado y rompiendo el flujo.
+>
+> Por eso **Biome obliga a ser explícito siempre**: pon `type="button"` para acciones
+> normales (abrir modal, cambiar estado, etc.) o `type="submit"` solo cuando de verdad
+> quieras enviar el formulario.
+>
+> ```tsx
+> // ❌ Mal: sin type → se comporta como submit y puede recargar la página
+> <button onClick={handleClose}>Cerrar</button>
+>
+> // ✅ Bien: intención explícita
+> <button type="button" onClick={handleClose}>Cerrar</button>
+> <button type="submit">Guardar</button>
+> ```
+>
+> Al crear o editar cualquier `<button>`/`<Button>`, **revisa el `type` antes de terminar.**
 
 ---
 
@@ -321,3 +344,6 @@ Idea / problema
 7. **Idioma**: escribe specs y mensajes en español; el código en inglés.
 8. **Cambios mínimos y enfocados**: una tarea a la vez; no refactorices oportunistamente
    salvo que la tarea lo pida.
+9. **`<button>` con `type` explícito**: nunca omitas `type` en un botón (`type="button"`
+   para acciones, `type="submit"` solo para enviar formularios). Omitirlo lo convierte en
+   `submit` y puede recargar la página; Biome lo exige.
