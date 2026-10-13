@@ -42,11 +42,21 @@ export function ChatWidget() {
 	const [view, setView] = useState<"LIST" | "CHAT" | "NEW_CHAT">("LIST");
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	const loadChats = useCallback(() => {
+	const loadChats = useCallback(async () => {
 		if (!user) return;
-		fetch(`/api/chat/user/${user.id}/all`)
-			.then((res) => res.json())
-			.then((data) => setChats(data.data || []));
+		try {
+			const res = await fetch(`/api/chat/user/${user.id}/all`);
+			if (!res.ok) {
+				console.error("No se pudieron cargar chats:", res.status);
+				setChats([]);
+				return;
+			}
+			const data = await res.json();
+			setChats(data.data || []);
+		} catch (err) {
+			console.error(err);
+			setChats([]);
+		}
 	}, [user]);
 
 	// Load chats when user is available or widget opens
@@ -59,10 +69,22 @@ export function ChatWidget() {
 	// Polling for messages when a chat is selected and widget is open
 	useEffect(() => {
 		if (selectedChat && isOpen && view === "CHAT") {
-			const loadMsgs = () => {
-				fetch(`/api/chat/conversation/${selectedChat.id}/messages`)
-					.then((res) => res.json())
-					.then((data) => setMessages(data.data || []));
+			const loadMsgs = async () => {
+				try {
+					const res = await fetch(
+						`/api/chat/conversation/${selectedChat.id}/messages`,
+					);
+					if (!res.ok) {
+						console.error("No se pudieron cargar mensajes:", res.status);
+						setMessages([]);
+						return;
+					}
+					const data = await res.json();
+					setMessages(data.data || []);
+				} catch (err) {
+					console.error(err);
+					setMessages([]);
+				}
 			};
 			loadMsgs();
 			const interval = setInterval(loadMsgs, 5000); // 5s polling
@@ -107,9 +129,19 @@ export function ChatWidget() {
 	};
 
 	const loadUsers = async () => {
-		const res = await fetch("/api/users");
-		const data = await res.json();
-		setUsers(data.data || []);
+		try {
+			const res = await fetch("/api/chat/users");
+			if (!res.ok) {
+				console.error("No se pudieron cargar usuarios:", res.status);
+				setUsers([]);
+				return;
+			}
+			const data = await res.json();
+			setUsers(data.data || []);
+		} catch (err) {
+			console.error(err);
+			setUsers([]);
+		}
 	};
 
 	const startDM = async (targetUserId: string) => {

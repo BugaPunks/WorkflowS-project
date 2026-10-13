@@ -11,6 +11,21 @@ const messageSchema = z.object({
 	content: z.string().min(1).max(5000),
 });
 
+// GET directorio de usuarios para iniciar DM - any authenticated
+router.get("/users", authenticateToken, async (_req, res) => {
+	try {
+		const users = await prisma.user.findMany({
+			where: { active: true },
+			select: { id: true, email: true, name: true, role: true },
+			orderBy: { name: "asc" },
+		});
+		res.json({ data: users });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Error loading users" });
+	}
+});
+
 // GET mensajes de un proyecto - any project member
 router.get(
 	"/:projectId/messages",
