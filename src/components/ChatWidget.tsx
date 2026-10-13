@@ -111,16 +111,28 @@ export function ChatWidget() {
 		if (!input.trim() || !selectedChat || !user) return;
 
 		try {
-			await fetch(`/api/chat/conversation/${selectedChat.id}/messages`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ userId: user.id, content: input }),
-			});
+			const sendRes = await fetch(
+				`/api/chat/conversation/${selectedChat.id}/messages`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ userId: user.id, content: input }),
+				},
+			);
+			if (!sendRes.ok) {
+				console.error("No se pudo enviar el mensaje:", sendRes.status);
+				return;
+			}
 			setInput("");
 			// Immediate fetch
 			const res = await fetch(
 				`/api/chat/conversation/${selectedChat.id}/messages`,
 			);
+			if (!res.ok) {
+				console.error("No se pudieron cargar mensajes:", res.status);
+				setMessages([]);
+				return;
+			}
 			const data = await res.json();
 			setMessages(data.data || []);
 		} catch (err) {
