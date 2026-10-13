@@ -108,6 +108,10 @@ const App = () => {
 						</Route>
 
 						<Route path="/calendar" element={<Calendar />} />
+
+						{/* Cualquier ruta desconocida (p. ej. enlaces obsoletos como
+						    /dashboard) vuelve al dashboard en lugar de renderizar vacío. */}
+						<Route path="*" element={<Navigate to="/" replace />} />
 					</Route>
 				</Routes>
 			</SessionProvider>

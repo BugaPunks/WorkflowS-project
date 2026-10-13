@@ -118,10 +118,14 @@ export default function UserStories() {
 		e.preventDefault();
 		try {
 			const { storyPoints, ...restFormData } = formData;
-			const points =
-				storyPoints.trim() === ""
-					? undefined
-					: Math.min(99, Math.max(0, Number.parseInt(storyPoints, 10) || 0));
+			// Vacío o no numérico → "sin estimar" (se omite el campo). Un 0 explícito
+			// sigue siendo una estimación válida; solo el rango se recorta a 0–99.
+			const rawPoints = storyPoints.trim();
+			const parsedPoints =
+				rawPoints === "" ? Number.NaN : Number.parseInt(rawPoints, 10);
+			const points = Number.isFinite(parsedPoints)
+				? Math.min(99, Math.max(0, parsedPoints))
+				: undefined;
 			if (!projectId) throw new Error("Proyecto no encontrado");
 			const response = await fetch("/api/user-stories", {
 				method: "POST",
@@ -319,9 +323,13 @@ export default function UserStories() {
 											{story.status || "PENDING"}
 										</span>
 									)}
-									{story.storyPoints != null && (
+									{story.storyPoints != null ? (
 										<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-700">
 											{story.storyPoints} pts
+										</span>
+									) : (
+										<span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-500">
+											Sin estimar
 										</span>
 									)}
 								</div>

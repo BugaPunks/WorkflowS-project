@@ -3,9 +3,7 @@
 ## Purpose
 
 Computes sprint burn-down, velocity and individual contribution metrics as pure, verifiable functions.
-
 ## Requirements
-
 ### Requirement: Burn-down metrics are computed by isolated, verifiable functions
 The burn-down, velocity and individual-contribution calculations SHALL live in pure functions that take plain data and return plain data, with no database or HTTP dependency, so that they can be verified by unit tests without a running server.
 
@@ -110,3 +108,23 @@ The contribution computation SHALL produce, for each member of the project who h
 #### Scenario: Unassigned completed tasks are reported separately
 - **WHEN** a project has a completed task with no assignee
 - **THEN** the result reports those tasks without attributing them to any member
+
+### Requirement: Las métricas exponen el conteo de historias sin estimar
+El cálculo de burndown y el de velocidad SHALL reportar, además de los totales de puntos, el número de historias del sprint sin estimar (aquellas cuyo `storyPoints` no tiene valor / es `null`). Este conteo SHALL ser informativo y NO SHALL modificar `totalPoints`, `committed` ni `completed`, que siguen tratando los puntos ausentes como `0`.
+
+#### Scenario: Burndown cuenta las historias sin estimar
+- **WHEN** un sprint tiene 2 historias, una con 5 puntos y otra sin `storyPoints`
+- **THEN** el total de puntos es 5 y el conteo de historias sin estimar es 1
+
+#### Scenario: Velocity reporta historias sin estimar por sprint
+- **WHEN** un sprint tiene 3 historias y una de ellas no tiene `storyPoints`
+- **THEN** su entrada de velocidad conserva `committed` y `completed` calculados como antes y reporta 1 historia sin estimar
+
+#### Scenario: Las historias estimadas en cero no cuentan como sin estimar
+- **WHEN** una historia tiene `storyPoints = 0`
+- **THEN** NO se cuenta como historia sin estimar
+
+#### Scenario: Sprint sin historias sin estimar
+- **WHEN** todas las historias del sprint tienen `storyPoints` con valor
+- **THEN** el conteo de historias sin estimar es 0
+

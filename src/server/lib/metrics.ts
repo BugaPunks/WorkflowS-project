@@ -19,14 +19,18 @@ export type BurndownSeriesPoint = {
 export function computeBurndown(sprint: SprintMinimal): {
 	totalPoints: number;
 	series: BurndownSeriesPoint[];
+	unestimated: number;
 } {
+	const unestimated = sprint.userStories.filter(
+		(item) => item.storyPoints === null || item.storyPoints === undefined,
+	).length;
 	const totalPoints = sprint.userStories.reduce(
 		(acc, item) => acc + (item.storyPoints || 0),
 		0,
 	);
 
 	if (!sprint.startDate || !sprint.endDate) {
-		return { totalPoints, series: [] };
+		return { totalPoints, series: [], unestimated };
 	}
 
 	const start = new Date(sprint.startDate);
@@ -36,7 +40,7 @@ export function computeBurndown(sprint: SprintMinimal): {
 	);
 
 	if (daysDiff < 0) {
-		return { totalPoints, series: [] };
+		return { totalPoints, series: [], unestimated };
 	}
 
 	const completedItems = sprint.userStories
@@ -54,6 +58,7 @@ export function computeBurndown(sprint: SprintMinimal): {
 			.reduce((acc, item) => acc + item.points, 0);
 		return {
 			totalPoints,
+			unestimated,
 			series: [
 				{
 					day: 0,
@@ -95,7 +100,7 @@ export function computeBurndown(sprint: SprintMinimal): {
 		});
 	}
 
-	return { totalPoints, series };
+	return { totalPoints, series, unestimated };
 }
 
 export type SprintWithStories = {
@@ -123,11 +128,15 @@ export function computeVelocity(sprints: SprintWithStories[]) {
 				(item) => item.completedAt !== null && item.completedAt !== undefined,
 			)
 			.reduce((acc, item) => acc + (item.storyPoints || 0), 0);
+		const unestimated = sprint.userStories.filter(
+			(item) => item.storyPoints === null || item.storyPoints === undefined,
+		).length;
 
 		return {
 			name: sprint.name,
 			committed,
 			completed,
+			unestimated,
 		};
 	});
 }

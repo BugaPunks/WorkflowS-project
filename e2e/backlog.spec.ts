@@ -82,4 +82,81 @@ test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 				.first(),
 		).toBeVisible();
 	});
+
+	test("No debe asignar 0 puntos cuando la historia se crea sin estimar", async ({
+		page,
+	}) => {
+		const timestamp = Date.now();
+		const storyTitle = `Historia sin estimar ${timestamp}`;
+		const projectName = `Project Sin Estimar ${timestamp}`;
+
+		await page.goto("/projects");
+		await page.getByRole("button", { name: "Nuevo Proyecto" }).click();
+		await page.fill('input[name="name"]', projectName);
+		await page.fill('textarea[name="description"]', "Desc");
+		await page
+			.getByRole("button", { name: "Crear Proyecto", exact: true })
+			.click();
+
+		await page
+			.locator(".bg-white")
+			.filter({ hasText: projectName })
+			.first()
+			.getByRole("button", { name: "Ver Proyecto" })
+			.click();
+		const projectId = page.url().split("/projects/")[1];
+		await page.goto(`/projects/${projectId}/user-stories`);
+
+		await page.getByRole("button", { name: "+ Nueva Historia" }).click();
+		await page.fill("#story-title", storyTitle);
+		await page.fill("#story-desc", "Historia creada sin puntos");
+		// Se deja "Puntos (Story Points)" vacío a propósito.
+		await page.getByRole("button", { name: "Crear", exact: true }).click();
+		await expect(
+			page.getByRole("heading", { name: "Crear Nueva Historia" }),
+		).not.toBeVisible();
+
+		await page.reload();
+		await expect(page.locator(`text=${storyTitle}`)).toBeVisible();
+		await expect(page.getByText("Sin estimar")).toBeVisible();
+		await expect(page.getByText("0 pts")).not.toBeVisible();
+	});
+
+	test("Debe mostrar '0 pts' cuando el usuario estima explícitamente cero", async ({
+		page,
+	}) => {
+		const timestamp = Date.now();
+		const storyTitle = `Historia cero ${timestamp}`;
+		const projectName = `Project Cero ${timestamp}`;
+
+		await page.goto("/projects");
+		await page.getByRole("button", { name: "Nuevo Proyecto" }).click();
+		await page.fill('input[name="name"]', projectName);
+		await page.fill('textarea[name="description"]', "Desc");
+		await page
+			.getByRole("button", { name: "Crear Proyecto", exact: true })
+			.click();
+
+		await page
+			.locator(".bg-white")
+			.filter({ hasText: projectName })
+			.first()
+			.getByRole("button", { name: "Ver Proyecto" })
+			.click();
+		const projectId = page.url().split("/projects/")[1];
+		await page.goto(`/projects/${projectId}/user-stories`);
+
+		await page.getByRole("button", { name: "+ Nueva Historia" }).click();
+		await page.fill("#story-title", storyTitle);
+		await page.fill("#story-desc", "Historia estimada en cero");
+		await page.fill("#story-points", "0");
+		await page.getByRole("button", { name: "Crear", exact: true }).click();
+		await expect(
+			page.getByRole("heading", { name: "Crear Nueva Historia" }),
+		).not.toBeVisible();
+
+		await page.reload();
+		await expect(page.locator(`text=${storyTitle}`)).toBeVisible();
+		await expect(page.getByText("0 pts")).toBeVisible();
+	});
 });

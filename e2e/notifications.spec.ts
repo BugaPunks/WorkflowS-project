@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { loginViaApi } from "./utils/api-auth";
+import { BASE_ORIGIN, loginViaApi } from "./utils/api-auth";
 
 const API_ORIGIN = "http://localhost:5000";
 
@@ -180,5 +180,95 @@ test.describe("RF9 — Notificaciones (HU-09)", () => {
 
 		expect(sprintNotif).toBeDefined();
 		expect(sprintNotif.title).toBe("Sprint Completado");
+	});
+
+	test("NTF-02 · activar una notificación de sprint navega al detalle del sprint del proyecto", async ({
+		page,
+		request,
+	}) => {
+		// --- Arrange: sesión de ADMIN ---
+		const { id: adminId, token: adminToken } = await loginViaApi(
+			page,
+			request,
+			"admin_sprint_nav",
+			"ADMIN",
+		);
+		const adminAuth = { Authorization: `Bearer ${adminToken}` };
+		const ts = Date.now();
+
+		const projectRes = await request.post(`${API_ORIGIN}/api/projects`, {
+			headers: adminAuth,
+			data: {
+				name: `Sprint Nav ${ts}`,
+				description: "Navegación de notificación",
+				ownerId: adminId,
+			},
+		});
+		expect(projectRes.status()).toBe(201);
+		const project = (await projectRes.json()).data;
+
+		// El emisor SPRINT_COMPLETED notifica a los miembros del proyecto.
+		await request.post(`${API_ORIGIN}/api/projects/${project.id}/members`, {
+			headers: adminAuth,
+			data: { userId: adminId, role: "TEAM_DEVELOPER" },
+		});
+
+		const sprintRes = await request.post(`${API_ORIGIN}/api/sprints`, {
+			headers: adminAuth,
+			data: {
+				name: "Sprint Nav 1",
+				projectId: project.id,
+				status: "ACTIVE",
+				startDate: new Date().toISOString(),
+				endDate: new Date().toISOString(),
+			},
+		});
+		expect(sprintRes.status()).toBe(201);
+		const sprint = (await sprintRes.json()).data;
+
+		await request.put(`${API_ORIGIN}/api/sprints/${sprint.id}`, {
+			headers: adminAuth,
+			data: { status: "COMPLETED" },
+		});
+
+		// --- Act: cargar la app y abrir la campana ---
+		await page.goto("/projects");
+		await page.reload();
+
+		const bell = page.getByLabel("Notificaciones");
+		await expect(bell.locator("span").first()).toBeVisible({ timeout: 15000 });
+		await bell.click();
+
+		const sprintNotification = page
+			.locator("button")
+			.filter({ hasText: "Sprint Completado" })
+			.first();
+		await expect(sprintNotification).toBeVisible({ timeout: 15000 });
+
+		// --- Act: activar la notificación ---
+		await sprintNotification.click();
+
+		// --- Assert: navega al detalle del sprint del proyecto (no /dashboard) ---
+		await expect(page).toHaveURL(
+			new RegExp(`/projects/${project.id}/sprints/${sprint.id}`),
+		);
+	});
+
+	test("NTF-03 · una ruta inexistente redirige al dashboard sin pantalla en blanco", async ({
+		page,
+		request,
+	}) => {
+		await loginViaApi(page, request, "admin", "ADMIN");
+
+		// --- Act: navegar a una ruta que ya no existe (bug original) ---
+		await page.goto("/dashboard");
+
+		// --- Assert: el catch-all redirige a la raíz ---
+		await expect(page).toHaveURL(`${BASE_ORIGIN}/`);
+
+		// --- Assert: el layout sigue renderizado (no hay pantalla en blanco) ---
+		await expect(page.getByLabel("Notificaciones")).toBeVisible({
+			timeout: 15000,
+		});
 	});
 });

@@ -102,6 +102,33 @@ describe("computeBurndown", () => {
 		expect(result4.series[9].ideal).toBe(0);
 		expect(result4.series[9].actual).toBe(0);
 	});
+
+	test("Cuenta las historias sin estimar sin alterar el total de puntos", () => {
+		const sprint = {
+			startDate: new Date("2026-04-01T00:00:00Z"),
+			endDate: new Date("2026-04-10T00:00:00Z"),
+			userStories: [
+				{ storyPoints: 5, completedAt: null },
+				{ storyPoints: null, completedAt: null },
+			],
+		};
+		const result = computeBurndown(sprint);
+
+		expect(result.totalPoints).toBe(5);
+		expect(result.unestimated).toBe(1);
+	});
+
+	test("Una historia con 0 puntos no cuenta como sin estimar", () => {
+		const sprint = {
+			startDate: new Date("2026-04-01T00:00:00Z"),
+			endDate: new Date("2026-04-10T00:00:00Z"),
+			userStories: [{ storyPoints: 0, completedAt: null }],
+		};
+		const result = computeBurndown(sprint);
+
+		expect(result.totalPoints).toBe(0);
+		expect(result.unestimated).toBe(0);
+	});
 });
 
 describe("computeVelocity", () => {
@@ -141,6 +168,26 @@ describe("computeVelocity", () => {
 		expect(result[1].completed).toBe(10);
 
 		expect(result[2].name).toBe("Sprint 3");
+	});
+
+	test("Reporta las historias sin estimar sin alterar committed/completed", () => {
+		const sprints = [
+			{
+				name: "Sprint 1",
+				startDate: new Date("2026-04-01T00:00:00Z"),
+				userStories: [
+					{ storyPoints: 10, completedAt: new Date("2026-04-02T00:00:00Z") },
+					{ storyPoints: 5, completedAt: null },
+					{ storyPoints: null, completedAt: null },
+				],
+			},
+		];
+
+		const result = computeVelocity(sprints);
+
+		expect(result[0].committed).toBe(15);
+		expect(result[0].completed).toBe(10);
+		expect(result[0].unestimated).toBe(1);
 	});
 });
 

@@ -560,9 +560,13 @@ export default function ProjectDetail() {
 															>
 																{story.priority}
 															</span>
-															{story.storyPoints != null && (
+															{story.storyPoints != null ? (
 																<span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
 																	{story.storyPoints} pts
+																</span>
+															) : (
+																<span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
+																	Sin estimar
 																</span>
 															)}
 														</div>
@@ -610,6 +614,18 @@ export default function ProjectDetail() {
 													{new Date(sprint.startDate).toLocaleDateString()} -{" "}
 													{new Date(sprint.endDate).toLocaleDateString()}
 												</p>
+												{(sprint.userStories ?? []).some(
+													(story) => story.storyPoints == null,
+												) && (
+													<p className="text-xs text-amber-600 mt-0.5">
+														{
+															(sprint.userStories ?? []).filter(
+																(story) => story.storyPoints == null,
+															).length
+														}{" "}
+														historias sin estimar
+													</p>
+												)}
 											</div>
 											<div className="flex items-center gap-3">
 												{isProjectAdmin && (
@@ -694,9 +710,13 @@ export default function ProjectDetail() {
 																					{story.description}
 																				</p>
 																			</div>
-																			{story.storyPoints != null && (
+																			{story.storyPoints != null ? (
 																				<span className="text-xs font-bold bg-white text-blue-950 px-2 py-1 rounded border border-blue-100">
 																					{story.storyPoints}
+																				</span>
+																			) : (
+																				<span className="text-xs font-medium bg-white text-gray-400 px-2 py-1 rounded border border-blue-100">
+																					Sin estimar
 																				</span>
 																			)}
 																		</div>

@@ -80,34 +80,55 @@ export function NotificationBell() {
 		}
 		setIsOpen(false);
 
+		// Sin referencia navegable: solo se marca como leída (ya hecho arriba).
 		if (!notification.entityType || !notification.entityId) return;
 
-		// Route based on entityType. We might need an API call to resolve projectId
-		// but since we don't want to overcomplicate the client, let's fetch it on demand if needed.
-		// Wait, if it's PROJECT, the entityId IS the projectId!
-		// For TASK, USER_STORY, RETROSPECTIVE_ITEM, we might need a quick fetch.
+		const { entityType, entityId } = notification;
+
+		// Resuelve el proyecto de la entidad (TASK, SPRINT, USER_STORY) y navega a su
+		// vista dentro del proyecto. Cualquier caso no resoluble cae en el dashboard
+		// raíz para no terminar en una ruta inexistente (pantalla en blanco).
+		const resolveProjectId = async (endpoint: string) => {
+			const res = await fetch(endpoint);
+			if (!res.ok) return null;
+			const data = await res.json();
+			return (data.data?.projectId as string | undefined) ?? null;
+		};
+
 		try {
-			if (notification.entityType === "PROJECT") {
-				navigate(`/projects/${notification.entityId}/tasks`);
-			} else if (notification.entityType === "TASK") {
-				const res = await fetch(`/api/tasks/${notification.entityId}`);
-				if (res.ok) {
-					const data = await res.json();
-					navigate(`/projects/${data.data.projectId}/tasks`);
-				}
-			} else if (notification.entityType === "MESSAGE") {
-				// MESSAGE entity is the message, but wait, the chat API doesn't expose a single message endpoint.
-				// Let's route to /dashboard.
-				// Actually the requirement D8 says "route to /projects/:projectId/chat".
-				// But we need the projectId! Wait, MESSAGE entity is the message, how to get the project?
-				// Let's just route to `/dashboard` if we can't figure it out.
-				// Actually, I can add `projectId` to the notification metadata or just route to `/dashboard` if missing.
-				navigate(`/dashboard`);
-			} else {
-				navigate(`/dashboard`);
+			if (entityType === "PROJECT") {
+				// El entityId de un proyecto ES el projectId.
+				navigate(`/projects/${entityId}/tasks`);
+				return;
 			}
+
+			if (entityType === "TASK") {
+				const projectId = await resolveProjectId(`/api/tasks/${entityId}`);
+				navigate(projectId ? `/projects/${projectId}/tasks` : "/");
+				return;
+			}
+
+			if (entityType === "SPRINT") {
+				const projectId = await resolveProjectId(`/api/sprints/${entityId}`);
+				navigate(
+					projectId ? `/projects/${projectId}/sprints/${entityId}` : "/",
+				);
+				return;
+			}
+
+			if (entityType === "USER_STORY") {
+				const projectId = await resolveProjectId(
+					`/api/user-stories/${entityId}`,
+				);
+				navigate(projectId ? `/projects/${projectId}/user-stories` : "/");
+				return;
+			}
+
+			// MESSAGE y RETROSPECTIVE_ITEM no tienen ruta dedicada; el chat es un widget.
+			navigate("/");
 		} catch (err) {
 			console.error("Failed to route notification", err);
+			navigate("/");
 		}
 	};
 

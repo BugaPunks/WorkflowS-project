@@ -53,13 +53,19 @@ export default function Reports() {
 	// Metrics Data
 	const [burndownData, setBurndownData] = useState<{
 		totalPoints: number;
+		unestimated: number;
 		series: BurndownDataPoint[];
 	} | null>(null);
 	const [contributionData, setContributionData] = useState<ContributionData[]>(
 		[],
 	);
 	const [velocityData, setVelocityData] = useState<
-		{ name: string; committed: number; completed: number }[]
+		{
+			name: string;
+			committed: number;
+			completed: number;
+			unestimated: number;
+		}[]
 	>([]);
 
 	const [_loading, setLoading] = useState(true);
@@ -305,6 +311,16 @@ export default function Reports() {
 				) : (
 					<p className="text-gray-500 py-4">No hay datos de velocidad.</p>
 				)}
+				{velocityData.some((s) => s.unestimated > 0) && (
+					<p className="mt-3 text-sm text-amber-600">
+						Historias sin estimar:{" "}
+						{velocityData
+							.filter((s) => s.unestimated > 0)
+							.map((s) => `${s.name} (${s.unestimated})`)
+							.join(", ")}
+						.
+					</p>
+				)}
 			</div>
 
 			{/* BURNDOWN CHART */}
@@ -315,9 +331,18 @@ export default function Reports() {
 							<h2 className="text-xl font-semibold text-gray-800">
 								Burndown Chart
 							</h2>
-							<div>
-								<span className="text-sm text-gray-600">Puntos Totales: </span>
-								<span className="font-bold">{burndownData.totalPoints}</span>
+							<div className="text-right">
+								<div>
+									<span className="text-sm text-gray-600">
+										Puntos Totales:{" "}
+									</span>
+									<span className="font-bold">{burndownData.totalPoints}</span>
+								</div>
+								{burndownData.unestimated > 0 && (
+									<p className="text-xs text-amber-600 mt-0.5">
+										{burndownData.unestimated} historias sin estimar
+									</p>
+								)}
 							</div>
 						</div>
 
