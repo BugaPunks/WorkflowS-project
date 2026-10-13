@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../db";
 import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
+import { requireChatParticipant } from "../middleware/chat-rbac";
 import { requireProjectRole } from "../middleware/project-rbac";
 
 const router = Router();
@@ -109,20 +110,18 @@ router.post(
 	},
 );
 
-// GET mis chats (DMs) - any authenticated
+// GET mis chats (DMs) - identidad del JWT para no-admin, parámetro solo efectivo para ADMIN
 router.get("/user/:userId/all", authenticateToken, async (req, res) => {
 	try {
-		const { userId } = req.params;
-
-		// Only allow users to see their own chats or ADMIN
-		if (req.user?.userId !== userId && req.user?.role !== "ADMIN") {
-			return res.sendStatus(403);
-		}
+		const isAdmin = req.user?.role === "ADMIN";
+		const effectiveUserId = isAdmin
+			? req.params.userId
+			: (req.user?.userId ?? "");
 
 		const directChats = await prisma.chat.findMany({
 			where: {
 				type: "DIRECT",
-				participants: { some: { userId } },
+				participants: { some: { userId: effectiveUserId } },
 			},
 			include: {
 				participants: {
@@ -178,10 +177,11 @@ router.post("/direct", authenticateToken, async (req, res) => {
 	}
 });
 
-// GET messages for specific chat (by ID) - any authenticated
+// GET messages for specific chat (by ID) - participant, project member, or ADMIN
 router.get(
 	"/conversation/:chatId/messages",
 	authenticateToken,
+	requireChatParticipant,
 	async (req, res) => {
 		try {
 			const { chatId } = req.params;
@@ -198,10 +198,11 @@ router.get(
 	},
 );
 
-// POST message to specific chat (by ID) - any authenticated
+// POST message to specific chat (by ID) - participant, project member, or ADMIN
 router.post(
 	"/conversation/:chatId/messages",
 	authenticateToken,
+	requireChatParticipant,
 	async (req, res) => {
 		try {
 			const { chatId } = req.params;

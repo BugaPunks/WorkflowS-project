@@ -72,15 +72,14 @@ router.get(
 	},
 );
 
-// GET /api/users/:id/dashboard-summary - Self or ADMIN
+// GET /api/users/:id/dashboard-summary - identidad del JWT para no-admin, parámetro solo efectivo para ADMIN
 router.get("/:id/dashboard-summary", authenticateToken, async (req, res) => {
 	try {
-		if (req.user?.userId !== req.params.id && req.user?.role !== "ADMIN") {
-			return res.sendStatus(403);
-		}
+		const isAdmin = req.user?.role === "ADMIN";
+		const ownId = isAdmin ? req.params.id : (req.user?.userId ?? "");
 
 		const user = await prisma.user.findUnique({
-			where: { id: req.params.id },
+			where: { id: ownId },
 			include: {
 				tasks: true,
 				projects: true,
@@ -127,12 +126,11 @@ router.get("/:id/dashboard-summary", authenticateToken, async (req, res) => {
 	}
 });
 
-// PUT /api/users/:id/dashboard - Self or ADMIN
+// PUT /api/users/:id/dashboard - identidad del JWT para no-admin, parámetro solo efectivo para ADMIN
 router.put("/:id/dashboard", authenticateToken, async (req, res) => {
 	try {
-		if (req.user?.userId !== req.params.id && req.user?.role !== "ADMIN") {
-			return res.sendStatus(403);
-		}
+		const isAdmin = req.user?.role === "ADMIN";
+		const ownId = isAdmin ? req.params.id : (req.user?.userId ?? "");
 
 		const modules = req.body.modules;
 		if (!Array.isArray(modules)) {
@@ -140,7 +138,7 @@ router.put("/:id/dashboard", authenticateToken, async (req, res) => {
 		}
 
 		await prisma.user.update({
-			where: { id: req.params.id },
+			where: { id: ownId },
 			data: { dashboardModules: JSON.stringify(modules) },
 		});
 		res.json({ message: "Dashboard actualizado" });
