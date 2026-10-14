@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { Bell } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -26,8 +27,8 @@ export function NotificationBell() {
 		if (!user) return;
 		try {
 			const [response, unreadRes] = await Promise.all([
-				fetch(`/api/notifications?userId=${user.id}`),
-				fetch(`/api/notifications/unread-count`),
+				apiFetch(`/notifications?userId=${user.id}`),
+				apiFetch(`/notifications/unread-count`),
 			]);
 
 			if (response.ok) {
@@ -54,7 +55,7 @@ export function NotificationBell() {
 
 	const handleMarkRead = async (id: string) => {
 		try {
-			await fetch(`/api/notifications/${id}/read`, { method: "PUT" });
+			await apiFetch(`/notifications/${id}/read`, { method: "PUT" });
 			setNotifications((prev) =>
 				prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
 			);
@@ -66,7 +67,7 @@ export function NotificationBell() {
 
 	const handleMarkAllRead = async () => {
 		try {
-			await fetch(`/api/notifications/read-all`, { method: "PUT" });
+			await apiFetch(`/notifications/read-all`, { method: "PUT" });
 			setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 			setUnreadCount(0);
 		} catch (error) {
@@ -89,7 +90,7 @@ export function NotificationBell() {
 		// vista dentro del proyecto. Cualquier caso no resoluble cae en el dashboard
 		// raíz para no terminar en una ruta inexistente (pantalla en blanco).
 		const resolveProjectId = async (endpoint: string) => {
-			const res = await fetch(endpoint);
+			const res = await apiFetch(endpoint);
 			if (!res.ok) return null;
 			const data = await res.json();
 			return (data.data?.projectId as string | undefined) ?? null;
@@ -103,13 +104,13 @@ export function NotificationBell() {
 			}
 
 			if (entityType === "TASK") {
-				const projectId = await resolveProjectId(`/api/tasks/${entityId}`);
+				const projectId = await resolveProjectId(`/tasks/${entityId}`);
 				navigate(projectId ? `/projects/${projectId}/tasks` : "/");
 				return;
 			}
 
 			if (entityType === "SPRINT") {
-				const projectId = await resolveProjectId(`/api/sprints/${entityId}`);
+				const projectId = await resolveProjectId(`/sprints/${entityId}`);
 				navigate(
 					projectId ? `/projects/${projectId}/sprints/${entityId}` : "/",
 				);
@@ -118,7 +119,7 @@ export function NotificationBell() {
 
 			if (entityType === "USER_STORY") {
 				const projectId = await resolveProjectId(
-					`/api/user-stories/${entityId}`,
+					`/user-stories/${entityId}`,
 				);
 				navigate(projectId ? `/projects/${projectId}/user-stories` : "/");
 				return;

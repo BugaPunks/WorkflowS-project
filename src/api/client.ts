@@ -2,7 +2,7 @@
  * Cliente API para conectar el frontend React con el servidor Express
  */
 
-const API_BASE_URL = import.meta.env.DEV ? "http://localhost:5000/api" : "/api";
+import { apiFetch } from "./config";
 
 interface RequestOptions extends RequestInit {
 	method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -12,17 +12,15 @@ async function apiRequest<T = unknown>(
 	endpoint: string,
 	options: RequestOptions = {},
 ): Promise<T> {
-	const url = `${API_BASE_URL}${endpoint}`;
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
 		...(options.headers as Record<string, string>),
 	};
 
 	try {
-		const response = await fetch(url, {
+		const response = await apiFetch(endpoint, {
 			...options,
 			headers,
-			credentials: "include",
 		});
 
 		if (response.status === 401) {

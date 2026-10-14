@@ -1,3 +1,4 @@
+import { apiFetch, resolveApiUrl } from "@/api/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { DocumentItem, DocumentVersion } from "./types";
@@ -13,7 +14,7 @@ export function DocumentsSection({ projectId }: { projectId: string }) {
 
 	const loadDocs = useCallback(async () => {
 		try {
-			const response = await fetch(`/api/documents/${projectId}`);
+			const response = await apiFetch(`/documents/${projectId}`);
 			if (response.ok) {
 				const data = await response.json();
 				setDocuments(data.data || []);
@@ -25,7 +26,7 @@ export function DocumentsSection({ projectId }: { projectId: string }) {
 
 	const loadHistory = async (docId: string) => {
 		try {
-			const response = await fetch(`/api/documents/${docId}/versions`);
+			const response = await apiFetch(`/documents/${docId}/versions`);
 			if (response.ok) {
 				const data = await response.json();
 				setHistoryData(data.data || []);
@@ -58,13 +59,13 @@ export function DocumentsSection({ projectId }: { projectId: string }) {
 
 		try {
 			const url = uploadParentId
-				? `/api/documents/${uploadParentId}/versions`
-				: `/api/documents/${projectId}`;
+				? `/documents/${uploadParentId}/versions`
+				: `/documents/${projectId}`;
 
 			const formData = new FormData();
 			formData.append("file", file);
 
-			const response = await fetch(url, {
+			const response = await apiFetch(url, {
 				method: "POST",
 				// headers: Content-Type is set automatically for FormData
 				body: formData,
@@ -90,7 +91,7 @@ export function DocumentsSection({ projectId }: { projectId: string }) {
 	const handleDelete = async (id: string) => {
 		if (!confirm("¿Eliminar archivo y todas sus versiones?")) return;
 		try {
-			await fetch(`/api/documents/${id}`, { method: "DELETE" });
+			await apiFetch(`/documents/${id}`, { method: "DELETE" });
 			loadDocs();
 			if (showHistory === id) setShowHistory(null);
 		} catch (err) {
@@ -158,7 +159,7 @@ export function DocumentsSection({ projectId }: { projectId: string }) {
 								<div className="mt-auto flex flex-col gap-2">
 									<div className="flex gap-2">
 										<a
-											href={doc.url}
+											href={resolveApiUrl(doc.url)}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="flex-1 text-center block bg-gray-50 hover:bg-gray-100 text-blue-950 text-sm py-2 rounded"
@@ -217,7 +218,7 @@ export function DocumentsSection({ projectId }: { projectId: string }) {
 									</span>
 								</div>
 								<a
-									href={ver.url}
+									href={resolveApiUrl(ver.url)}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="text-xs text-blue-950 hover:underline block mt-1"

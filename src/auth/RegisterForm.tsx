@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLogoIcon } from "@/components/AppLogoIcon";
@@ -82,7 +83,7 @@ export function RegisterForm() {
 
 		try {
 			// Using /api prefix which is proxied by rsbuild to backend
-			const response = await fetch("/api/auth/register", {
+			const response = await apiFetch("/auth/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

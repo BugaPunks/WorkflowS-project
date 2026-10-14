@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { UserRole } from "@/models/user";
@@ -37,7 +38,7 @@ export default function UserManagement() {
 	const loadUsers = useCallback(async () => {
 		try {
 			setIsLoading(true);
-			const response = await fetch("/api/users");
+			const response = await apiFetch("/users");
 			const data = await response.json();
 			setUsers(data.data || []);
 		} catch (error) {
@@ -81,7 +82,7 @@ export default function UserManagement() {
 		e.preventDefault();
 
 		try {
-			const url = isEditing ? `/api/users/${currentUserId}` : "/api/users";
+			const url = isEditing ? `/users/${currentUserId}` : "/users";
 			const method = isEditing ? "PUT" : "POST";
 
 			const body: UserPayload = {
@@ -100,7 +101,7 @@ export default function UserManagement() {
 				body.password = formData.password;
 			}
 
-			const response = await fetch(url, {
+			const response = await apiFetch(url, {
 				method: method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(body),
@@ -125,7 +126,7 @@ export default function UserManagement() {
 		if (!confirm("¿Estás seguro de que quieres eliminar este usuario?")) return;
 
 		try {
-			const response = await fetch(`/api/users/${userId}`, {
+			const response = await apiFetch(`/users/${userId}`, {
 				method: "DELETE",
 			});
 			if (!response.ok) throw new Error("Error deleting user");

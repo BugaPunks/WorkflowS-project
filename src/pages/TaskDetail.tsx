@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Modal } from "@/components/Modal";
@@ -38,7 +39,7 @@ export default function TaskDetail() {
 		if (!taskId) return;
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/tasks/${taskId}`);
+			const response = await apiFetch(`/tasks/${taskId}`);
 			if (!response.ok) throw new Error("Tarea no encontrada");
 			const data = await response.json();
 			setTask(data.data);
@@ -63,7 +64,7 @@ export default function TaskDetail() {
 		e.preventDefault();
 		if (!taskId) return;
 		try {
-			const response = await fetch(`/api/tasks/${taskId}`, {
+			const response = await apiFetch(`/tasks/${taskId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(editForm),

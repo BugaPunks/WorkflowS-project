@@ -3,7 +3,9 @@
 ## Purpose
 
 Derives and reports the server's runtime environment at startup, refuses insecure or incomplete configuration before accepting traffic, and documents every environment variable the project reads.
+
 ## Requirements
+
 ### Requirement: Server startup distinguishes development from production
 The server SHALL derive an explicit environment flag from `NODE_ENV` at startup and SHALL identify that environment in the startup log, so that an operator can tell from the logs whether the process is running a development or a production configuration without inspecting the process environment. The environment SHALL NOT be inferred implicitly in scattered places: the flag SHALL be computed once at startup and reused wherever the behaviour depends on it.
 
@@ -46,11 +48,11 @@ The server SHALL refuse to start when `JWT_SECRET` is absent from its configurat
 - **THEN** it exits with an error identifying the missing variable and does not begin listening
 
 ### Requirement: The environment variables of the project are declared in a template
-The repository SHALL ship `.env.example` documenting every environment variable the server reads, including `NODE_ENV` and the API rate-limit variables `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW_MS`, each with a safe placeholder or its development value and an indication of whether it is required. No secret value SHALL appear in the template other than a clearly marked placeholder.
+The repository SHALL ship `.env.example` documenting every environment variable the server reads, including `NODE_ENV`, the API rate-limit variables `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW_MS`, the deployment port `PORT` and the uploads directory `UPLOADS_DIR`, each with a safe placeholder or its development value and an indication of whether it is required.
 
 #### Scenario: Every read variable is documented
 - **WHEN** the variables read by the server are compared with `.env.example`
-- **THEN** each of them appears in the template, including `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`, `API_PORT`, `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW_MS`
+- **THEN** each of them appears in the template, including `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`, `API_PORT`, `PORT`, `UPLOADS_DIR`, `API_RATE_LIMIT_MAX` and `API_RATE_LIMIT_WINDOW_MS`
 
 #### Scenario: Template carries no real secret
 - **WHEN** `.env.example` is inspected
@@ -60,3 +62,30 @@ The repository SHALL ship `.env.example` documenting every environment variable 
 - **WHEN** a contributor copies `.env.example` to a local environment file and fills in the development values
 - **THEN** the server starts in development without further configuration
 
+### Requirement: El puerto de escucha acepta el valor provisto por el entorno de despliegue
+
+El servidor SHALL escuchar en el puerto indicado por la variable `PORT` cuando esté presente, y SHALL recurrir a `API_PORT` y luego a `5000` cuando no lo esté, de modo que el servicio funcione detrás de una plataforma que inyecta su propio puerto sin configuración adicional.
+
+#### Scenario: El entorno provee PORT
+- **WHEN** el servidor arranca con `PORT` definido
+- **THEN** escucha en ese puerto
+
+#### Scenario: Sin PORT se usa API_PORT o el valor por defecto
+- **WHEN** el servidor arranca sin `PORT` definido
+- **THEN** escucha en `API_PORT` si está definido, o en `5000` en caso contrario
+
+### Requirement: El directorio de uploads es configurable
+
+El servidor SHALL almacenar los documentos subidos en el directorio indicado por `UPLOADS_DIR` (por defecto `uploads/`) y SHALL servirlos desde ese mismo directorio, de modo que un despliegue pueda montar un volumen persistente y un documento subido siga siendo descargable tras un reinicio.
+
+#### Scenario: El documento se guarda y se sirve desde el directorio configurado
+- **WHEN** el servidor se ejecuta con `UPLOADS_DIR` definido y un usuario sube un documento
+- **THEN** el archivo se almacena en ese directorio y su descarga se resuelve desde el mismo
+
+#### Scenario: Un documento persiste tras reiniciar
+- **WHEN** el servidor se reinicia conservando el mismo `UPLOADS_DIR`
+- **THEN** un documento subido antes del reinicio sigue siendo descargable
+
+#### Scenario: Sin la variable se usa el directorio por defecto
+- **WHEN** el servidor se ejecuta sin `UPLOADS_DIR`
+- **THEN** almacena y sirve los documentos desde `uploads/`

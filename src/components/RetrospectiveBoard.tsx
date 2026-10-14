@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 
@@ -48,7 +49,7 @@ export default function RetrospectiveBoard({ sprintId }: Props) {
 
 	const loadItems = useCallback(async () => {
 		try {
-			const res = await fetch(`/api/retrospectives/${sprintId}`);
+			const res = await apiFetch(`/retrospectives/${sprintId}`);
 			const data = await res.json();
 			setItems(data.data || []);
 		} catch (err) {
@@ -77,7 +78,7 @@ export default function RetrospectiveBoard({ sprintId }: Props) {
 		setActiveColumn(null);
 
 		try {
-			await fetch("/api/retrospectives", {
+			await apiFetch("/retrospectives", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -98,7 +99,7 @@ export default function RetrospectiveBoard({ sprintId }: Props) {
 		if (!confirm("¿Eliminar nota?")) return;
 		setItems((prev) => prev.filter((i) => i.id !== id));
 		try {
-			await fetch(`/api/retrospectives/${id}`, { method: "DELETE" });
+			await apiFetch(`/retrospectives/${id}`, { method: "DELETE" });
 		} catch (err) {
 			console.error(err);
 			loadItems(); // Revert

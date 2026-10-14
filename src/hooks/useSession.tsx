@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import { type User, UserRole } from "@/models/user";
@@ -54,7 +55,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({
 
 	const logout = () => {
 		// Revocar la sesión en el servidor (invalida el cookie/token)
-		fetch("/api/auth/logout", {
+		apiFetch("/auth/logout", {
 			method: "POST",
 			credentials: "include",
 		}).catch(() => {

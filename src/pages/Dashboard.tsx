@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useEffect, useState } from "react";
 import StudentDashboard from "@/components/dashboards/StudentDashboard";
 import TeacherDashboard from "@/components/dashboards/TeacherDashboard";
@@ -22,7 +23,7 @@ export default function Dashboard() {
 
 	useEffect(() => {
 		if (session && session.role !== UserRole.ADMIN) {
-			fetch(`/api/users/${session.id}/dashboard-summary`)
+			apiFetch(`/users/${session.id}/dashboard-summary`)
 				.then((res) => res.json())
 				.then((data) => {
 					setSummary({
@@ -30,7 +31,7 @@ export default function Dashboard() {
 						totalItems: data.totalItems,
 						dashboardModules: data.dashboardModules,
 						onModulesChange: async (modules: string[]) => {
-							await fetch(`/api/users/${session.id}/dashboard`, {
+							await apiFetch(`/users/${session.id}/dashboard`, {
 								method: "PUT",
 								headers: { "Content-Type": "application/json" },
 								body: JSON.stringify({ modules }),

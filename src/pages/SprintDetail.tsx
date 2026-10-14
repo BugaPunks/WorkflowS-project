@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import {
 	DragDropContext,
 	Draggable,
@@ -55,7 +56,7 @@ export default function SprintDetail() {
 		if (!sprintId) return;
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/sprints/${sprintId}`);
+			const response = await apiFetch(`/sprints/${sprintId}`);
 			if (!response.ok) throw new Error("Sprint no encontrado");
 			const data = await response.json();
 			setSprint(data.data);
@@ -101,7 +102,7 @@ export default function SprintDetail() {
 		setTasks(updatedTasks);
 
 		try {
-			await fetch(`/api/tasks/${draggableId}`, {
+			await apiFetch(`/tasks/${draggableId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ status: newStatus }),

@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 import type { ChatMessage } from "./types";
@@ -9,7 +10,7 @@ export function ChatSection({ projectId }: { projectId: string }) {
 
 	const loadMessages = useCallback(async () => {
 		try {
-			const response = await fetch(`/api/chat/${projectId}/messages`);
+			const response = await apiFetch(`/chat/${projectId}/messages`);
 			if (response.ok) {
 				const data = await response.json();
 				setMessages(data.data || []);
@@ -31,7 +32,7 @@ export function ChatSection({ projectId }: { projectId: string }) {
 		if (!input.trim() || !currentUser) return;
 
 		try {
-			const response = await fetch(`/api/chat/${projectId}/messages`, {
+			const response = await apiFetch(`/chat/${projectId}/messages`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

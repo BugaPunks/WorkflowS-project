@@ -9,7 +9,8 @@ const router = Router();
 router.get("/:filename", authenticateToken, async (req, res) => {
 	try {
 		const { filename } = req.params;
-		const filePath = path.join("uploads", filename);
+	const uploadsDir = process.env.UPLOADS_DIR || "uploads";
+	const filePath = path.join(uploadsDir, filename);
 
 		if (!fs.existsSync(filePath)) {
 			return res.status(404).json({ error: "Archivo no encontrado" });

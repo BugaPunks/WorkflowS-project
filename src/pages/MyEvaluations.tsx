@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 
@@ -29,7 +30,7 @@ export default function MyEvaluations() {
 		if (!user) return;
 		setIsLoading(true);
 		try {
-			const res = await fetch(`/api/evaluations/student/${user.id}`);
+			const res = await apiFetch(`/evaluations/student/${user.id}`);
 			const data = await res.json();
 			setMyGrades(data.data || []);
 		} catch (error) {

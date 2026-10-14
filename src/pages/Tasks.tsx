@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import {
 	DragDropContext,
 	Draggable,
@@ -181,7 +182,7 @@ export default function Tasks() {
 	const handleDeleteTask = async (id: string) => {
 		if (!confirm("¿Estás seguro de que quieres eliminar esta tarea?")) return;
 		try {
-			const response = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+			const response = await apiFetch(`/tasks/${id}`, { method: "DELETE" });
 			if (!response.ok) {
 				if (response.status === 403) {
 					throw new Error("No tienes permiso para eliminar esta tarea");

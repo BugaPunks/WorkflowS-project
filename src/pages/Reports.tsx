@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useEffect, useState } from "react";
 import {
 	Area,
@@ -88,8 +89,8 @@ export default function Reports() {
 			const query = exportSprint
 				? `?sprintId=${encodeURIComponent(exportSprint)}`
 				: "";
-			const res = await fetch(
-				`/api/metrics/export/projects/${selectedProject}${query}`,
+			const res = await apiFetch(
+				`/metrics/export/projects/${selectedProject}${query}`,
 			);
 
 			if (!res.ok) {
@@ -161,7 +162,7 @@ export default function Reports() {
 
 		if (selectedProject) {
 			// Load Sprints
-			fetch("/api/sprints")
+			apiFetch("/sprints")
 				.then((res) => res.json())
 				.then((data) => {
 					const projSprints = data.data.filter(
@@ -177,12 +178,12 @@ export default function Reports() {
 				});
 
 			// Load Contributions
-			fetch(`/api/metrics/projects/${selectedProject}/contribution`)
+			apiFetch(`/metrics/projects/${selectedProject}/contribution`)
 				.then((res) => res.json())
 				.then((data) => setContributionData(data.data || []));
 
 			// Load Velocity
-			fetch(`/api/metrics/projects/${selectedProject}/velocity`)
+			apiFetch(`/metrics/projects/${selectedProject}/velocity`)
 				.then((res) => res.json())
 				.then((data) => setVelocityData(data.data || []));
 		}
@@ -191,7 +192,7 @@ export default function Reports() {
 	// Load Burndown when Sprint changes
 	useEffect(() => {
 		if (selectedSprint) {
-			fetch(`/api/metrics/sprints/${selectedSprint}/burndown`)
+			apiFetch(`/metrics/sprints/${selectedSprint}/burndown`)
 				.then((res) => res.json())
 				.then((data) => setBurndownData(data.data));
 		}

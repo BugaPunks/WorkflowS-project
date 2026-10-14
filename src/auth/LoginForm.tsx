@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLogoIcon } from "@/components/AppLogoIcon";
@@ -68,7 +69,7 @@ export function LoginForm() {
 
 		try {
 			// Using /api prefix to use proxy
-			const response = await fetch("/api/auth/login", {
+			const response = await apiFetch("/auth/login", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

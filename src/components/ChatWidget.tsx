@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { ChevronLeft, MessageCircle, Minus, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSession } from "@/hooks/useSession";
@@ -45,7 +46,7 @@ export function ChatWidget() {
 	const loadChats = useCallback(async () => {
 		if (!user) return;
 		try {
-			const res = await fetch(`/api/chat/user/${user.id}/all`);
+			const res = await apiFetch(`/chat/user/${user.id}/all`);
 			if (!res.ok) {
 				console.error("No se pudieron cargar chats:", res.status);
 				setChats([]);
@@ -71,8 +72,8 @@ export function ChatWidget() {
 		if (selectedChat && isOpen && view === "CHAT") {
 			const loadMsgs = async () => {
 				try {
-					const res = await fetch(
-						`/api/chat/conversation/${selectedChat.id}/messages`,
+					const res = await apiFetch(
+						`/chat/conversation/${selectedChat.id}/messages`,
 					);
 					if (!res.ok) {
 						console.error("No se pudieron cargar mensajes:", res.status);
@@ -111,8 +112,8 @@ export function ChatWidget() {
 		if (!input.trim() || !selectedChat || !user) return;
 
 		try {
-			const sendRes = await fetch(
-				`/api/chat/conversation/${selectedChat.id}/messages`,
+			const sendRes = await apiFetch(
+				`/chat/conversation/${selectedChat.id}/messages`,
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -125,8 +126,8 @@ export function ChatWidget() {
 			}
 			setInput("");
 			// Immediate fetch
-			const res = await fetch(
-				`/api/chat/conversation/${selectedChat.id}/messages`,
+			const res = await apiFetch(
+				`/chat/conversation/${selectedChat.id}/messages`,
 			);
 			if (!res.ok) {
 				console.error("No se pudieron cargar mensajes:", res.status);
@@ -142,7 +143,7 @@ export function ChatWidget() {
 
 	const loadUsers = async () => {
 		try {
-			const res = await fetch("/api/chat/users");
+			const res = await apiFetch("/chat/users");
 			if (!res.ok) {
 				console.error("No se pudieron cargar usuarios:", res.status);
 				setUsers([]);
@@ -159,7 +160,7 @@ export function ChatWidget() {
 	const startDM = async (targetUserId: string) => {
 		if (!user) return;
 		try {
-			const res = await fetch("/api/chat/direct", {
+			const res = await apiFetch("/chat/direct", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ userId: user.id, targetUserId }),
@@ -171,7 +172,7 @@ export function ChatWidget() {
 			loadChats(); // Don't await void
 
 			// Select new chat
-			const listRes = await fetch(`/api/chat/user/${user.id}/all`);
+			const listRes = await apiFetch(`/chat/user/${user.id}/all`);
 			const listData = await listRes.json();
 			const fullChat = (listData.data || []).find(
 				(c: Chat) => c.id === chat.id,

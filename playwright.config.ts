@@ -43,8 +43,7 @@ export default defineConfig({
 			env: {
 				DISABLE_RATE_LIMIT: "true",
 				DATABASE_URL:
-					process.env.DATABASE_URL ||
-					"postgresql://postgres:123456@localhost:5432/workflow_db?schema=public",
+					process.env.DATABASE_URL || "file:./dev.db",
 			},
 			timeout: 120_000,
 		},

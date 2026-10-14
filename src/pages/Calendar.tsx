@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import {
 	addDays,
 	eachDayOfInterval,
@@ -48,13 +49,13 @@ export default function Calendar() {
 			try {
 				setLoading(true);
 				// Fetch Sprints
-				const sprintsRes = await fetch("/api/sprints");
+				const sprintsRes = await apiFetch("/sprints");
 				const sprintsData = await sprintsRes.json();
 				const sprintsList = sprintsData.data || [];
 				setSprints(sprintsList);
 
 				// Fetch Tasks
-				const tasksRes = await fetch("/api/tasks");
+				const tasksRes = await apiFetch("/tasks");
 				const tasksData = await tasksRes.json();
 				// Filter tasks with deadline
 				const allTasks = tasksData.data || tasksData || [];

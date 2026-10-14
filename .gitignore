@@ -22,6 +22,7 @@ tests-results/
 /src/generated/prisma
 dev.db
 uploads/
+.e2e-separation-uploads/
 .qodo
 .env
 

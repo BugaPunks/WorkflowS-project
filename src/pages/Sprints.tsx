@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { projectAPI, sprintAPI } from "@/api/client";
@@ -134,7 +135,7 @@ export default function Sprints() {
 	const handleDeleteSprint = async (id: string) => {
 		if (!confirm("¿Estás seguro de que quieres eliminar este sprint?")) return;
 		try {
-			const response = await fetch(`/api/sprints/${id}`, { method: "DELETE" });
+			const response = await apiFetch(`/sprints/${id}`, { method: "DELETE" });
 			if (!response.ok) {
 				if (response.status === 403) {
 					throw new Error("No tienes permiso para eliminar este sprint");

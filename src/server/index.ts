@@ -11,9 +11,11 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import "dotenv/config";
 
+const uploadsDir = process.env.UPLOADS_DIR || "uploads";
+
 // Asegurar que existe el directorio de uploads
-if (!fs.existsSync("uploads")) {
-	fs.mkdirSync("uploads");
+if (!fs.existsSync(uploadsDir)) {
+	fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
 import { isPollingRequest } from "./lib/rate-limit";
@@ -36,7 +38,7 @@ import userStoriesRouter from "./routes/user-stories";
 import usersRouter from "./routes/users";
 
 const app: Express = express();
-const PORT = process.env.API_PORT || 5000;
+const PORT = process.env.PORT ?? process.env.API_PORT ?? 5000;
 
 // Entorno derivado una sola vez al arrancar. El banner, la validación de
 // secretos y cualquier otra decisión que dependa del entorno consultan esta
@@ -91,7 +93,11 @@ const findProductionConfigProblems = (): ConfigProblem[] => {
 };
 
 // Security headers
-app.use(helmet());
+app.use(
+	helmet({
+		crossOriginResourcePolicy: { policy: "cross-origin" },
+	}),
+);
 
 // Parseo de cookies para leer el token de sesión
 app.use(cookieParser());

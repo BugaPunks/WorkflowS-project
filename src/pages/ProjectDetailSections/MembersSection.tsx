@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import type { AvailableUser, ProjectMemberDetails } from "./types";
@@ -19,7 +20,7 @@ export function MembersSection({
 	const loadMembers = useCallback(async () => {
 		try {
 			// Reload project to get members
-			const response = await fetch(`/api/projects/${projectId}`);
+			const response = await apiFetch(`/projects/${projectId}`);
 			const data = await response.json();
 			setMembers(data.data.members || []);
 		} catch (err) {
@@ -31,7 +32,7 @@ export function MembersSection({
 
 	const loadUsers = async () => {
 		try {
-			const response = await fetch("/api/users");
+			const response = await apiFetch("/users");
 			const data = await response.json();
 			// Filter out already added members
 			const memberIds = new Set(members.map((m) => m.userId));
@@ -52,7 +53,7 @@ export function MembersSection({
 	const handleAddMember = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
-			const response = await fetch(`/api/projects/${projectId}/members`, {
+			const response = await apiFetch(`/projects/${projectId}/members`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ userId: selectedUser, role: selectedRole }),
@@ -68,8 +69,8 @@ export function MembersSection({
 	const handleRemoveMember = async (userId: string) => {
 		if (!confirm("¿Eliminar miembro?")) return;
 		try {
-			const response = await fetch(
-				`/api/projects/${projectId}/members/${userId}`,
+			const response = await apiFetch(
+				`/projects/${projectId}/members/${userId}`,
 				{
 					method: "DELETE",
 				},

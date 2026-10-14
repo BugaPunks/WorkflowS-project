@@ -21,9 +21,11 @@ const ALLOWED_MIME_TYPES = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // Configuración de Multer para almacenamiento local
+const uploadsDir = process.env.UPLOADS_DIR || "uploads";
+
 const storage = multer.diskStorage({
 	destination: (_req, _file, cb) => {
-		cb(null, "uploads/");
+		cb(null, uploadsDir);
 	},
 	filename: (_req, file, cb) => {
 		const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;

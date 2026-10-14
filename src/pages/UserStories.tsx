@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { projectAPI, userStoryAPI } from "@/api/client";
@@ -127,7 +128,7 @@ export default function UserStories() {
 				? Math.min(99, Math.max(0, parsedPoints))
 				: undefined;
 			if (!projectId) throw new Error("Proyecto no encontrado");
-			const response = await fetch("/api/user-stories", {
+			const response = await apiFetch("/user-stories", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -156,7 +157,7 @@ export default function UserStories() {
 		if (!confirm("¿Estás seguro de que quieres eliminar esta historia?"))
 			return;
 		try {
-			const response = await fetch(`/api/user-stories/${id}`, {
+			const response = await apiFetch(`/user-stories/${id}`, {
 				method: "DELETE",
 			});
 			if (!response.ok) {
@@ -183,7 +184,7 @@ export default function UserStories() {
 
 	const handleToggleStatus = async (story: UserStory, status: string) => {
 		try {
-			const response = await fetch(`/api/user-stories/${story.id}`, {
+			const response = await apiFetch(`/user-stories/${story.id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ status }),

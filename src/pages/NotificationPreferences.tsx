@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import {
 	Bell,
 	Calendar,
@@ -66,7 +67,7 @@ export default function NotificationPreferences() {
 
 	const fetchPreferences = useCallback(async () => {
 		try {
-			const res = await fetch("/api/notification-preferences");
+			const res = await apiFetch("/notification-preferences");
 			if (res.ok) {
 				const data = await res.json();
 				const prefMap: Record<string, boolean> = {};
@@ -91,7 +92,7 @@ export default function NotificationPreferences() {
 		setPreferences((prev) => ({ ...prev, [type]: newValue }));
 
 		try {
-			const res = await fetch(`/api/notification-preferences/${type}`, {
+			const res = await apiFetch(`/notification-preferences/${type}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ enabled: newValue }),

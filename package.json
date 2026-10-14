@@ -20,6 +20,7 @@
 		"lint": "biome check",
 		"test": "vitest run --exclude e2e",
 		"e2e": "playwright test",
+		"e2e:separation": "playwright test --config playwright.separation.config.ts",
 		"test:unit": "vitest run --exclude e2e",
 		"test:unit:watch": "vitest"
 	},

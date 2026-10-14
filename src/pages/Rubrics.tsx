@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { useSession } from "@/hooks/useSession";
@@ -53,7 +54,7 @@ export default function Rubrics() {
 
 	const loadProjects = useCallback(async () => {
 		try {
-			const response = await fetch("/api/projects");
+			const response = await apiFetch("/projects");
 			const data = await response.json();
 			const projectsList = Array.isArray(data) ? data : data.data || [];
 			setProjects(projectsList);
@@ -65,11 +66,11 @@ export default function Rubrics() {
 	const loadRubrics = useCallback(async (projectId?: string | null) => {
 		try {
 			setIsLoading(true);
-			let url = "/api/rubrics";
+			let url = "/rubrics";
 			if (projectId) {
 				url += `?projectId=${projectId}`;
 			}
-			const response = await fetch(url);
+			const response = await apiFetch(url);
 			const data = await response.json();
 
 			if (projectId) {
@@ -137,8 +138,8 @@ export default function Rubrics() {
 
 		try {
 			const url = isEditing
-				? `/api/rubrics/${currentRubricId}`
-				: "/api/rubrics";
+				? `/rubrics/${currentRubricId}`
+				: "/rubrics";
 			const method = isEditing ? "PUT" : "POST";
 
 			const body: RubricPayload = {
@@ -148,7 +149,7 @@ export default function Rubrics() {
 				projectId: formData.projectId,
 			};
 
-			const response = await fetch(url, {
+			const response = await apiFetch(url, {
 				method: method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(body),
@@ -173,7 +174,7 @@ export default function Rubrics() {
 		if (!confirm("¿Estás seguro de que quieres eliminar esta rúbrica?")) return;
 
 		try {
-			const response = await fetch(`/api/rubrics/${id}`, {
+			const response = await apiFetch(`/rubrics/${id}`, {
 				method: "DELETE",
 			});
 

@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import {
 	DragDropContext,
 	Draggable,
@@ -85,13 +86,13 @@ export default function ProjectDetail() {
 			setIsLoading(true);
 
 			// Fetch project
-			const projectResponse = await fetch(`/api/projects/${id}`);
+			const projectResponse = await apiFetch(`/projects/${id}`);
 			if (!projectResponse.ok) throw new Error("Proyecto no encontrado");
 			const projectData = await projectResponse.json();
 			setProject(projectData.data);
 
 			// Fetch sprints
-			const sprintsResponse = await fetch("/api/sprints");
+			const sprintsResponse = await apiFetch("/sprints");
 			const sprintsData = await sprintsResponse.json();
 			const sprintsList = Array.isArray(sprintsData)
 				? sprintsData
@@ -102,7 +103,7 @@ export default function ProjectDetail() {
 			setSprints(projectSprints || []);
 
 			// Fetch ALL User Stories for this project
-			const storiesResponse = await fetch("/api/user-stories");
+			const storiesResponse = await apiFetch("/user-stories");
 			const storiesData = await storiesResponse.json();
 			const storiesList = Array.isArray(storiesData)
 				? storiesData
@@ -152,7 +153,7 @@ export default function ProjectDetail() {
 		e.preventDefault();
 		if (!id) return;
 		try {
-			const response = await fetch("/api/sprints", {
+			const response = await apiFetch("/sprints", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -182,7 +183,7 @@ export default function ProjectDetail() {
 			if (!confirm(message)) return;
 		}
 		try {
-			const response = await fetch(`/api/sprints/${sprintId}`, {
+			const response = await apiFetch(`/sprints/${sprintId}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ status }),
@@ -250,7 +251,7 @@ export default function ProjectDetail() {
 				);
 
 				// API Call
-				const response = await fetch(`/api/sprints/${sprintId}/add-story`, {
+				const response = await apiFetch(`/sprints/${sprintId}/add-story`, {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ userStoryId: draggableId }),
@@ -309,8 +310,8 @@ export default function ProjectDetail() {
 				]);
 
 				// API Call
-				const response = await fetch(
-					`/api/sprints/${sprintId}/stories/${draggableId}`,
+				const response = await apiFetch(
+					`/sprints/${sprintId}/stories/${draggableId}`,
 					{ method: "DELETE" },
 				);
 

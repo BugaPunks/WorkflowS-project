@@ -1,3 +1,4 @@
+import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSession } from "@/hooks/useSession";
@@ -72,7 +73,7 @@ export default function GradingView() {
 				let targetData: TargetEntity | null = null;
 
 				if (taskId) {
-					const res = await fetch(`/api/tasks/${taskId}`);
+					const res = await apiFetch(`/tasks/${taskId}`);
 					const data = await res.json();
 					if (data.error) throw new Error(data.error);
 					// Normalizing task data
@@ -81,7 +82,7 @@ export default function GradingView() {
 				} else if (sprintId) {
 					// Fetch Sprint
 					// Assuming we have /api/sprints/:id
-					const res = await fetch(`/api/sprints/${sprintId}`);
+					const res = await apiFetch(`/sprints/${sprintId}`);
 					// Sprint endpoint might return the object directly or wrapped
 					const data = await res.json();
 					const sprint = data.data || data;
@@ -95,7 +96,7 @@ export default function GradingView() {
 					};
 				} else {
 					// Grading Project
-					const res = await fetch(`/api/projects/${projectId}`);
+					const res = await apiFetch(`/projects/${projectId}`);
 					const data = await res.json();
 					const project = data.data || data;
 					if (data.error) throw new Error(data.error);
@@ -111,7 +112,7 @@ export default function GradingView() {
 				setTarget(targetData);
 
 				// Fetch Project Rubrics (Global + Project Specific)
-				const rubricsRes = await fetch(`/api/rubrics?projectId=${projectId}`);
+				const rubricsRes = await apiFetch(`/rubrics?projectId=${projectId}`);
 				const rubricsData = await rubricsRes.json();
 				const rubricsList = rubricsData.data || [];
 				setRubrics(rubricsList);
@@ -205,7 +206,7 @@ export default function GradingView() {
 			if (sprintId) payload.sprintId = sprintId;
 			// If both missing, it's project level (handled by backend)
 
-			const response = await fetch("/api/evaluations", {
+			const response = await apiFetch("/evaluations", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
