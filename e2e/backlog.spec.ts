@@ -118,7 +118,7 @@ test.describe("Módulo 4: Gestión del Backlog (User Stories)", () => {
 
 		await page.reload();
 		await expect(page.locator(`text=${storyTitle}`)).toBeVisible();
-		await expect(page.getByText("Sin estimar")).toBeVisible();
+		await expect(page.getByText("Sin estimar", { exact: true })).toBeVisible();
 		await expect(page.getByText("0 pts")).not.toBeVisible();
 	});
 

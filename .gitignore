@@ -18,6 +18,7 @@ dist/
 
 # Folder
 tests-results/
+test-results/
 
 /src/generated/prisma
 dev.db
