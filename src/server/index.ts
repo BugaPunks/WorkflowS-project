@@ -114,10 +114,26 @@ app.use(
 // Parseo de cookies para leer el token de sesión
 app.use(cookieParser());
 
-// CORS configuration (con credenciales para cookies)
-const corsOrigins = process.env.CORS_ORIGINS?.split(",") || [
-	"http://localhost:3000",
-];
+// Orígenes permitidos (con credenciales para cookies).
+//
+// Esta misma lista es la que valida la protección CSRF de más abajo, así que en
+// producción debe contener el origen público real del servicio.
+//
+// Orden de prioridad:
+//   1. CORS_ORIGINS explícita (puede traer varios orígenes separados por coma).
+//   2. RENDER_EXTERNAL_URL: la URL pública que Render inyecta sola, para que un
+//      despliegue que olvidó definir CORS_ORIGINS arranque igual en vez de
+//      abortar. El guardián de producción sigue rechazando orígenes locales.
+//   3. Valor de desarrollo.
+const configuredOrigins = (process.env.CORS_ORIGINS ?? "")
+	.split(",")
+	.map((origin) => origin.trim())
+	.filter((origin) => origin.length > 0);
+
+const corsOrigins =
+	configuredOrigins.length > 0
+		? configuredOrigins
+		: [process.env.RENDER_EXTERNAL_URL ?? "http://localhost:3000"];
 app.use(cors({ origin: corsOrigins, credentials: true }));
 
 // Protección CSRF: rechaza mutaciones cuyo Origin/Referer no esté en CORS_ORIGINS

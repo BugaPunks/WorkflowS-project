@@ -97,6 +97,12 @@ asignará una del tipo `https://workflows-xxxx.onrender.com`; cópiala, pégala 
 `✖ Configuración de producción insegura — CORS_ORIGINS` y el contenedor se
 reiniciará. Eso es la validación de seguridad haciendo su trabajo, no un bug.
 
+> **`CORS_ORIGINS` es opcional.** Si la dejas vacía, el servidor toma
+> `RENDER_EXTERNAL_URL`, la URL pública que Render inyecta automáticamente, así
+> que el servicio arranca igual. Definirla a mano sigue siendo más explícito y
+> es necesario si agregas un dominio propio o un segundo origen. Lo que **no**
+> se puede es poner `localhost` en producción: eso sí aborta el arranque.
+
 > **Migraciones a través del pooler.** Se probó contra una base real de Neon con
 > el host que incluye `-pooler` y funcionaron tanto `prisma migrate deploy` como
 > el seed, incluso con `channel_binding=require`. Si alguna migración fallara por

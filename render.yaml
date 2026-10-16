@@ -39,10 +39,12 @@ services:
         generateValue: true
 
       # URL pública de ESTE servicio, sin barra final
-      # (p. ej. https://workflows.onrender.com). El arranque de producción
-      # rechaza cualquier origen con localhost, así que hay que reemplazarla
-      # antes de que el servicio levante. Copia la URL que Render asigne y
-      # vuelve a desplegar si no la conocías de antemano.
+      # (p. ej. https://workflows-824i.onrender.com).
+      #
+      # Es OPCIONAL: si se deja vacía, el servidor usa automáticamente
+      # RENDER_EXTERNAL_URL, la URL que Render inyecta por su cuenta. Definirla
+      # explícitamente sigue siendo lo más claro, y es obligatorio hacerlo si
+      # algún día se agrega un dominio propio o un segundo origen.
       - key: CORS_ORIGINS
         sync: false
 
