@@ -60,6 +60,14 @@ Los números completos están en "Límites reales de los planes gratuitos".
 
    Deja el `?sslmode=require` al final: Neon exige TLS.
 
+   Neon te da **dos** cadenas, y el despliegue usa las dos:
+
+   - la **pooled** (la del botón *Connect* con *Connection pooling* activado;
+     su host lleva `-pooler`), que va en `DATABASE_URL` y la usa la aplicación;
+   - la **directa** (el mismo botón con *Connection pooling* desactivado; el
+     host es el mismo **sin** `-pooler`), que va en `DIRECT_URL` y solo la usa el
+     CLI de Prisma para migrar. Motivo en el *Paso 3*.
+
 ## Paso 2 — Subir el proyecto a GitHub
 
 Los cambios de despliegue ya están en el árbol de trabajo. Revísalos y súbelos:
@@ -83,7 +91,9 @@ git push
 2. *New* → **Blueprint** → selecciona el repositorio `WorkflowS-project`.
    Render lee `render.yaml` y muestra los datos que faltan.
 3. Rellena:
-   - `DATABASE_URL` → la cadena de Neon copiada en el paso 1.
+   - `DATABASE_URL` → la cadena **pooled** de Neon copiada en el paso 1.
+   - `DIRECT_URL` → la cadena **directa** (la misma sin `-pooler`). Es la que usa
+     `prisma migrate deploy` en el arranque.
    - `CORS_ORIGINS` → la URL pública del servicio, **sin barra final**
      (p. ej. `https://workflows.onrender.com`).
    - `JWT_SECRET` → Render lo genera solo (>= 32 caracteres).
@@ -104,11 +114,23 @@ reiniciará. Eso es la validación de seguridad haciendo su trabajo, no un bug.
 > es necesario si agregas un dominio propio o un segundo origen. Lo que **no**
 > se puede es poner `localhost` en producción: eso sí aborta el arranque.
 
-> **Migraciones a través del pooler.** Se probó contra una base real de Neon con
-> el host que incluye `-pooler` y funcionaron tanto `prisma migrate deploy` como
-> el seed, incluso con `channel_binding=require`. Si alguna migración fallara por
-> el pooler, usa el host **directo** (el mismo sin `-pooler`) solo para migrar y
-> deja el del pooler para el runtime.
+> **Por qué `DIRECT_URL`: migrar a través del pooler no es fiable.** `prisma
+> migrate deploy` toma un *advisory lock* de sesión (`pg_advisory_lock`), y el
+> host `-pooler` de Neon es PgBouncer en **modo transacción**, donde el estado de
+> sesión no sobrevive al límite de cada transacción. El resultado es un fallo
+> **intermitente** al arrancar:
+>
+> ```
+> Error: P1002
+> Timed out trying to acquire a postgres advisory lock (SELECT pg_advisory_lock(72707369)).
+> Timeout: 10000ms.
+> ```
+>
+> La documentación de Prisma es explícita: los comandos del CLI deben usar la
+> cadena **directa**, y solo el tráfico de la aplicación debe usar la pooled. Por
+> eso `prisma.config.ts` apunta el CLI a `DIRECT_URL` (si existe) y `src/server/db.ts`
+> mantiene `DATABASE_URL` para el runtime. En local, sin pooler, `DIRECT_URL` se
+> omite y el CLI usa `DATABASE_URL`.
 
 ## Paso 4 — Cargar datos de demostración (una sola vez)
 
@@ -159,7 +181,7 @@ durante la preparación. Resultados obtenidos:
 | Prueba | Resultado |
 |---|---|
 | `docker build` (etapas builder + runner) | ✅ imagen generada |
-| `prisma migrate deploy` contra Neon (vía pooler) | ✅ "All migrations have been successfully applied" |
+| `prisma migrate deploy` contra Neon | ⚠️ Vía **pooler** no es fiable: falla con `P1002` (advisory lock). Ver "Por qué `DIRECT_URL`". Con la cadena directa funciona. |
 | `prisma migrate status` | ✅ "Database schema is up to date!" |
 | `prisma db seed` contra Neon | ✅ usuarios creados |
 | `GET /api/health` | ✅ 200 |
@@ -292,6 +314,7 @@ Alternativas descartadas, por si hicieran falta más adelante:
 | El contenedor se reinicia con `✖ Configuración de producción insegura` | `CORS_ORIGINS` contiene `localhost` o `JWT_SECRET` es corto. Corrige la variable de entorno. |
 | El login parece funcionar pero la sesión se pierde | Frontend y API en orígenes distintos. Usa el servicio único de `render.yaml` (mismo origen). |
 | `Can't reach database server` al arrancar | `DATABASE_URL` mal copiada o sin `?sslmode=require`. |
+| `P1002` / `Timed out trying to acquire a postgres advisory lock` en el arranque | `prisma migrate deploy` está migrando a través del host `-pooler` de Neon (PgBouncer en modo transacción). Define `DIRECT_URL` con la cadena **sin** `-pooler` y vuelve a desplegar. Es un fallo intermitente: puede que el despliegue anterior funcionara. |
 | `P3009 / P1000` en `prisma migrate deploy` | La BD tiene estado previo de SQLite. Borra el proyecto en Neon y crea uno nuevo, o ejecuta `npx prisma migrate reset` contra esa base. |
 | El primer acceso tarda ~50 s | El servicio estaba dormido (plan free). Ver "Evitar el cold start". |
 | Los servicios free quedan suspendidos a mitad de mes | Se agotaron las 750 horas de instancia o los 5 GB de tráfico sin método de pago. Revisa *Billing* en Render; se restablece el mes siguiente. |

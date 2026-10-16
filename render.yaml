@@ -32,6 +32,14 @@ services:
       - key: DATABASE_URL
         sync: false
 
+      # Cadena DIRECTA de Neon (la misma sin `-pooler`), solo para el CLI de
+      # Prisma. `prisma migrate deploy` toma un advisory lock de sesion que no
+      # sobrevive al modo transaccion de PgBouncer (el host `-pooler`), y el
+      # arranque falla con P1002 ("Timed out trying to acquire a postgres
+      # advisory lock"). El runtime sigue usando DATABASE_URL (la pooled).
+      - key: DIRECT_URL
+        sync: false
+
       # Render genera un secreto aleatorio. Debe medir >= 32 caracteres: el
       # servidor se niega a arrancar en producción con uno más corto o con el
       # valor de ejemplo.

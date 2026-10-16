@@ -3,6 +3,19 @@
 import "dotenv/config";
 import { defineConfig, env } from "prisma/config";
 
+// El CLI de Prisma (migrate deploy, db push, studio) necesita una conexion con
+// continuidad de sesion: `prisma migrate deploy` toma un advisory lock de
+// sesion, y ese lock no sobrevive al limite de transaccion de un pooler en modo
+// transaccion. El host `-pooler` de Neon es PgBouncer en ese modo, asi que
+// migrar a traves de el falla de forma intermitente con P1002 ("Timed out trying
+// to acquire a postgres advisory lock").
+//
+// Por eso DIRECT_URL debe ser el host *sin pooler* de Neon (la misma cadena sin
+// `-pooler`), y DATABASE_URL (la pooled) es la que usa el cliente en tiempo de
+// ejecucion en src/server/db.ts. En local, donde no hay pooler, DIRECT_URL puede
+// omitirse y el CLI usa DATABASE_URL.
+const directUrl = process.env.DIRECT_URL;
+
 export default defineConfig({
 	schema: "prisma/schema.prisma",
 	migrations: {
@@ -10,6 +23,6 @@ export default defineConfig({
 		seed: "npx tsx prisma/seed.ts",
 	},
 	datasource: {
-		url: env("DATABASE_URL"),
+		url: directUrl ?? env("DATABASE_URL"),
 	},
 });
