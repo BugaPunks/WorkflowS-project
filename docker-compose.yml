@@ -1,0 +1,58 @@
+# Stack completo de WorkflowS para una demo local (plan B de la defensa).
+#
+# Levanta PostgreSQL + la app (SPA y API en el mismo origen) con un comando:
+#
+#   docker compose up -d --build
+#   docker compose exec app npx prisma db seed   # una sola vez
+#   -> http://localhost:8080  (admin@workflow.com / admin123)
+#
+# No usa Render ni Neon: sirve para demostrar el sistema aunque el plan free de
+# un proveedor esté dormido, suspendido o sin internet.
+#
+# Semántica de NODE_ENV: se deja en "development" a propósito. Con
+# NODE_ENV=production la cookie de sesión se marca Secure y el navegador NO la
+# guarda sobre http://localhost, así que el login no funcionaría en local.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: workflow_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # El API aplica migraciones al arrancar; esperar aquí evita una carrera.
+      test: ["CMD-SHELL", "pg_isready -U postgres -d workflow_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    ports:
+      # Expone 5433 en el host para conectarte con un cliente SQL desde
+      # Windows/WSL sin chocar con un PostgreSQL local que ya use 5432.
+      - "5433:5432"
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/workflow_db?schema=public
+      JWT_SECRET: secreto-local-con-mas-de-32-caracteres-para-la-demo
+      CORS_ORIGINS: http://localhost:8080
+      PORT: "10000"
+      UPLOADS_DIR: /app/uploads
+    ports:
+      - "8080:10000"
+    volumes:
+      # Los adjuntos sobreviven a los reinicios del contenedor (en Render free
+      # el disco es efímero; aquí sí se conservan).
+      - uploads:/app/uploads
+
+volumes:
+  db-data:
+  uploads:

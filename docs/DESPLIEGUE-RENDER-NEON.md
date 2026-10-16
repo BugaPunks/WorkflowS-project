@@ -171,6 +171,36 @@ Notas de endpoints que **no** son errores:
   obligatorio por diseño.
 - `GET /api/metrics` a secas responde 404: la ruta tiene subpaths.
 
+## Plan B — demo local con Docker (recomendado tenerlo listo)
+
+Si el plan free de Render se duerme, se suspende por cupo o la defensa es sin
+internet estable, puedes levantar todo el stack en tu máquina:
+
+```bash
+docker compose up -d --build
+docker compose exec app npx prisma db seed   # solo la primera vez
+```
+
+Luego abre **http://localhost:8080** y entra con `admin@workflow.com` /
+`admin123`. Para detenerlo:
+
+```bash
+docker compose down        # conserva los datos en volúmenes
+docker compose down -v     # borra también los datos
+```
+
+Qué levanta:
+
+- `db`: PostgreSQL 16 con volumen persistente (y puerto local 5433 para
+  inspeccionarlo con un cliente SQL).
+- `app`: la misma imagen del despliegue, sirviendo el SPA y el API en el mismo
+  origen, con `uploads/` en un volumen que sí persiste.
+
+Diferencia a tener en cuenta: aquí se usa `NODE_ENV=development` a propósito,
+porque con `production` la cookie de sesión se marca `Secure` y el navegador no
+la guarda sobre `http://localhost` (el login fallaría). Es la única diferencia
+funcional respecto a Render, donde el sitio va por HTTPS.
+
 ## Probar la imagen en local (WSL)
 
 Tienes Docker en WSL; conviene validar antes de subir:
