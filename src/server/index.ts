@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, {
@@ -96,6 +97,17 @@ const findProductionConfigProblems = (): ConfigProblem[] => {
 app.use(
 	helmet({
 		crossOriginResourcePolicy: { policy: "cross-origin" },
+		// El SPA se sirve desde este mismo servidor, así que el CSP por defecto
+		// (img-src 'self' data:) bloquearía los avatares externos que la app
+		// guarda en la base de datos (p. ej. api.dicebear.com). Se permite
+		// https: solo para imágenes; scripts y estilos siguen restringidos a
+		// este origen.
+		contentSecurityPolicy: {
+			useDefaults: true,
+			directives: {
+				imgSrc: ["'self'", "data:", "https:"],
+			},
+		},
 	}),
 );
 
@@ -218,6 +230,38 @@ app.use("/api/retrospectives", retrospectivesRouter);
 app.get("/api/health", (_req, res) => {
 	res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Sirve el frontend compilado (SPA) desde el MISMO origen que el API.
+//
+// Desplegar el API y el SPA en subdominios distintos (p. ej.
+// *.onrender.com) rompe la sesión: `onrender.com` está en la Public Suffix
+// List, así que cada subdominio es un "sitio" distinto para el navegador y la
+// cookie de sesión (SameSite=Lax) no se envía entre ellos. Con un solo origen
+// el navegador la manda sin cambios y CORS deja de estar en juego.
+//
+// Solo se activa si existe el directorio compilado, así que en desarrollo
+// (donde el SPA lo sirve Rsbuild con su proxy) no interviene.
+const staticDir = path.resolve(process.env.STATIC_DIR || "dist");
+
+if (fs.existsSync(staticDir)) {
+	app.use(express.static(staticDir, { index: false }));
+
+	// Fallback de SPA: cualquier GET que no sea del API devuelve index.html para
+	// que React Router resuelva la ruta en el cliente.
+	app.use((req, res, next) => {
+		if (req.method !== "GET" && req.method !== "HEAD") {
+			next();
+			return;
+		}
+		if (req.path.startsWith("/api")) {
+			next();
+			return;
+		}
+		res.sendFile(path.join(staticDir, "index.html"), (error) => {
+			if (error) next();
+		});
+	});
+}
 
 // Error handling para rutas no encontradas
 app.use((_req, res) => {

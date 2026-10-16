@@ -1,0 +1,51 @@
+# Blueprint de Render para WorkflowS (plan gratuito, sin tarjeta).
+#
+# Un único servicio web con runtime Docker que sirve el SPA compilado y el API
+# en el mismo origen. Ese detalle no es cosmético: `onrender.com` está en la
+# Public Suffix List, así que dos subdominios de Render (frontend y API
+# separados) son "sitios" distintos para el navegador y la cookie de sesión
+# (SameSite=Lax) no se enviaría entre ellos. Con un solo origen funciona tal
+# cual y no depende de CORS.
+#
+# Uso: en Render -> New -> Blueprint, elige este repositorio. Render pedirá los
+# valores marcados con `sync: false`. Importante: selecciona la rama donde
+# subiste estos cambios (p. ej. `post`), no la principal, o Render desplegará un
+# commit que todavía no tiene el Dockerfile ni el provider de Postgres.
+services:
+  - type: web
+    name: workflows
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    # El plan free se duerme tras 15 min sin tráfico (el primer request tarda
+    # ~50 s en despertar). Aceptable para una demo; se puede mitigar con un ping
+    # periódico a /api/health desde un servicio de cron gratuito.
+    autoDeploy: true
+    envVars:
+      # Obligatorio en producción: activa las validaciones estrictas de arranque.
+      - key: NODE_ENV
+        value: production
+
+      # Cadena de conexión de Neon (Projects -> Connection string).
+      # Formato: postgresql://usuario:clave@host/db?sslmode=require
+      - key: DATABASE_URL
+        sync: false
+
+      # Render genera un secreto aleatorio. Debe medir >= 32 caracteres: el
+      # servidor se niega a arrancar en producción con uno más corto o con el
+      # valor de ejemplo.
+      - key: JWT_SECRET
+        generateValue: true
+
+      # URL pública de ESTE servicio, sin barra final
+      # (p. ej. https://workflows.onrender.com). El arranque de producción
+      # rechaza cualquier origen con localhost, así que hay que reemplazarla
+      # antes de que el servicio levante. Copia la URL que Render asigne y
+      # vuelve a desplegar si no la conocías de antemano.
+      - key: CORS_ORIGINS
+        sync: false
+
+      # Los límites anti-abuso se mantienen activos.
+      - key: DISABLE_RATE_LIMIT
+        value: "false"

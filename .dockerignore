@@ -1,0 +1,34 @@
+# Dependencias y artefactos: se regeneran dentro de la imagen.
+node_modules
+dist
+.rspack-profile-*
+
+# Secretos y datos locales: nunca deben entrar a la imagen.
+.env
+.env.*
+!.env.example
+*.db
+*.db.bak-*
+dev.db
+uploads
+.e2e-separation-uploads
+
+# Control de versiones, pruebas y ruido.
+.git
+.gitignore
+.gitattributes
+test-results
+tests-results
+e2e
+verification
+docs
+openspec
+.agent
+.agents
+.augment
+.opencode
+.vscode
+.idea
+
+# Respaldos de migraciones de otros dialectos (no se necesitan en la imagen).
+prisma/migrations.bak-*
