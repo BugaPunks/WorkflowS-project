@@ -35,10 +35,17 @@ Limitaciones asumidas del plan gratuito de Render:
 
 - El servicio **se duerme tras 15 minutos** sin tráfico. El primer request tarda
   ~50 s en despertar. Para la demo: abrir la URL un minuto antes, o usar un ping
-  periódico a `/api/health` (ver "Evitar el cold start").
+  periódico a `/api/health` (ver "Evitar el cold start" **y el detalle del cupo
+  de 750 horas**, importante para no agotarlo).
 - **Disco efímero**: la carpeta `uploads/` se vacía en cada redeploy. Los datos
   de la base (Neon) sí persisten. Si necesitas conservar adjuntos, ver la
   sección "Persistencia de archivos subidos".
+- **5 GB de tráfico al mes** en el plan Hobby (bajó de 100 GB en abril de 2026).
+  Para una demo con pocos usuarios es de sobra; si se excede y no hay método de
+  pago registrado, Render suspende los servicios free hasta el mes siguiente.
+
+Los números completos están en "Límites reales de los planes gratuitos".
+
 
 ## Paso 1 — Crear la base de datos en Neon
 
@@ -192,7 +199,18 @@ un ping cada 10-14 minutos a:
 https://TU-URL.onrender.com/api/health
 ```
 
-Mantiene el servicio despierto durante la defensa.
+**Pero ojo con el presupuesto de horas.** Render otorga **750 horas de instancia
+por mes y por *workspace*, compartidas entre todos tus servicios free**. Un
+servicio despierto 24/7 consume ~720 horas, es decir casi todo el cupo. Si lo
+agotas, Render suspende tus servicios free hasta el mes siguiente.
+
+Recomendación práctica: **activa el ping solo el día de la defensa** (o unas
+horas antes) y desactívalo después, en vez de dejarlo todo el mes. Así gastas
+unas pocas horas y conservas el cupo.
+
+Dato útil: `/api/health` **no consulta la base de datos**. Por eso el ping
+mantiene despierto a Render sin despertar el cómputo de Neon, que también escala
+a cero cuando está inactivo. Lo mejor de ambos mundos.
 
 ## Persistencia de archivos subidos (opcional)
 
@@ -215,16 +233,54 @@ pierde en cada redeploy. Opciones:
 | `Can't reach database server` al arrancar | `DATABASE_URL` mal copiada o sin `?sslmode=require`. |
 | `P3009 / P1000` en `prisma migrate deploy` | La BD tiene estado previo de SQLite. Borra el proyecto en Neon y crea uno nuevo, o ejecuta `npx prisma migrate reset` contra esa base. |
 | El primer acceso tarda ~50 s | El servicio estaba dormido (plan free). Ver "Evitar el cold start". |
+| Los servicios free quedan suspendidos a mitad de mes | Se agotaron las 750 horas de instancia o los 5 GB de tráfico sin método de pago. Revisa *Billing* en Render; se restablece el mes siguiente. |
+| Neon suspende el cómputo | Se agotaron las 100 CU-horas del proyecto en el mes. No borra datos; se restablece al mes siguiente. |
 | Los avatares no cargan | El CSP permite `img-src https:` para los avatares externos del seed (`api.dicebear.com`); si usas otro dominio, añádelo en `src/server/index.ts`. |
+
+## Límites reales de los planes gratuitos (verificado en octubre de 2026)
+
+Estos números cambian seguido; se listan con lo que dicen los proveedores hoy.
+
+**Render (plan Hobby, sin tarjeta):**
+
+- 750 horas de instancia por mes **compartidas en todo el workspace**.
+- Servicio web **free**: 512 MB RAM, se duerme a los 15 min de inactividad y
+  despierta en ~1 minuto.
+- **5 GB de tráfico al mes** (bajó de 100 GB en abril de 2026); el exceso cuesta
+  $0.15/GB y, **si no hay método de pago registrado, Render suspende los
+  servicios free por el resto del mes**.
+- Máximo 25 servicios; 500 minutos de build al mes.
+- La base PostgreSQL free de Render **caduca a los 30 días** (y no tiene
+  backups). Por eso este despliegue usa **Neon**, que no caduca.
+- Render recomienda explícitamente no usar instancias free para producción;
+  para una sustentación es adecuado.
+
+**Neon (plan Free, sin tarjeta):**
+
+- **Sin fecha de caducidad**.
+- 1 GB de almacenamiento por proyecto; 100 CU-horas de cómputo por proyecto al
+  mes; 5 GB de transferencia al mes.
+- El cómputo **escala a cero tras 5 minutos** de inactividad y despierta en
+  milisegundos. Si agotas las 100 CU-horas, el cómputo se suspende hasta el
+  siguiente mes (no borra datos).
 
 ## Alternativas gratuitas sin tarjeta (si Render no convence)
 
 | Opción | Cuándo conviene | Nota |
 |---|---|---|
-| Hugging Face Spaces (Docker) | Un solo contenedor, 16 GB RAM gratis | Se duerme tras 48 h; almacenamiento efímero |
-| Cloudflare Pages / Netlify / Vercel | Solo el frontend | Sirven estáticos gratis, pero el API necesita otro host |
-| Neon / Supabase | Base PostgreSQL gratis | Neon ya se usa aquí; Supabase es equivalente |
-| Koyeb | Alternativa a Render | Puede pedir verificación de identidad |
+| Cloudflare Pages / Netlify / Vercel / GitHub Pages | Solo el frontend | Estáticos gratis y sin dormir, pero el API necesita otro host |
+| Neon / Supabase | Base PostgreSQL gratis | Neon ya se usa aquí; Supabase equivale (500 MB, se pausa por inactividad) |
+| Railway | Pruebas cortas | $5 de crédito 30 días y luego $1/mes: no alcanza para tener el servicio encendido; sin tarjeta |
+| Alwaysdata / SnapDeploy / Zeabur | Alternativas de contenedor | Revisa límites y duración de la cuenta antes de confiar la demo |
 
-**Descartados hoy:** Fly.io y Railway (piden tarjeta), Glitch/Cyclic/Deta
-(cerrados), Oracle y Azure (excluidos por ti).
+**Descartados hoy:**
+
+- **Hugging Face Spaces (Docker/Gradio)**: desde mediados de 2026 crear Spaces
+  que ejecutan código requiere plan pago; solo los *Static Spaces* siguen
+  gratis. Ya no sirve para hostear este backend.
+- **Koyeb**: eliminó el plan Hobby sin tarjeta (febrero 2026) y ahora exige una
+  preautorización de $29.
+- **Fly.io**: sin free tier desde octubre de 2024.
+- **Glitch / Cyclic / Deta**: cerrados.
+- **Oracle y Azure**: excluidos por ti.
+
