@@ -12,13 +12,6 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import "dotenv/config";
 
-const uploadsDir = process.env.UPLOADS_DIR || "uploads";
-
-// Asegurar que existe el directorio de uploads
-if (!fs.existsSync(uploadsDir)) {
-	fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
 import { isPollingRequest } from "./lib/rate-limit";
 
 // Importar rutas
@@ -37,6 +30,7 @@ import sprintsRouter from "./routes/sprints";
 import tasksRouter from "./routes/tasks";
 import userStoriesRouter from "./routes/user-stories";
 import usersRouter from "./routes/users";
+import { ensureWriteBackendReady, writeBackend } from "./storage";
 
 const app: Express = express();
 const PORT = process.env.PORT ?? process.env.API_PORT ?? 5000;
@@ -302,9 +296,14 @@ if (isProd) {
 }
 
 // Iniciar servidor
+ensureWriteBackendReady();
+
 const server = app.listen(PORT, () => {
 	console.info(
 		`🚀 API Server corriendo en http://localhost:${PORT} — entorno: ${isProd ? "PRODUCCIÓN" : "DESARROLLO"} (VERSION 2 - SECURED)`,
+	);
+	console.info(
+		`🗄️  Almacenamiento de documentos: ${writeBackend.name} (los archivos nuevos se guardan ahí; cada archivo se lee desde el backend con el que se guardó)`,
 	);
 });
 

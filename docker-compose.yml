@@ -45,6 +45,9 @@ services:
       JWT_SECRET: secreto-local-con-mas-de-32-caracteres-para-la-demo
       CORS_ORIGINS: http://localhost:8080
       PORT: "10000"
+      # Demo local: se usa el backend de disco con el volumen de abajo, para que
+      # la pila funcione sin depender de Neon ni de Render.
+      STORAGE_BACKEND: disk
       UPLOADS_DIR: /app/uploads
     ports:
       - "8080:10000"

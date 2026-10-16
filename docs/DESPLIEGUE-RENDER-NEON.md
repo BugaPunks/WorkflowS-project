@@ -38,8 +38,9 @@ Limitaciones asumidas del plan gratuito de Render:
   periódico a `/api/health` (ver "Evitar el cold start" **y el detalle del cupo
   de 750 horas**, importante para no agotarlo).
 - **Disco efímero**: la carpeta `uploads/` se vacía en cada redeploy. Los datos
-  de la base (Neon) sí persisten. Si necesitas conservar adjuntos, ver la
-  sección "Persistencia de archivos subidos".
+  de la base (Neon) sí persisten, y por eso el despliegue guarda los documentos
+  subidos **dentro de la base** (`STORAGE_BACKEND=postgres` en `render.yaml`), no
+  en el disco. Ver "Persistencia de archivos subidos".
 - **5 GB de tráfico al mes** en el plan Hobby (bajó de 100 GB en abril de 2026).
   Para una demo con pocos usuarios es de sobra; si se excede y no hay método de
   pago registrado, Render suspende los servicios free hasta el mes siguiente.
@@ -200,7 +201,8 @@ Qué levanta:
 - `db`: PostgreSQL 16 con volumen persistente (y puerto local 5433 para
   inspeccionarlo con un cliente SQL).
 - `app`: la misma imagen del despliegue, sirviendo el SPA y el API en el mismo
-  origen, con `uploads/` en un volumen que sí persiste.
+  origen, con el backend de almacenamiento de disco (`STORAGE_BACKEND=disk`) y
+  `uploads/` en un volumen que sí persiste.
 
 Diferencia a tener en cuenta: aquí se usa `NODE_ENV=development` a propósito,
 porque con `production` la cookie de sesión se marca `Secure` y el navegador no
@@ -248,17 +250,40 @@ Dato útil: `/api/health` **no consulta la base de datos**. Por eso el ping
 mantiene despierto a Render sin despertar el cómputo de Neon, que también escala
 a cero cuando está inactivo. Lo mejor de ambos mundos.
 
-## Persistencia de archivos subidos (opcional)
+## Persistencia de archivos subidos
 
-En el plan free de Render no hay disco persistente, así que `uploads/` se
-pierde en cada redeploy. Opciones:
+En el plan free de Render no hay disco persistente: la carpeta `uploads/` se
+vacía en cada redeploy. Por eso el servidor deja elegir **dónde** se guardan los
+bytes de un documento, con la variable `STORAGE_BACKEND`:
 
-1. **Aceptarlo** para la demo (los datos de la BD sí persisten).
-2. Render de pago con *Persistent Disk* montado en `/app/uploads`
-   (`UPLOADS_DIR` ya apunta ahí).
-3. Migrar las subidas a un almacenamiento externo gratuito (Cloudinary, S3 free
-   tier). Implica cambiar `multer.diskStorage` en `src/server/routes/documents.ts`
-   por un storage remoto.
+| Valor | Dónde guarda | Cuándo usarlo |
+|---|---|---|
+| `disk` (por defecto) | El directorio de `UPLOADS_DIR` | Desarrollo local y `docker-compose`, donde el volumen sí persiste |
+| `postgres` | Dentro de la base de datos | Despliegues sin disco persistente (el plan free de Render) |
+
+**Este despliegue usa `postgres`** (`render.yaml` lo define), así que nada se
+escribe en el contenedor y los documentos sobreviven a los redeploys: viven en la
+misma base de Neon que el resto de los datos.
+
+Detalles que conviene saber:
+
+- **La lectura no depende de la variable**: cada archivo guarda en qué backend se
+  almacenó, y la descarga lo respeta. Cambiar `STORAGE_BACKEND` nunca deja
+  inalcanzable un documento ya subido.
+- **Los bytes ocupan el mismo límite de 1 GB de Neon** que el resto de los datos,
+  y el límite por archivo es de 10 MB (`MAX_FILE_SIZE` en
+  `src/server/routes/documents.ts`). Para una sustentación es de sobra; si algún
+  día se llenara, se puede añadir un backend de almacenamiento de objetos
+  implementando el mismo contrato de `src/server/storage/`.
+- **El borrado limpia los bytes**: al eliminar un documento, con el backend de
+  disco se borra el archivo y con el de Postgres desaparece con la fila.
+
+Alternativas descartadas, por si hicieran falta más adelante:
+
+1. Render de pago con *Persistent Disk* montado en `/app/uploads`
+   (`UPLOADS_DIR` ya apunta ahí; bastaría con volver a `STORAGE_BACKEND=disk`).
+2. Almacenamiento externo gratuito (Cloudinary, S3 free tier): exige una cuenta
+   o tarjeta nueva; el contrato de `src/server/storage/` ya deja el hueco.
 
 ## Problemas frecuentes
 
@@ -272,6 +297,7 @@ pierde en cada redeploy. Opciones:
 | Los servicios free quedan suspendidos a mitad de mes | Se agotaron las 750 horas de instancia o los 5 GB de tráfico sin método de pago. Revisa *Billing* en Render; se restablece el mes siguiente. |
 | Neon suspende el cómputo | Se agotaron las 100 CU-horas del proyecto en el mes. No borra datos; se restablece al mes siguiente. |
 | Los avatares no cargan | El CSP permite `img-src https:` para los avatares externos del seed (`api.dicebear.com`); si usas otro dominio, añádelo en `src/server/index.ts`. |
+| Un documento no se descarga tras un redeploy | El archivo se subió cuando el servidor usaba `STORAGE_BACKEND=disk`, así que sus bytes estaban en el disco efímero y ya no están (la descarga responde 404 en vez de fallar). Vuelve a subirlo con el backend de Postgres activo. |
 
 ## Límites reales de los planes gratuitos (verificado en octubre de 2026)
 

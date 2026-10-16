@@ -48,6 +48,15 @@ services:
       - key: CORS_ORIGINS
         sync: false
 
+      # Dónde se guardan los bytes de los documentos subidos.
+      #
+      # El plan free de Render no tiene disco persistente: la carpeta de uploads
+      # se vacía en cada redeploy, así que se usa el backend de Postgres y los
+      # documentos viven en la misma base de Neon (mismo límite de 1 GB). Con
+      # esto, nada se escribe en el contenedor.
+      - key: STORAGE_BACKEND
+        value: postgres
+
       # Los límites anti-abuso se mantienen activos.
       - key: DISABLE_RATE_LIMIT
         value: "false"

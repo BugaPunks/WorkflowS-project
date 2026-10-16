@@ -78,18 +78,37 @@ model Document {
   name       String
   url        String // Simulado
   type       String // PDF, DOCX, etc.
-  size       Int? // KB
+  size       Int? // bytes
   version    Int      @default(1)
   parentId   String? // ID del documento original si es una versión
   uploadedAt DateTime @default(now())
 
-  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  parent   Document?  @relation("DocumentHistory", fields: [parentId], references: [id], onDelete: SetNull)
-  versions Document[] @relation("DocumentHistory")
+  project  Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Document?      @relation("DocumentHistory", fields: [parentId], references: [id], onDelete: SetNull)
+  versions Document[]     @relation("DocumentHistory")
+  file     DocumentFile?
 
   @@index([projectId])
   @@index([parentId])
   @@map("documents")
+}
+
+// Bytes y metadatos del almacenamiento de un documento.
+// La relación es 1:1 porque el versionado crea una fila por versión: cada
+// documento es exactamente un archivo.
+model DocumentFile {
+  id         String   @id @default(cuid())
+  documentId String   @unique
+  key        String   @unique // clave con la que se sirve en /api/files/:key
+  mimeType   String
+  size       Int // bytes
+  backend    String // "disk" | "postgres": dónde quedaron ESTOS bytes
+  data       Bytes? // solo con el backend "postgres"
+  uploadedAt DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_files")
 }
 
 // Miembros del proyecto
