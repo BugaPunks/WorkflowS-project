@@ -1,6 +1,6 @@
-import { apiFetch } from "@/api/config";
 import { ChevronLeft, MessageCircle, Minus, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/api/config";
 import { useSession } from "@/hooks/useSession";
 import { cn } from "@/lib/utils";
 

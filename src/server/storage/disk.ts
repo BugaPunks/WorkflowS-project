@@ -35,8 +35,15 @@ export const diskStorage: DocumentStorage = {
 	async remove(file: StoredFileRef): Promise<void> {
 		try {
 			await fs.promises.unlink(filePath(file.key));
-		} catch {
-			// Ya no estaba: borrar es idempotente.
+		} catch (error) {
+			// Un archivo ya ausente no es un error: borrar es idempotente.
+			if ((error as NodeJS.ErrnoException)?.code === "ENOENT") {
+				return;
+			}
+			// Cualquier otro fallo (volcado de solo lectura, permisos, etc.)
+			// se propaga para que la fila/documento no desaparezca sin dejar
+			// constancia del bytes que quedaron huérfanos y permita reintentar.
+			throw error;
 		}
 	},
 };

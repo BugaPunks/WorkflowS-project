@@ -1,4 +1,3 @@
-import { apiFetch } from "@/api/config";
 import {
 	Bell,
 	Calendar,
@@ -10,6 +9,7 @@ import {
 	ShieldAlert,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { apiFetch } from "@/api/config";
 
 interface Preference {
 	id: string;

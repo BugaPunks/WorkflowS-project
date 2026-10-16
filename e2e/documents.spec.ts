@@ -131,6 +131,43 @@ test.describe("Document Management", () => {
 		await expect(badge).toBeVisible();
 	});
 
+	test("download link resolves to the API and returns the stored bytes", async ({
+		page,
+	}) => {
+		const filename = `download-resolve-${Date.now()}.txt`;
+		const content = "bytes descargables";
+
+		const uploadRes = await page.request.post(`/api/documents/${projectId}`, {
+			headers: { Authorization: `Bearer ${docToken}` },
+			multipart: {
+				file: {
+					name: filename,
+					mimeType: "text/plain",
+					buffer: Buffer.from(content),
+				},
+			},
+		});
+		expect(uploadRes.ok()).toBeTruthy();
+
+		await page.reload();
+		await page.click("text=Documentos");
+
+		const docCard = page
+			.locator(".border.rounded-lg")
+			.filter({ hasText: filename });
+		await expect(docCard).toBeVisible();
+
+		const downloadLink = docCard.locator("a:has-text('Descargar')");
+		const href = await downloadLink.getAttribute("href");
+		expect(href).toContain("/api/files/");
+
+		const downloadRes = await page.request.get(href!, {
+			headers: { Authorization: `Bearer ${docToken}` },
+		});
+		expect(downloadRes.status()).toBe(200);
+		expect(await downloadRes.text()).toBe(content);
+	});
+
 	test("should view version history", async ({ page }) => {
 		// 1. Create doc and version 2 via API
 		const buffer1 = Buffer.from("v1");

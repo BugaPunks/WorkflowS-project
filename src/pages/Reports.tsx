@@ -1,4 +1,3 @@
-import { apiFetch } from "@/api/config";
 import { useEffect, useState } from "react";
 import {
 	Area,
@@ -14,6 +13,7 @@ import {
 	YAxis,
 } from "recharts";
 import { projectAPI } from "@/api/client";
+import { apiFetch } from "@/api/config";
 import { useSession } from "@/hooks/useSession";
 
 interface Sprint {

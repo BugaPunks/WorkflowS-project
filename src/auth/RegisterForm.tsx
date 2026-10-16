@@ -1,6 +1,6 @@
-import { apiFetch } from "@/api/config";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiFetch } from "@/api/config";
 import { AppLogoIcon } from "@/components/AppLogoIcon";
 
 interface RegisterFormData {

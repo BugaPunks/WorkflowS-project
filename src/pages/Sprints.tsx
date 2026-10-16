@@ -1,7 +1,7 @@
-import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { projectAPI, sprintAPI } from "@/api/client";
+import { apiFetch } from "@/api/config";
 import { Modal } from "@/components/Modal";
 import { PageHeader } from "@/components/PageHeader";
 import { useSession } from "@/hooks/useSession";

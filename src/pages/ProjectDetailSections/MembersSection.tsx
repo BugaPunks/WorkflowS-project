@@ -1,5 +1,5 @@
-import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
+import { apiFetch } from "@/api/config";
 import { Modal } from "@/components/Modal";
 import type { AvailableUser, ProjectMemberDetails } from "./types";
 

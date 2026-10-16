@@ -31,7 +31,7 @@ services:
     ports:
       # Expone 5433 en el host para conectarte con un cliente SQL desde
       # Windows/WSL sin chocar con un PostgreSQL local que ya use 5432.
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
 
   app:
     build: .

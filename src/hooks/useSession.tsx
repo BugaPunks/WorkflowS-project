@@ -1,6 +1,6 @@
-import { apiFetch } from "@/api/config";
 import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
+import { apiFetch } from "@/api/config";
 import { type User, UserRole } from "@/models/user";
 
 interface SessionContextType {
