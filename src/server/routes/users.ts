@@ -3,6 +3,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db";
 import { authenticateToken } from "../middleware/auth";
+import { backendFor } from "../storage";
 import { requireSystemRole } from "../middleware/system-rbac";
 import { strongPasswordSchema } from "../validation/password";
 
@@ -233,9 +234,43 @@ router.delete(
 	requireSystemRole("ADMIN"),
 	async (req, res) => {
 		try {
+			// Los proyectos cuyo dueño es este usuario se eliminan en cascada y
+			// arrastran sus documentos; los bytes en disco deben limpiarse aquí.
+			const user = await prisma.user.findUnique({
+				where: { id: req.params.id },
+				select: {
+					projects: {
+						select: {
+							documents: {
+								select: { file: { select: { key: true, backend: true } } },
+							},
+						},
+					},
+				},
+			});
+			const files = (user?.projects ?? []).flatMap((project) =>
+				project.documents.map((document) => document.file).filter(
+					(file): file is { key: string; backend: string } => !!file,
+				),
+			);
+
 			await prisma.user.delete({
 				where: { id: req.params.id },
 			});
+
+			for (const file of files) {
+				try {
+					await backendFor(file.backend).remove(file);
+				} catch (cleanupError) {
+					console.error("Error al limpiar los bytes de un documento del usuario eliminado", {
+						userId: req.params.id,
+						key: file.key,
+						backend: file.backend,
+						cleanupError,
+					});
+				}
+			}
+
 			res.json({ data: { message: "Usuario eliminado" } });
 		} catch {
 			res.status(500).json({ error: "Error al eliminar usuario" });

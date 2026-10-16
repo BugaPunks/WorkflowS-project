@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
 const BASE_ORIGIN = "http://localhost:3000";
@@ -42,7 +43,13 @@ export default defineConfig({
 			reuseExistingServer: !process.env.CI,
 			env: {
 				DISABLE_RATE_LIMIT: "true",
-				DATABASE_URL: process.env.DATABASE_URL || "file:./dev.db",
+				DATABASE_URL:
+					process.env.DATABASE_URL ||
+					(() => {
+						throw new Error(
+							"DATABASE_URL es obligatoria para ejecutar las pruebas e2e (PostgreSQL).",
+						);
+					})(),
 			},
 			timeout: 120_000,
 		},

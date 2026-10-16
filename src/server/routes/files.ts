@@ -21,11 +21,18 @@ router.get("/:key", authenticateToken, async (req, res) => {
 	try {
 		const { key } = req.params;
 
-		// El registro del archivo dice en qué backend están sus bytes; la
-		// configuración vigente no participa en la lectura.
+		// Solo se leen los metadatos aquí: los bytes (hasta 10 MB con el backend
+		// de Postgres) se piden después de verificar el acceso al proyecto, así
+		// las peticiones rechazadas no consumen memoria ni tráfico de la base.
 		const file = await prisma.documentFile.findUnique({
 			where: { key },
-			include: { document: true },
+			select: {
+				key: true,
+				mimeType: true,
+				size: true,
+				backend: true,
+				document: { select: { id: true, projectId: true, name: true } },
+			},
 		});
 
 		if (!file) {
@@ -45,7 +52,26 @@ router.get("/:key", authenticateToken, async (req, res) => {
 			if (!membership) return res.sendStatus(403);
 		}
 
-		const bytes = await backendFor(file.backend).read(file);
+		// Los bytes solo se necesitan una vez pasado el control de acceso. Con el
+		// backend de Postgres se piden ahora, para no traerlos en la consulta
+		// inicial; con el de disco el backend los lee del sistema de archivos.
+		let fileForRead: {
+			key: string;
+			mimeType: string;
+			size: number;
+			backend: string;
+			data: Uint8Array | null;
+			document: { id: string; projectId: string; name: string };
+		} = { ...file, data: null };
+		if (file.backend === "postgres") {
+			const bytesRow = await prisma.documentFile.findUnique({
+				where: { key },
+				select: { data: true },
+			});
+			fileForRead = { ...file, data: bytesRow?.data ?? null };
+		}
+
+		const bytes = await backendFor(file.backend).read(fileForRead);
 
 		if (!bytes) {
 			// El registro existe pero los bytes no: ocurre cuando el archivo

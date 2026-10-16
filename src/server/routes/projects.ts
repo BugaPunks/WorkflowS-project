@@ -4,6 +4,7 @@ import { prisma } from "../db";
 import { notify } from "../lib/notify";
 import { authenticateToken } from "../middleware/auth";
 import { requireSystemRole } from "../middleware/system-rbac";
+import { backendFor } from "../storage";
 
 const router = Router();
 
@@ -250,9 +251,40 @@ router.delete(
 	requireSystemRole("ADMIN"),
 	async (req, res) => {
 		try {
+			// Se capturan los archivos antes del borrado: la cascada elimina las
+			// filas de documentos y sus bytes no se limpiarían automáticamente
+			// cuando el backend es el disco.
+			const project = await prisma.project.findUnique({
+				where: { id: req.params.id },
+				select: {
+					documents: {
+						select: { file: { select: { key: true, backend: true } } },
+					},
+				},
+			});
+			const files = (project?.documents ?? [])
+				.map((document) => document.file)
+				.filter(
+					(file): file is { key: string; backend: string } => !!file,
+				);
+
 			await prisma.project.delete({
 				where: { id: req.params.id },
 			});
+
+			for (const file of files) {
+				try {
+					await backendFor(file.backend).remove(file);
+				} catch (cleanupError) {
+					console.error("Error al limpiar los bytes de un documento del proyecto eliminado", {
+						projectId: req.params.id,
+						key: file.key,
+						backend: file.backend,
+						cleanupError,
+					});
+				}
+			}
+
 			res.json({ data: { message: "Proyecto eliminado" } });
 		} catch (error) {
 			console.error("Error al eliminar proyecto:", error);

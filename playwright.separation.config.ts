@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
 const BASE_ORIGIN = "http://localhost:3000";
@@ -33,7 +34,13 @@ export default defineConfig({
 				PORT: "5000",
 				API_PORT: "5000",
 				UPLOADS_DIR: ".e2e-separation-uploads",
-				DATABASE_URL: process.env.DATABASE_URL || "file:./dev.db",
+				DATABASE_URL:
+				process.env.DATABASE_URL ||
+				(() => {
+					throw new Error(
+						"DATABASE_URL es obligatoria para ejecutar las pruebas e2e (PostgreSQL).",
+					);
+				})(),
 			},
 			timeout: 120_000,
 		},

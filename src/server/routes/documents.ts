@@ -346,11 +346,29 @@ router.delete(
 				select: { file: { select: { key: true, backend: true } } },
 			});
 
-			if (document?.file) {
-				await backendFor(document.file.backend).remove(document.file);
+			// Se borra primero la fila: así, si falla la persistencia en disco,
+			// el registro desaparece y el usuario no ve un documento sin bytes,
+			// mientras que los bytes huérfanos se registran para poder limpiarlos.
+			await prisma.document.delete({ where: { id } });
+
+			const file = document?.file ?? null;
+			if (file) {
+				try {
+					await backendFor(file.backend).remove(file);
+				} catch (cleanupError) {
+					console.error("Error al limpiar los bytes del documento", {
+						id,
+						key: file.key,
+						backend: file.backend,
+						cleanupError,
+					});
+					return res.status(500).json({
+						error:
+							"Documento eliminado, pero no se pudieron borrar sus bytes",
+					});
+				}
 			}
 
-			await prisma.document.delete({ where: { id } });
 			res.json({ message: "Documento eliminado" });
 		} catch (_error) {
 			res.status(500).json({ error: "Error al eliminar documento" });
