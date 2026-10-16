@@ -1,7 +1,7 @@
-import { apiFetch } from "@/api/config";
 import { Bell } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiFetch } from "@/api/config";
 import { useSession } from "@/hooks/useSession";
 import { cn } from "@/lib/utils";
 
@@ -118,9 +118,7 @@ export function NotificationBell() {
 			}
 
 			if (entityType === "USER_STORY") {
-				const projectId = await resolveProjectId(
-					`/user-stories/${entityId}`,
-				);
+				const projectId = await resolveProjectId(`/user-stories/${entityId}`);
 				navigate(projectId ? `/projects/${projectId}/user-stories` : "/");
 				return;
 			}

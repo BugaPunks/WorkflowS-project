@@ -1,5 +1,5 @@
-import { apiFetch } from "@/api/config";
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/api/config";
 import StudentDashboard from "@/components/dashboards/StudentDashboard";
 import TeacherDashboard from "@/components/dashboards/TeacherDashboard";
 import { useSession } from "@/hooks/useSession";

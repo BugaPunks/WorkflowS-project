@@ -1,5 +1,5 @@
-import { apiFetch } from "@/api/config";
 import { useCallback, useEffect, useState } from "react";
+import { apiFetch } from "@/api/config";
 import { Modal } from "@/components/Modal";
 import { useSession } from "@/hooks/useSession";
 
@@ -137,9 +137,7 @@ export default function Rubrics() {
 		if (!user) return;
 
 		try {
-			const url = isEditing
-				? `/rubrics/${currentRubricId}`
-				: "/rubrics";
+			const url = isEditing ? `/rubrics/${currentRubricId}` : "/rubrics";
 			const method = isEditing ? "PUT" : "POST";
 
 			const body: RubricPayload = {

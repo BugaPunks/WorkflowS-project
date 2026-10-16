@@ -33,9 +33,7 @@ export default defineConfig({
 				PORT: "5000",
 				API_PORT: "5000",
 				UPLOADS_DIR: ".e2e-separation-uploads",
-				DATABASE_URL:
-					process.env.DATABASE_URL ||
-					"file:./dev.db",
+				DATABASE_URL: process.env.DATABASE_URL || "file:./dev.db",
 			},
 			timeout: 120_000,
 		},

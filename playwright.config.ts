@@ -42,8 +42,7 @@ export default defineConfig({
 			reuseExistingServer: !process.env.CI,
 			env: {
 				DISABLE_RATE_LIMIT: "true",
-				DATABASE_URL:
-					process.env.DATABASE_URL || "file:./dev.db",
+				DATABASE_URL: process.env.DATABASE_URL || "file:./dev.db",
 			},
 			timeout: 120_000,
 		},
