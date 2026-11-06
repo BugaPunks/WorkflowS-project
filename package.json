@@ -16,6 +16,7 @@
 		"migrate:dev": "prisma migrate dev",
 		"migrate:prod": "prisma migrate deploy",
 		"prisma:studio": "prisma studio",
+    "seed:proyecto-completo": "npx tsx scripts/seed-proyecto-completo-3-sprints.ts",
 		"switch-db": "scripts\\switch-db.cmd",
 		"switch-db:sh": "bash ./scripts/switch-db.sh",
 		"lint": "biome check",
