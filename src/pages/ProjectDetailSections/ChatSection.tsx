@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/api/config";
 import { useSession } from "@/hooks/useSession";
 import type { ChatMessage } from "./types";
@@ -6,6 +6,9 @@ import type { ChatMessage } from "./types";
 export function ChatSection({ projectId }: { projectId: string }) {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
+	const [isSending, setIsSending] = useState(false);
+	const isSendingRef = useRef(false);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const { session: currentUser } = useSession();
 
 	const loadMessages = useCallback(async () => {
@@ -29,7 +32,11 @@ export function ChatSection({ projectId }: { projectId: string }) {
 
 	const handleSend = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!input.trim() || !currentUser) return;
+		const trimmed = input.trim();
+		if (!trimmed || !currentUser || isSendingRef.current) return;
+
+		isSendingRef.current = true;
+		setIsSending(true);
 
 		try {
 			const response = await apiFetch(`/chat/${projectId}/messages`, {
@@ -37,7 +44,7 @@ export function ChatSection({ projectId }: { projectId: string }) {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					userId: currentUser.id,
-					content: input,
+					content: trimmed,
 				}),
 			});
 			if (response.ok) {
@@ -46,6 +53,12 @@ export function ChatSection({ projectId }: { projectId: string }) {
 			}
 		} catch (err) {
 			console.error(err);
+		} finally {
+			isSendingRef.current = false;
+			setIsSending(false);
+			setTimeout(() => {
+				inputRef.current?.focus();
+			}, 0);
 		}
 	};
 
@@ -83,15 +96,23 @@ export function ChatSection({ projectId }: { projectId: string }) {
 			</div>
 			<form onSubmit={handleSend} className="flex gap-2">
 				<input
+					ref={inputRef}
 					type="text"
-					className="flex-1 border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-700"
+					disabled={isSending}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" && isSending) {
+							e.preventDefault();
+						}
+					}}
+					className="flex-1 border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
 					placeholder="Escribe un mensaje..."
 					value={input}
 					onChange={(e) => setInput(e.target.value)}
 				/>
 				<button
 					type="submit"
-					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium transition-colors"
+					disabled={!input.trim() || isSending}
+					className="bg-blue-950 text-white px-6 py-2 rounded-lg hover:bg-blue-900 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					Enviar
 				</button>

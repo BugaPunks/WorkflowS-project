@@ -39,6 +39,9 @@ export function ChatWidget() {
 	const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [input, setInput] = useState("");
+	const [isSending, setIsSending] = useState(false);
+	const isSendingRef = useRef(false);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const [users, setUsers] = useState<User[]>([]);
 	const [view, setView] = useState<"LIST" | "CHAT" | "NEW_CHAT">("LIST");
 	const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -109,7 +112,11 @@ export function ChatWidget() {
 
 	const handleSend = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!input.trim() || !selectedChat || !user) return;
+		const trimmed = input.trim();
+		if (!trimmed || !selectedChat || !user || isSendingRef.current) return;
+
+		isSendingRef.current = true;
+		setIsSending(true);
 
 		try {
 			const sendRes = await apiFetch(
@@ -117,7 +124,7 @@ export function ChatWidget() {
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ userId: user.id, content: input }),
+					body: JSON.stringify({ userId: user.id, content: trimmed }),
 				},
 			);
 			if (!sendRes.ok) {
@@ -138,6 +145,12 @@ export function ChatWidget() {
 			setMessages(data.data || []);
 		} catch (err) {
 			console.error(err);
+		} finally {
+			isSendingRef.current = false;
+			setIsSending(false);
+			setTimeout(() => {
+				inputRef.current?.focus();
+			}, 0);
 		}
 	};
 
@@ -357,16 +370,23 @@ export function ChatWidget() {
 								<div className="p-2 bg-white border-t border-gray-200">
 									<form onSubmit={handleSend} className="flex gap-2">
 										<input
+											ref={inputRef}
 											type="text"
 											value={input}
 											onChange={(e) => setInput(e.target.value)}
+											onKeyDown={(e) => {
+												if (e.key === "Enter" && isSending) {
+													e.preventDefault();
+												}
+											}}
 											placeholder="Mensaje..."
-											className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-700"
+											disabled={isSending}
+											className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
 										/>
 										<button
 											type="submit"
-											disabled={!input.trim()}
-											className="bg-blue-950 text-white p-2 rounded-full hover:bg-blue-900 disabled:opacity-50 transition-colors"
+											disabled={!input.trim() || isSending}
+											className="bg-blue-950 text-white p-2 rounded-full hover:bg-blue-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 										>
 											<Send size={16} />
 										</button>
