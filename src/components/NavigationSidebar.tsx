@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 
 	const STUDENT_MENU = [
 		{ label: "Proyectos", href: "/projects", icon: LayoutDashboard },
-		{ label: "Evaluaciones", href: "/evaluations", icon: Star },
+		{ label: "Mis Evaluaciones", href: "/my-evaluations", icon: Star },
 		{ label: "Calendario", href: "/calendar", icon: Calendar },
 	];
 
