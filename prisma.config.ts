@@ -12,9 +12,13 @@ import { defineConfig, env } from "prisma/config";
 //
 // Por eso DIRECT_URL debe ser el host *sin pooler* de Neon (la misma cadena sin
 // `-pooler`), y DATABASE_URL (la pooled) es la que usa el cliente en tiempo de
-// ejecucion en src/server/db.ts. En local, donde no hay pooler, DIRECT_URL puede
-// omitirse y el CLI usa DATABASE_URL.
-const directUrl = process.env.DIRECT_URL;
+// ejecucion en src/server/db.ts. Si DIRECT_URL no esta definida en el entorno,
+// se deriva automaticamente quitando `-pooler.` de DATABASE_URL si proviene de Neon.
+const directUrl =
+	process.env.DIRECT_URL ||
+	(process.env.DATABASE_URL
+		? process.env.DATABASE_URL.replace("-pooler.", ".")
+		: undefined);
 
 export default defineConfig({
 	schema: "prisma/schema.prisma",
