@@ -205,6 +205,58 @@ router.post(
 				return res.status(400).json({ error: "Faltan campos requeridos" });
 			}
 
+			if (typeof score === "number" && (score < 0 || score > 100)) {
+				return res
+					.status(400)
+					.json({ error: "La calificación final debe estar entre 0 y 100" });
+			}
+
+			if (
+				criteriaScores &&
+				Array.isArray(criteriaScores) &&
+				criteriaScores.length > 0
+			) {
+				for (const cs of criteriaScores) {
+					if (!cs || typeof cs.criteriaId !== "string") {
+						return res
+							.status(400)
+							.json({ error: "Datos de criterios inválidos" });
+					}
+					if (typeof cs.score !== "number" || Number.isNaN(cs.score)) {
+						return res.status(400).json({
+							error: "El puntaje del criterio debe ser un número válido",
+						});
+					}
+					if (cs.score < 0) {
+						return res.status(400).json({
+							error: "El puntaje del criterio no puede ser negativo",
+						});
+					}
+				}
+
+				const criteriaIds = criteriaScores.map(
+					(cs: { criteriaId: string }) => cs.criteriaId,
+				);
+				const dbCriteria = await prisma.criteria.findMany({
+					where: { id: { in: criteriaIds } },
+				});
+				const criteriaMap = new Map(dbCriteria.map((c) => [c.id, c]));
+
+				for (const cs of criteriaScores) {
+					const criterion = criteriaMap.get(cs.criteriaId);
+					if (!criterion) {
+						return res
+							.status(400)
+							.json({ error: `Criterio no encontrado: ${cs.criteriaId}` });
+					}
+					if (cs.score > criterion.maxScore) {
+						return res.status(400).json({
+							error: `El puntaje para el criterio "${criterion.name}" (${cs.score}) no puede exceder el puntaje máximo (${criterion.maxScore})`,
+						});
+					}
+				}
+			}
+
 			const task = await prisma.task.findUnique({ where: { id: taskId } });
 			if (!task) return res.status(404).json({ error: "Tarea no encontrada" });
 

@@ -329,10 +329,19 @@ export default function GradingView() {
 		}
 	};
 
-	const handleScoreChange = (criteriaId: string, value: number) => {
+	const handleScoreChange = (
+		criteriaId: string,
+		value: number,
+		maxScore?: number,
+	) => {
+		const clampedValue =
+			typeof maxScore === "number"
+				? Math.max(0, Math.min(maxScore, value))
+				: Math.max(0, value);
+
 		setScores((prev) =>
 			prev.map((s) =>
-				s.criteriaId === criteriaId ? { ...s, score: value } : s,
+				s.criteriaId === criteriaId ? { ...s, score: clampedValue } : s,
 			),
 		);
 	};
@@ -354,18 +363,34 @@ export default function GradingView() {
 		selectedRubric.criteria.forEach((c) => {
 			const scoreEntry = scores.find((s) => s.criteriaId === c.id);
 			const score = scoreEntry?.score || 0;
+			const clampedScore = Math.max(0, Math.min(c.maxScore, score));
 			// Normalize score to 0-1 ratio then multiply by weight
-			weightedSum += (score / c.maxScore) * c.weight;
+			weightedSum += (clampedScore / c.maxScore) * c.weight;
 			totalWeight += c.weight;
 		});
 
 		if (totalWeight === 0) return 0;
 		// Scale to 100
-		return Math.round((weightedSum / totalWeight) * 100);
+		return Math.min(
+			100,
+			Math.max(0, Math.round((weightedSum / totalWeight) * 100)),
+		);
 	};
 
 	const handleSubmit = async () => {
 		if (!selectedRubric || !user || !target || !projectId) return;
+
+		// Validar que ningún criterio exceda su puntaje máximo o sea negativo
+		for (const criterion of selectedRubric.criteria) {
+			const scoreEntry = scores.find((s) => s.criteriaId === criterion.id);
+			const scoreVal = scoreEntry?.score ?? 0;
+			if (scoreVal < 0 || scoreVal > criterion.maxScore) {
+				alert(
+					`El puntaje para el criterio "${criterion.name}" (${scoreVal}) no puede exceder el puntaje máximo (${criterion.maxScore}) ni ser menor a 0.`,
+				);
+				return;
+			}
+		}
 
 		try {
 			setIsSaving(true);
@@ -926,13 +951,45 @@ export default function GradingView() {
 													type="number"
 													min="0"
 													max={criterion.maxScore}
-													value={currentScore?.score || 0}
-													onChange={(e) =>
-														handleScoreChange(
-															criterion.id,
-															parseInt(e.target.value, 10) || 0,
-														)
-													}
+													value={currentScore?.score ?? 0}
+													onChange={(e) => {
+														const val = parseInt(e.target.value, 10);
+														if (Number.isNaN(val) || val < 0) {
+															handleScoreChange(
+																criterion.id,
+																0,
+																criterion.maxScore,
+															);
+														} else if (val > criterion.maxScore) {
+															handleScoreChange(
+																criterion.id,
+																criterion.maxScore,
+																criterion.maxScore,
+															);
+														} else {
+															handleScoreChange(
+																criterion.id,
+																val,
+																criterion.maxScore,
+															);
+														}
+													}}
+													onBlur={(e) => {
+														const val = parseInt(e.target.value, 10);
+														if (Number.isNaN(val) || val < 0) {
+															handleScoreChange(
+																criterion.id,
+																0,
+																criterion.maxScore,
+															);
+														} else if (val > criterion.maxScore) {
+															handleScoreChange(
+																criterion.id,
+																criterion.maxScore,
+																criterion.maxScore,
+															);
+														}
+													}}
 													className="w-16 px-2 py-1 text-right border border-gray-300 rounded-md focus:ring-blue-700 focus:border-blue-700 font-mono font-medium"
 												/>
 												<span className="text-gray-400 text-sm">
