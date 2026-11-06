@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { SidebarTrigger } from "./ui/sidebar";
 
 export function AppSidebarHeader() {
@@ -6,7 +7,12 @@ export function AppSidebarHeader() {
 			<div className="flex items-center gap-2">
 				<SidebarTrigger className="-ml-1" />
 				<div className="flex items-center">
-					<h1 className="text-lg font-semibold">WorkflowS</h1>
+					<Link
+						to="/"
+						className="text-lg font-semibold hover:opacity-80 transition-opacity"
+					>
+						WorkflowS
+					</Link>
 				</div>
 			</div>
 		</header>

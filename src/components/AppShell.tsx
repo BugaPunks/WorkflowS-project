@@ -1,5 +1,6 @@
 import { Menu } from "lucide-react";
 import type React from "react";
+import { Link } from "react-router-dom";
 import NavigationSidebar from "@/components/NavigationSidebar";
 import SidebarProvider, { useSidebar } from "@/islands/SidebarProvider";
 
@@ -49,9 +50,12 @@ function ShellContent({
 					>
 						<Menu size={24} />
 					</button>
-					<span className="ml-3 font-bold text-lg text-gray-900">
+					<Link
+						to="/"
+						className="ml-3 font-bold text-lg text-gray-900 hover:opacity-80 transition-opacity"
+					>
 						WorkflowS
-					</span>
+					</Link>
 				</div>
 
 				<div className="flex-1 overflow-y-auto p-4 md:p-8">

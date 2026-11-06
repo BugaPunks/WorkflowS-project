@@ -64,7 +64,10 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 			>
 				{/* Logo Area */}
 				<div className="flex items-center h-16 px-6 border-b border-gray-100">
-					<div className="flex items-center gap-3 text-blue-950">
+					<Link
+						to="/"
+						className="flex items-center gap-3 text-blue-950 hover:opacity-80 transition-opacity"
+					>
 						<div className="w-8 h-8 rounded-lg bg-blue-950 flex items-center justify-center text-white font-bold text-lg shrink-0">
 							W
 						</div>
@@ -76,7 +79,7 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 						>
 							WorkflowS
 						</span>
-					</div>
+					</Link>
 				</div>
 
 				{/* Navigation */}
@@ -170,14 +173,18 @@ export default function Sidebar({ isOpen, user, onClose }: SidebarProps) {
 					/>
 					<aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl flex flex-col animate-in slide-in-from-left duration-200">
 						<div className="flex items-center justify-between h-16 px-6 border-b border-gray-100">
-							<div className="flex items-center gap-3 text-blue-950">
+							<Link
+								to="/"
+								onClick={onClose}
+								className="flex items-center gap-3 text-blue-950 hover:opacity-80 transition-opacity"
+							>
 								<div className="w-8 h-8 rounded-lg bg-blue-950 flex items-center justify-center text-white font-bold text-lg">
 									W
 								</div>
 								<span className="font-bold text-xl text-gray-900 tracking-tight">
 									WorkflowS
 								</span>
-							</div>
+							</Link>
 						</div>
 
 						<nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
