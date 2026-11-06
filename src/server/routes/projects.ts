@@ -83,6 +83,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
 				sprints: true,
 				userStories: true,
 				tasks: true,
+				evaluations: true,
 			},
 		});
 		if (!project)
@@ -264,9 +265,7 @@ router.delete(
 			});
 			const files = (project?.documents ?? [])
 				.map((document) => document.file)
-				.filter(
-					(file): file is { key: string; backend: string } => !!file,
-				);
+				.filter((file): file is { key: string; backend: string } => !!file);
 
 			await prisma.project.delete({
 				where: { id: req.params.id },
@@ -276,12 +275,15 @@ router.delete(
 				try {
 					await backendFor(file.backend).remove(file);
 				} catch (cleanupError) {
-					console.error("Error al limpiar los bytes de un documento del proyecto eliminado", {
-						projectId: req.params.id,
-						key: file.key,
-						backend: file.backend,
-						cleanupError,
-					});
+					console.error(
+						"Error al limpiar los bytes de un documento del proyecto eliminado",
+						{
+							projectId: req.params.id,
+							key: file.key,
+							backend: file.backend,
+							cleanupError,
+						},
+					);
 				}
 			}
 

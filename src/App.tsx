@@ -57,18 +57,6 @@ const App = () => {
 							element={<TaskDetail />}
 						/>
 						<Route
-							path="/projects/:projectId/tasks/:taskId/grade"
-							element={<GradingView />}
-						/>
-						<Route
-							path="/projects/:projectId/sprints/:sprintId/grade"
-							element={<GradingView />}
-						/>
-						<Route
-							path="/projects/:projectId/grade"
-							element={<GradingView />}
-						/>
-						<Route
 							path="/projects/:projectId/user-stories"
 							element={<UserStories />}
 						/>
@@ -105,6 +93,18 @@ const App = () => {
 							{/* La exportación CSV exige ADMIN en la API; la vista se
 						    alinea con ella para que el rol no reciba un 403. */}
 							<Route path="/reports" element={<Reports />} />
+							<Route
+								path="/projects/:projectId/tasks/:taskId/grade"
+								element={<GradingView />}
+							/>
+							<Route
+								path="/projects/:projectId/sprints/:sprintId/grade"
+								element={<GradingView />}
+							/>
+							<Route
+								path="/projects/:projectId/grade"
+								element={<GradingView />}
+							/>
 						</Route>
 
 						<Route path="/calendar" element={<Calendar />} />

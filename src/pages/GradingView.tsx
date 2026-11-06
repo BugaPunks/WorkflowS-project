@@ -183,6 +183,9 @@ export default function GradingView() {
 	const [selectedRubric, setSelectedRubric] = useState<Rubric | null>(null);
 	const [scores, setScores] = useState<Score[]>([]);
 	const [overallFeedback, setOverallFeedback] = useState("");
+	const [existingEvaluationId, setExistingEvaluationId] = useState<
+		string | null
+	>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [burndownData, setBurndownData] = useState<BurndownData | null>(null);
@@ -304,11 +307,81 @@ export default function GradingView() {
 				const rubricsList = rubricsData.data || [];
 				setRubrics(rubricsList);
 
-				// Select first rubric by default if available
+				// Check if an evaluation already exists for this task/sprint/project
+				interface ExistingCriteria {
+					criteriaId: string;
+					score: number;
+					comment?: string | null;
+				}
+				interface ExistingEval {
+					id: string;
+					feedback?: string | null;
+					criteria?: ExistingCriteria[];
+				}
+				let existingEval: ExistingEval | null = null;
+				try {
+					if (taskId) {
+						const evalRes = await apiFetch(`/evaluations/task/${taskId}`);
+						if (evalRes.ok) {
+							const evalData = await evalRes.json();
+							if (evalData.data && evalData.data.length > 0) {
+								existingEval = evalData.data[0];
+							}
+						}
+					} else if (sprintId) {
+						const evalRes = await apiFetch(`/evaluations/sprint/${sprintId}`);
+						if (evalRes.ok) {
+							const evalData = await evalRes.json();
+							if (evalData.data && evalData.data.length > 0) {
+								existingEval = evalData.data[0];
+							}
+						}
+					} else if (projectId) {
+						const evalRes = await apiFetch(
+							`/evaluations/project/${projectId}/general`,
+						);
+						if (evalRes.ok) {
+							const evalData = await evalRes.json();
+							if (evalData.data && evalData.data.length > 0) {
+								existingEval = evalData.data[0];
+							}
+						}
+					}
+				} catch (e) {
+					console.error("Error loading existing evaluation:", e);
+				}
+
+				if (existingEval) {
+					setExistingEvaluationId(existingEval.id);
+					if (existingEval.feedback) {
+						setOverallFeedback(existingEval.feedback);
+					}
+				} else {
+					setExistingEvaluationId(null);
+				}
+
+				// Select first rubric by default if available and populate scores
 				if (rubricsList.length > 0) {
 					const initialRubric = rubricsList[0];
 					setSelectedRubric(initialRubric);
-					initializeScores(initialRubric);
+					if (existingEval?.criteria && existingEval.criteria.length > 0) {
+						const existingCriteria = existingEval.criteria;
+						const loadedScores = initialRubric.criteria.map((c: Criteria) => {
+							const match = existingCriteria.find(
+								(ec: ExistingCriteria) => ec.criteriaId === c.id,
+							);
+							return {
+								criteriaId: c.id,
+								score: match
+									? Math.max(0, Math.min(c.maxScore, match.score))
+									: 0,
+								comment: match?.comment || "",
+							};
+						});
+						setScores(loadedScores);
+					} else {
+						initializeScores(initialRubric);
+					}
 				}
 			} catch (error) {
 				console.error("Error loading grading data:", error);
@@ -396,6 +469,27 @@ export default function GradingView() {
 			setIsSaving(true);
 			const finalScore = calculateTotalScore();
 
+			if (existingEvaluationId) {
+				const response = await apiFetch(
+					`/evaluations/${existingEvaluationId}`,
+					{
+						method: "PUT",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							feedback: overallFeedback,
+							criteriaScores: scores,
+							score: finalScore,
+						}),
+					},
+				);
+
+				if (!response.ok) throw new Error("Error updating evaluation");
+
+				alert("Calificación actualizada exitosamente");
+				navigate(-1);
+				return;
+			}
+
 			interface EvaluationPayload {
 				projectId: string;
 				evaluatorId: string;
@@ -430,7 +524,11 @@ export default function GradingView() {
 			navigate(-1); // Go back
 		} catch (error) {
 			console.error("Error saving evaluation:", error);
-			alert("Error al guardar la calificación");
+			alert(
+				existingEvaluationId
+					? "Error al actualizar la calificación"
+					: "Error al guardar la calificación",
+			);
 		} finally {
 			setIsSaving(false);
 		}
@@ -500,7 +598,8 @@ export default function GradingView() {
 				<div className="bg-white p-8 shadow-sm rounded-lg min-h-full">
 					<div className="mb-6">
 						<h1 className="text-2xl font-bold text-gray-900 mb-2">
-							Calificar {getTypeName()}
+							{existingEvaluationId ? "Editar Calificación de" : "Calificar"}{" "}
+							{getTypeName()}
 						</h1>
 						<p className="text-sm text-gray-500">
 							Proyecto: {projectId}
@@ -919,6 +1018,30 @@ export default function GradingView() {
 						)}
 					</div>
 
+					{existingEvaluationId && (
+						<div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm flex items-center gap-2">
+							<svg
+								className="w-5 h-5 flex-shrink-0 text-amber-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<title>Aviso de edición</title>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							<span>
+								<strong>Modo Edición:</strong> Modificando la calificación
+								previa. Al guardar se actualizarán los puntajes y comentarios
+								existentes.
+							</span>
+						</div>
+					)}
+
 					{!selectedRubric ? (
 						<div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
 							No hay rúbricas disponibles para este proyecto.
@@ -1061,7 +1184,11 @@ export default function GradingView() {
 							disabled={isSaving || !selectedRubric}
 							className="px-6 py-2 bg-blue-950 text-white rounded-lg hover:bg-blue-900 font-medium shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
 						>
-							{isSaving ? "Guardando..." : "Guardar Calificación"}
+							{isSaving
+								? "Guardando..."
+								: existingEvaluationId
+									? "Actualizar Calificación"
+									: "Guardar Calificación"}
 						</button>
 					</div>
 				</div>

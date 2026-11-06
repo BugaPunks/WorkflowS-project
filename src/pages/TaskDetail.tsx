@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "@/api/config";
 import { Modal } from "@/components/Modal";
 import { PageHeader } from "@/components/PageHeader";
+import { useSession } from "@/hooks/useSession";
 import { formatDaysRemaining } from "@/utils/date";
 
 interface Task {
@@ -16,10 +17,12 @@ interface Task {
 	project?: {
 		name: string;
 	};
+	evaluations?: { id: string }[];
 }
 
 export default function TaskDetail() {
 	const navigate = useNavigate();
+	const { session: user } = useSession();
 	const { projectId, taskId } = useParams<{
 		projectId: string;
 		taskId: string;
@@ -136,15 +139,19 @@ export default function TaskDetail() {
 				subtitle={task.description}
 				actions={
 					<>
-						<button
-							type="button"
-							onClick={() =>
-								navigate(`/projects/${task.projectId}/tasks/${task.id}/grade`)
-							}
-							className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium whitespace-nowrap"
-						>
-							Calificar
-						</button>
+						{user?.role === "ADMIN" && (
+							<button
+								type="button"
+								onClick={() =>
+									navigate(`/projects/${task.projectId}/tasks/${task.id}/grade`)
+								}
+								className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium whitespace-nowrap"
+							>
+								{task.evaluations && task.evaluations.length > 0
+									? "Editar Calificación"
+									: "Calificar"}
+							</button>
+						)}
 						<button
 							type="button"
 							onClick={() => setShowEditModal(true)}

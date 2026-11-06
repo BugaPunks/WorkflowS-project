@@ -15,6 +15,13 @@ import { ChatSection } from "./ProjectDetailSections/ChatSection";
 import { DocumentsSection } from "./ProjectDetailSections/DocumentsSection";
 import { MembersSection } from "./ProjectDetailSections/MembersSection";
 
+interface EvaluationSummary {
+	id: string;
+	score?: number;
+	sprintId?: string | null;
+	taskId?: string | null;
+}
+
 interface Project {
 	id: string;
 	name: string;
@@ -23,6 +30,7 @@ interface Project {
 	createdAt: string;
 	ownerId: string;
 	members: ProjectMember[];
+	evaluations?: EvaluationSummary[];
 }
 
 interface ProjectMember {
@@ -49,6 +57,7 @@ interface Sprint {
 	status: string;
 	userStories: UserStory[];
 	tasks?: { status: string }[];
+	evaluations?: EvaluationSummary[];
 }
 
 function canStartSprint(status: string): boolean {
@@ -391,7 +400,7 @@ export default function ProjectDetail() {
 								Ver Historias
 							</Link>
 						</div>
-						{isProjectAdmin && (
+						{user?.role === "ADMIN" && (
 							<button
 								type="button"
 								onClick={() => navigate(`/projects/${project.id}/grade`)}
@@ -411,7 +420,9 @@ export default function ProjectDetail() {
 										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 									/>
 								</svg>
-								Calificar Proyecto
+								{project.evaluations?.some((e) => !e.sprintId && !e.taskId)
+									? "Editar Calificación"
+									: "Calificar Proyecto"}
 							</button>
 						)}
 					</div>
@@ -629,7 +640,7 @@ export default function ProjectDetail() {
 												)}
 											</div>
 											<div className="flex items-center gap-3">
-												{isProjectAdmin && (
+												{user?.role === "ADMIN" && (
 													<button
 														type="button"
 														onClick={() =>
@@ -639,7 +650,9 @@ export default function ProjectDetail() {
 														}
 														className="text-xs text-blue-950 hover:text-blue-800 font-medium underline"
 													>
-														Calificar Sprint
+														{sprint.evaluations && sprint.evaluations.length > 0
+															? "Editar Calificación"
+															: "Calificar Sprint"}
 													</button>
 												)}
 												{isProjectAdmin && canStartSprint(sprint.status) && (

@@ -22,6 +22,7 @@ interface Sprint {
 	project?: {
 		name: string;
 	};
+	evaluations?: { id: string }[];
 }
 
 interface Task {
@@ -186,7 +187,9 @@ export default function SprintDetail() {
 									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							Calificar Sprint
+							{sprint.evaluations && sprint.evaluations.length > 0
+								? "Editar Calificación"
+								: "Calificar Sprint"}
 						</button>
 					)
 				}
